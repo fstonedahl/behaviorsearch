@@ -1,0 +1,13 @@
+Copyright 2010 Forrest Stonedahl & Uri Wilensky
+
+The BehaviorSearch software is currently being developed as part of Forrest Stonedahl's doctoral thesis research, with adviser Uri Wilensky.
+However, other contributors are welcome (contact feedback@behaviorsearch.org if interested).
+
+Acknowledgements:
+ * Thesis committee members: Doug Downey, Luis Amaral, and especially Bill Rand, for their helpful discussion and insights.
+ * Everyone in the CCL lab group, and Forrest's wife Susa, for their help and encouragement.
+ * The National Science Foundation (grant IIS-0713619), and the Walter P. Murphy Society (IABM course development grant), for making this work possible by their generous support.
+
+Also, credit for the design of the BehaviorSpace icon/logo goes to Susa Stonedahl (based on the NetLogo icon, which is adapted from the version designed by Aaron Bramson.)
+
+

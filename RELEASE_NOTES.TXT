@@ -1,0 +1,8 @@
+
+Version 0.73:
+* Fixed possible problem behaviorsearch_gui launcher script for Linux, when JAVA_HOME was defined.
+
+
+Version 0.72:
+
+First public release.

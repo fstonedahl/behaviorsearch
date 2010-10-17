@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE search SYSTEM "behaviorsearch.dtd">
+<search>
+<modelInfo>
+<modelFile>/home/forrest/apps/netlogo-4.1/models/Sample Models/Biology/Flocking.nlogo</modelFile>
+<modelSetupCommands>setup</modelSetupCommands>
+<modelStepCommands>go</modelStepCommands>
+<modelStopCondition/>
+<modelStepLimit>100</modelStepLimit>
+<modelMetricReporter>ticks</modelMetricReporter>
+<modelMeasureIf>ticks &gt;= 75</modelMeasureIf>
+</modelInfo>
+<fitnessInfo>
+<fitnessMinimized>true</fitnessMinimized>
+<fitnessCollecting>MAX_ACROSS_STEPS</fitnessCollecting>
+<fitnessSamplingReplications>1</fitnessSamplingReplications>
+<fitnessCombineReplications>MEAN</fitnessCombineReplications>
+</fitnessInfo>
+<searchSpace>
+<paramSpec>["population" 50]</paramSpec>
+<paramSpec>["vision" [0 0.25 10]]</paramSpec>
+<paramSpec>["minimum-separation" [0 0.25 5]]</paramSpec>
+<paramSpec>["max-align-turn" [0 0.25 20]]</paramSpec>
+<paramSpec>["max-separate-turn" [0 0.25 20]]</paramSpec>
+<paramSpec>["max-cohere-turn" [0 0.25 20]]</paramSpec>
+</searchSpace>
+<searchMethod type="MutationHillClimber">
+<searchMethodParameter name="mutation-rate" value="0.01"/>
+<searchMethodParameter name="restart-after-stall-count" value="0"/>
+</searchMethod>
+<chromosomeRepresentation type="GrayBinaryChromosome"/>
+<caching>true</caching>
+<evaluationLimit>10</evaluationLimit>
+<bestCheckingNumReplications>1</bestCheckingNumReplications>
+</search>

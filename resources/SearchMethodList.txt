@@ -1,0 +1,6 @@
+StandardGA
+MutationHillClimber
+RandomSearch
+
+
+
