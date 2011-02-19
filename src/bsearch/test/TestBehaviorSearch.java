@@ -23,8 +23,6 @@ import bsearch.app.BehaviorSearch;
 import bsearch.app.BehaviorSearchException;
 import bsearch.app.SearchProtocol;
 import bsearch.app.BehaviorSearch.RunOptions;
-import bsearch.evaluation.ResultListener;
-import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.ModelRunner;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.Chromosome;
@@ -39,7 +37,9 @@ import bsearch.util.GeneralUtils;
 
 public strictfp class TestBehaviorSearch
 {
-	// a main method to run it -- just for convenience.
+	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo/models/Sample Models/";
+	
+	// a main method to run it -- for convenience.
 	public static void main( String... args )
 	{
 		org.junit.runner.JUnitCore.main
@@ -52,7 +52,7 @@ public strictfp class TestBehaviorSearch
 	{
 		ModelRunner runner;
 		LinkedHashMap<String,Object> params; 
-    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting("../netlogo/models/Sample Models/Earth Science/Fire.nlogo", true, 100);
+    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(PATH_TO_NETLOGO_MODELS + "Earth Science/Fire.nlogo", true, 100);
     	runner.setSetupCommands( "setup" );
     	runner.setStepCommands( "go" );
     	runner.setStopConditionReporter( "burned-trees > 3000" );
@@ -83,7 +83,7 @@ public strictfp class TestBehaviorSearch
     {
 		ModelRunner runner;
 		LinkedHashMap<String,Object> params; 
-    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting("../netlogo/models/Sample Models/Earth Science/Fire.nlogo", false, 100);
+    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(PATH_TO_NETLOGO_MODELS + "Earth Science/Fire.nlogo", false, 100);
     	runner.setSetupCommands( "setup" );
     	runner.setStepCommands( "go" );
     	runner.setStopConditionReporter( "burned-trees > 3000" );
@@ -108,7 +108,7 @@ public strictfp class TestBehaviorSearch
 	@Test
 	public void testConstraintsTextGeneration() throws BehaviorSearchException, NetLogoLinkException
     {
-		Assert.assertEquals(bsearch.nlogolink.Utils.getDefaultConstraintsText("../netlogo/models/Sample Models/Social Science/Ethnocentrism.nlogo").trim(),
+		Assert.assertEquals(bsearch.nlogolink.Utils.getDefaultConstraintsText(PATH_TO_NETLOGO_MODELS + "/Social Science/Ethnocentrism.nlogo").trim(),
 		"[\"mutation-rate\" [0 0.0010 1]]\n[\"death-rate\" [0 0.05 1]]\n[\"immigrants-per-day\" [0 1 100]]\n[\"initial-ptr\" [0 0.01 1]]\n[\"cost-of-giving\" [0 0.01 1]]\n[\"gain-of-receiving\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-same\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-different\" [0 0.01 1]]");
     }
 	
@@ -146,12 +146,13 @@ public strictfp class TestBehaviorSearch
 		SearchSpace ss = new SearchSpace(Arrays.asList("[\"discrete1to4\" [1 1 4]]", 
 														"[\"continuous0to1.5\" [0.0 \"C\" 1.5]]",
 														"[\"categorical\" \"apple\" \"banana\" \"cherry\"]",
-														"[\"const\" 25]"));
+														"[\"const\" 25]",
+														"[\"discretedecimal\" [-1 0.17 2]]"));
 		MersenneTwisterFast rng = new MersenneTwisterFast();
 		
-    	for (String s: ChromosomeTypeLoader.getAllChromosomeTypes())
+    	for (String chromoType: ChromosomeTypeLoader.getAllChromosomeTypes())
     	{
-    		ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(s);    		
+    		ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(chromoType);    		
     		Chromosome cs[] = new Chromosome[] {factory.createChromosome(ss, rng), factory.createChromosome(ss, rng)};
 			for (int i = 0; i < 1000; i++)
 			{
@@ -165,13 +166,23 @@ public strictfp class TestBehaviorSearch
 					double val2 = (Double)params.get("continuous0to1.5");
 					String val3 = (String) params.get("categorical");
 					Object val4 = params.get("const");
-					Assert.assertTrue("check val1 >= 1", val1 >= 1 );
-					Assert.assertTrue("check val1 <= 4", val1 <= 4 );
-					Assert.assertTrue("check val2 >= 0.0", val2 >= 0.0 );
-					Assert.assertTrue("check val2 <= 1.5", val2 <= 1.5 );
-					Assert.assertTrue("check val3 okay", val3.equals("apple") || val3.equals("banana") || val3.equals("cherry"));
-					Assert.assertTrue("check val4 okay", val4.equals(new Double(25)));
+					double val5 = (Double)params.get("discretedecimal");
+					Assert.assertTrue(chromoType + " check val1 >= 1", val1 >= 1 );
+					Assert.assertTrue(chromoType + " check val1 <= 4", val1 <= 4 );
+					Assert.assertTrue(chromoType + " check val2 >= 0.0", val2 >= 0.0 );
+					Assert.assertTrue(chromoType + " check val2 <= 1.5", val2 <= 1.5 );
+					Assert.assertTrue(chromoType + " check val3 okay", val3.equals("apple") || val3.equals("banana") || val3.equals("cherry"));
+					Assert.assertTrue(chromoType + " check val4 okay", val4.equals(new Double(25)));
+					Assert.assertTrue(chromoType + " check val5 >= -1", val5 >= -1 );
+					Assert.assertTrue(chromoType + " check val5 <= 2", val5 <= 2 );
 				}
+			}
+			for (int i = 0; i < 10000; i++)
+			{
+				Chromosome c = factory.createChromosome(ss, rng);
+				//System.out.println(chromoType + " i=" + i + " : " + c);
+				Chromosome c2 = factory.createChromosome(ss, c.getParamSettings());
+				Assert.assertEquals(chromoType + " check recreate Chromosomes from values:", c.getParamSettings(), c2.getParamSettings());
 			}
     	}		
 	}
@@ -201,7 +212,7 @@ public strictfp class TestBehaviorSearch
 		}
 		numBits = 62 ;
 		bits= new boolean[numBits + 3];
-		for (long i = 0; i < (1L << numBits); i += 1037093017331L)
+		for (long i = 0; i < (1L << numBits); i += 15037093017331L)
 		{
 			bcgray.binaryEncode(i, bits, 2, numBits);
 			long dec = bcgray.binaryDecode(bits, 2, numBits);  
@@ -212,18 +223,6 @@ public strictfp class TestBehaviorSearch
 		}		
 	}
 
-	@Test
-	public void testRunningSearch() throws IOException , SAXException, SearchParameterException, BehaviorSearchException, InterruptedException
-	{
-		String FILENAME = "test/Tester.bsearch" ;
-		SearchProtocol sp = SearchProtocol.loadFile( FILENAME ) ;
-		Assert.assertEquals(true, sp.caching);
-		List<ResultListener> listeners = new ArrayList<ResultListener>();
-		SearchSpace space = new SearchSpace(sp.paramSpecStrings);
-		SearchManager archive = BehaviorSearch.runProtocol(sp, space, 0, 2, new MersenneTwisterFast(1234), listeners);
-		Assert.assertEquals(-6.0, archive.getCurrentBestFitness(), 0.000001);
-		Assert.assertEquals(-1.0, (Double)archive.getCurrentBest().getParamSettings().get("b"), 0.000001);		
-	}
 
 	public static <T> String join(final Iterable<T> objs, final String delimiter) {
 	    java.util.Iterator<T> iter = objs.iterator();

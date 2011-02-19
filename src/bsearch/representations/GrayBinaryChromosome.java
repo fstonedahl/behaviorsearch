@@ -1,5 +1,7 @@
 package bsearch.representations;
 
+import java.util.LinkedHashMap;
+
 import org.nlogo.util.MersenneTwisterFast;
 
 import bsearch.space.SearchSpace;
@@ -12,6 +14,10 @@ public strictfp class GrayBinaryChromosome extends BinaryChromosome
 	public GrayBinaryChromosome( SearchSpace searchSpace , MersenneTwisterFast rng )
 	{
 		super(searchSpace, rng);
+	}	
+	public GrayBinaryChromosome( SearchSpace searchSpace , LinkedHashMap<String,Object> paramSettings )
+	{
+		super(searchSpace, paramSettings);
 	}	
 	public GrayBinaryChromosome( boolean[] bitstring, SearchSpace searchSpace )
 	{
@@ -79,8 +85,11 @@ public strictfp class GrayBinaryChromosome extends BinaryChromosome
 		public Chromosome createChromosome(SearchSpace searchSpace,
 				MersenneTwisterFast rng) {
 			return new GrayBinaryChromosome(searchSpace, rng);
-			
-		}		
+		}
+		public Chromosome createChromosome( SearchSpace searchSpace, LinkedHashMap<String,Object> paramSettings)
+		{
+			return new GrayBinaryChromosome(searchSpace, paramSettings);
+		}
 		public String getHTMLHelpText() {
 			return "<strong>GrayBinaryChromosome</strong> Similar to StandardBinaryChromosome, " +
 					"except that numeric values are encoded to binary strings using a Gray code, " +

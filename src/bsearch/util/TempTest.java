@@ -1,5 +1,7 @@
 package bsearch.util;
 
+import java.io.FileNotFoundException;
+
 import org.nlogo.util.MersenneTwisterFast;
 
 //TODO: Remove this class sometime.  It was just for some quick code testing.
@@ -24,6 +26,13 @@ public class TempTest {
 
 	public static void main(String[] args) {
 		//String fstr = "%.6g";
+		
+		try {
+			SimpleDiGraph.readEdgeListFromFile("testgraph.txt");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		System.exit(0);
 		
 		MersenneTwisterFast rng = new MersenneTwisterFast();
 		double d = 0.99;

@@ -32,6 +32,26 @@ public strictfp class MixedTypeChromosome implements Chromosome
 		}
 	}	
 
+	private MixedTypeChromosome( SearchSpace searchSpace , LinkedHashMap<String,Object> paramSettings)
+	{
+		super();
+		this.searchSpace = searchSpace;
+		List<ParameterSpec> paramSpecs = searchSpace.getParamSpecs(); 
+		if (paramSpecs.size() != paramSettings.size())
+		{
+			throw new IllegalStateException("# of parameter settings does not match search space parameter specifications.");
+		}
+		paramVals = new Object[paramSettings.size()];
+
+		int i = 0;
+		for (ParameterSpec p: paramSpecs)
+		{
+			//TODO: could be checking each of these paramSettings to make sure it's valid for the corresponding paramSpec?
+			//  Or is it better not to?
+			paramVals[i++] = paramSettings.get(p.getParameterName());
+		}
+	}	
+
 	private MixedTypeChromosome( Object[] paramVals, SearchSpace searchSpace )
 	{
 		super() ;
@@ -144,8 +164,11 @@ public strictfp class MixedTypeChromosome implements Chromosome
 	{
 		public Chromosome createChromosome(SearchSpace searchSpace,
 				MersenneTwisterFast rng) {
-			return new MixedTypeChromosome(searchSpace, rng);
-			
+			return new MixedTypeChromosome(searchSpace, rng);			
+		}
+		public Chromosome createChromosome( SearchSpace searchSpace, LinkedHashMap<String,Object> paramSettings)
+		{
+			return new MixedTypeChromosome(searchSpace, paramSettings);
 		}		
 		public String getHTMLHelpText() {
 			return "<strong>MixedTypeChromosome</strong> This encoding most closely matches the way " +

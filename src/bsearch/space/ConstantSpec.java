@@ -42,5 +42,8 @@ public strictfp class ConstantSpec extends ParameterSpec {
 	public Object getValueFromChoice(long choice, long maxNumChoices) {
 		return obj;
 	}
-	
+	@Override
+	public long getChoiceIndexFromValue(Object val, long maxNumChoices) {
+		return 0;
+	}
 }

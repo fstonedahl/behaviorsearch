@@ -76,5 +76,17 @@ public strictfp class DoubleDiscreteSpec extends ParameterSpec {
 			return new Double(dMin + dStep * wrappedChoice);
 		}	
 	}
+	@Override
+	public long getChoiceIndexFromValue(Object val, long maxNumChoices) {
+		if (!(val instanceof Number))
+		{
+			System.out.println(val);
+			throw new IllegalStateException("Type mismatch: can't represent a non-number using this double-valued parameter specification.");
+		}
+		double dVal = ((Number) val).doubleValue();
+		
+		return (long) StrictMath.round((dVal - dMin) / dStep);
+	}
 
+	
 }

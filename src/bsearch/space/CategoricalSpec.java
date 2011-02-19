@@ -72,4 +72,8 @@ public strictfp class CategoricalSpec extends ParameterSpec {
 	public Object getValueFromChoice(long choice, long maxNumChoices) {
 		return choices.get((int)(choice % choices.size()));
 	}
+	@Override
+	public long getChoiceIndexFromValue(Object val, long maxNumChoices) {
+		return choices.indexOf(val);
+	}
 }

@@ -1,5 +1,7 @@
 package bsearch.representations;
 
+import java.util.LinkedHashMap;
+
 import org.nlogo.util.MersenneTwisterFast;
 
 import bsearch.space.SearchSpace;
@@ -12,6 +14,10 @@ public strictfp class StandardBinaryChromosome extends BinaryChromosome
 	public StandardBinaryChromosome( SearchSpace searchSpace , MersenneTwisterFast rng )
 	{
 		super(searchSpace, rng);
+	}	
+	public StandardBinaryChromosome( SearchSpace searchSpace , LinkedHashMap<String,Object> paramSettings )
+	{
+		super(searchSpace, paramSettings);
 	}	
 	public StandardBinaryChromosome( boolean[] bitstring, SearchSpace searchSpace )
 	{
@@ -56,7 +62,11 @@ public strictfp class StandardBinaryChromosome extends BinaryChromosome
 				MersenneTwisterFast rng) {
 			return new StandardBinaryChromosome(searchSpace, rng);
 			
-		}		
+		}
+		public Chromosome createChromosome( SearchSpace searchSpace, LinkedHashMap<String,Object> paramSettings)
+		{
+			return new StandardBinaryChromosome(searchSpace, paramSettings);
+		}
 		public String getHTMLHelpText() {
 			return "<strong>StandardBinaryChromosome</strong> In this encoding, every parameter is converted " +
 					"into a string of binary digits, and these sequences are concatenated together into one " +

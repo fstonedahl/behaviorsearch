@@ -47,11 +47,42 @@ public abstract strictfp class BinaryChromosome implements Chromosome
 			int numbits = numBitsRequired(p.choiceCount());
 			if (numbits > 0)
 			{
-				binaryEncode(rng.nextInt(1 << numbits), bitstring, offset, numbits);
+				binaryEncode(rng.nextLong(1L << numbits), bitstring, offset, numbits);
 				offset += numbits;
 			}
 		}
-	}	
+	}
+	
+	public BinaryChromosome( SearchSpace searchSpace, LinkedHashMap<String,Object> paramSettings)
+	{
+		super();
+		this.searchSpace = searchSpace;
+		List<ParameterSpec> paramSpecs = searchSpace.getParamSpecs(); 
+		if (paramSpecs.size() != paramSettings.size())
+		{
+			throw new IllegalStateException("# of parameter settings does not match search space parameter specifications.");
+		}
+		int bitstringLength = 0;
+		for (ParameterSpec p: paramSpecs)
+		{
+			bitstringLength += numBitsRequired(p.choiceCount());
+		}		
+		bitstring = new boolean[bitstringLength];
+
+		int offset = 0;
+		for (int i = 0; i < paramSpecs.size(); i++)
+		{
+			ParameterSpec p = paramSpecs.get(i);
+			Object value = paramSettings.get(p.getParameterName());
+			int numbits = numBitsRequired(p.choiceCount());
+			long choice = p.getChoiceIndexFromValue(value, 1L << numbits);
+			if (numbits > 0)
+			{
+				binaryEncode(choice, bitstring, offset, numbits);
+				offset += numbits;
+			}
+		}
+	}
 
 	protected BinaryChromosome( boolean[] bitstring, SearchSpace searchSpace )
 	{

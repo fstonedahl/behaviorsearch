@@ -29,7 +29,34 @@ public strictfp class RealHypercubeChromosome implements Chromosome
 		{
 			dVals[i] = rng.nextDouble();
 		}
-	}	
+	}
+	private RealHypercubeChromosome( SearchSpace searchSpace , LinkedHashMap<String,Object> paramSettings)
+	{
+		super();
+		this.searchSpace = searchSpace;
+		List<ParameterSpec> paramSpecs = searchSpace.getParamSpecs(); 
+		if (paramSpecs.size() != paramSettings.size())
+		{
+			throw new IllegalStateException("# of parameter settings does not match search space parameter specifications.");
+		}
+		dVals = new double[paramSpecs.size()];
+		for (int i = 0 ; i < dVals.length; i++)
+		{
+			ParameterSpec paramSpec = paramSpecs.get(i); 
+			Object val = paramSettings.get(paramSpec.getParameterName());
+			if (paramSpec instanceof DoubleContinuousSpec)
+			{
+				DoubleContinuousSpec dspec = (DoubleContinuousSpec) paramSpec;
+				double paramVal = (Double) val;
+				dVals[i] = (paramVal - dspec.getMin()) / (dspec.getMax() - dspec.getMin());
+			}
+			else
+			{
+				long choice = paramSpec.getChoiceIndexFromValue(val, paramSpec.choiceCount());
+				dVals[i] = (double) choice / (double) paramSpec.choiceCount();				
+			}
+		}
+	}
 
 	private RealHypercubeChromosome( double[] dVals, SearchSpace searchSpace )
 	{
@@ -56,8 +83,7 @@ public strictfp class RealHypercubeChromosome implements Chromosome
 				else
 				{
 					throw new IllegalStateException("Unknown real-valued parameter specification - this type of Chromosomal representation can't handle it.");
-				}
-				
+				}				
 			}
 			else
 			{
@@ -165,8 +191,11 @@ public strictfp class RealHypercubeChromosome implements Chromosome
 		public Chromosome createChromosome(SearchSpace searchSpace,
 				MersenneTwisterFast rng) {
 			return new RealHypercubeChromosome(searchSpace, rng);
-			
 		}
+		public Chromosome createChromosome( SearchSpace searchSpace, LinkedHashMap<String,Object> paramSettings)
+		{
+			return new RealHypercubeChromosome(searchSpace, paramSettings);
+		}				
 		public String getHTMLHelpText() {
 			return "<strong>RealHypercubeChromosome</strong> In this encoding, every parameter " +
 					"(numeric or not) is represented by a <I>real-valued</I> continuous variable.  " +

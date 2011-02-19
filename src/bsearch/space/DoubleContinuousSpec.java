@@ -74,5 +74,13 @@ public strictfp class DoubleContinuousSpec extends ParameterSpec {
 	public Object getValueFromChoice(long choice, long maxNumChoices) {
 		return dMin + (dMax - dMin) * choice / (maxNumChoices - 1);	
 	}
-
+	@Override
+	public long getChoiceIndexFromValue(Object val, long maxNumChoices) {
+		if (!(val instanceof Number))
+		{
+			throw new IllegalStateException("Type mismatch: can't represent a non-number using this double-valued parameter specification.");
+		}
+		double dVal = ((Number) val).doubleValue();
+		return (long) StrictMath.round((dVal - dMin) * (maxNumChoices - 1) / (dMax - dMin));
+	}
 }

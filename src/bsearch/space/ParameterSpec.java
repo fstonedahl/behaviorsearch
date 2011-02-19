@@ -22,6 +22,7 @@ public strictfp abstract class ParameterSpec {
 	public abstract Object mutate(Object obj, double mutStrength, MersenneTwisterFast rng);
 
 	public abstract Object getValueFromChoice(long choice, long maxNumChoices);
+	public abstract long getChoiceIndexFromValue(Object val, long maxNumChoices);
 	/**
 	 * The special value -1 indicates a continuous parameter.
 	 */

@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+
+import bsearch.app.BehaviorSearchException;
 import bsearch.app.SearchProtocol;
 import bsearch.nlogolink.ModelRunResult;
 import bsearch.representations.Chromosome;
@@ -11,21 +13,35 @@ import bsearch.space.SearchSpace;
 
 
 /**
- * This class is a work-in-progress.  Currently unused.
+ * This class is a work-in-progress.  Currently unused...
  */
 public strictfp class DerivativeFitnessFunction implements FitnessFunction
 {
 	private final SearchProtocol protocol;
+	private final String paramName;
+	private final double deltaDistance; 
 	
-	public DerivativeFitnessFunction(SearchProtocol protocol)
+	public DerivativeFitnessFunction(SearchProtocol protocol, String paramName, double deltaDistance)
 	{
 		this.protocol = protocol;
+		this.paramName = paramName;
+		this.deltaDistance = deltaDistance;
 	}
-	private Chromosome getPointDeltaNearby(SearchSpace space, Chromosome point)
+	private Chromosome getPointDeltaNearby(SearchSpace space, Chromosome point) throws BehaviorSearchException
 	{
-		//TODO: move this method to SearchSpace?  Seems like it probably belongs there instead...
-		int paramIndex = 0; //TODO: FIXME hardcoded
-		//space.getParamSpecs().get()
+		LinkedHashMap<String, Object> newParamSettings = new LinkedHashMap<String,Object>(point.getParamSettings());
+		
+		Object curVal = newParamSettings.get(paramName);
+		if (curVal instanceof Number)
+		{
+			double val = ((Number) curVal).doubleValue();
+			double newVal = (val - deltaDistance); 
+			newParamSettings.put(paramName, newVal);
+		}
+		else
+		{
+			throw new BehaviorSearchException("Derivative-based fitness measurements only work with numerical parameters!");
+		}
 		return null;
 	}
 

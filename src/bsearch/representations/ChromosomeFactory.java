@@ -1,12 +1,15 @@
 package bsearch.representations;
 
+import java.util.LinkedHashMap;
+
 import org.nlogo.util.MersenneTwisterFast;
 
 import bsearch.space.SearchSpace;
 
 public strictfp interface ChromosomeFactory {
 
-	public Chromosome createChromosome(SearchSpace searchSpace , MersenneTwisterFast rng);
+	public abstract Chromosome createChromosome(SearchSpace searchSpace , MersenneTwisterFast rng);
+	public abstract Chromosome createChromosome( SearchSpace searchSpace, LinkedHashMap<String,Object> paramSettings);
 	public abstract String getHTMLHelpText();
 	
 }
