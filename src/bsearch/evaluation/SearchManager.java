@@ -78,7 +78,8 @@ public class SearchManager
 	 * @throws BehaviorSearchException
 	 * @throws InterruptedException
 	 */
-	private double computeFitnessWithoutSideEffects(Chromosome pointOfInterest, int numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, NetLogoLinkException, InterruptedException
+	private double computeFitnessWithoutSideEffects(Chromosome pointOfInterest, int numReplicationsDesired, MersenneTwisterFast rng) 
+		throws ModelRunnerException, NetLogoLinkException, InterruptedException, BehaviorSearchException
 	{
 		ResultsArchive tempCache = new ResultsArchive(numReplicationsDesired);
 		HashMap<Chromosome, Integer> desiredRuns = fitnessFunction.getRunsNeeded(pointOfInterest, numReplicationsDesired, tempCache);
@@ -126,7 +127,8 @@ public class SearchManager
 	 * In addition to computing the fitness for this point, this method also checks if it's the best so far,
 	 * in which case it's stored as the current best.
 	 */
-	public double[] computeFitnessBatch(Chromosome[] points, int[] numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, NetLogoLinkException, InterruptedException
+	public double[] computeFitnessBatch(Chromosome[] points, int[] numReplicationsDesired, MersenneTwisterFast rng) 
+		throws ModelRunnerException, NetLogoLinkException, InterruptedException, BehaviorSearchException
 	{
 		if (numReplicationsDesired.length != points.length)
 		{
@@ -298,6 +300,14 @@ public class SearchManager
 	{
 		return searchHasTotallyStalled() || evaluationCounter >= protocol.evaluationLimit 
 			|| (stopAtFitnessGoal && fitnessFunction.reachedStopGoalFitness(fitnessGoalLimit));
+	}
+	public int getRemainingEvaluations()
+	{
+		return protocol.evaluationLimit - evaluationCounter;
+	}
+	public int getBatchRunnerNumThreads()
+	{
+		return runner.getNumThreads();
 	}
 	
 	public int getSearchIDNumber()

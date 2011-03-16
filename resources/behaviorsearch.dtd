@@ -11,7 +11,7 @@ WARNING: Work in progress.  ~Forrest (10/05/2008)
 <!--  *********** EVALUATION SECTION ************** -->
 
 <!ELEMENT modelInfo (modelFile,modelSetupCommands,modelStepCommands,modelStopCondition,modelStepLimit,modelMetricReporter,modelMeasureIf)>
-<!ELEMENT fitnessInfo (fitnessMinimized,fitnessCollecting,fitnessSamplingReplications,fitnessCombineReplications)>
+<!ELEMENT fitnessInfo (fitnessMinimized,fitnessCollecting,fitnessSamplingReplications,fitnessCombineReplications,fitnessDerivative?)>
 
 <!ELEMENT modelFile (#PCDATA)>
 <!ELEMENT modelSetupCommands (#PCDATA)>
@@ -30,6 +30,11 @@ WARNING: Work in progress.  ~Forrest (10/05/2008)
 
 <!ELEMENT fitnessSamplingReplications (#PCDATA)>
 <!ELEMENT fitnessCombineReplications (#PCDATA)>
+<!ELEMENT fitnessDerivative EMPTY>
+<!ATTLIST fitnessDerivative
+  parameter  CDATA #REQUIRED
+  delta CDATA #REQUIRED>
+
 
 <!--  *********** SEARCH SPACE SECTION ************** -->
 

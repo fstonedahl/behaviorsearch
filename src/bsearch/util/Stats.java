@@ -35,6 +35,11 @@ public class Stats {
 	/** calculates sample variance (as opposed to population variances) */ 
 	public static double variance( List<Double> dlist )
 	{
+		double n = dlist.size();
+		if (n <= 1)
+		{
+			return 0;
+		}
 		double mean = mean(dlist);
 		
 		double sum = 0;
@@ -44,7 +49,6 @@ public class Stats {
 			sum += (d - mean);
 			sumsq += (d - mean) * (d - mean);
 		}
-		double n = dlist.size();
 		return (sumsq - sum * sum / n) / (n - 1);
 	}
 	

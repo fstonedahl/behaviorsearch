@@ -15,33 +15,33 @@ def uniq(alist):   # remove duplicates, preserve order
 	return [set.setdefault(e,e) for e in alist if e not in set]
 
 lastColor = None
-def quickplot(xVals,yVals,stdErrVals,lab):
+def quickplot(xVals,yVals,errBarVals,lab):
 	global lastColor
 	lab = latexEscape(lab)
-	if stdErrVals != None:
+	if errBarVals != None:
 		# for 90% confidence, use 1.65 instead of 1.96
-		lines = errorbar(xVals,yVals,yerr=stdErrVals*1.96,label=lab)
+		lines = errorbar(xVals,yVals,yerr=errBarVals*1.96,label=lab)
 	else:
 		lines = plot(xVals,yVals,label=lab)
 	lastColor = lines[0].get_color()
 
-def quickplot2(xVals,yVals,stdErrVals,lab):
+def quickplot2(xVals,yVals,errBarVals,lab):
 	global lastColor
 	lab = latexEscape(lab)
-	if stdErrVals != None:
+	if errBarVals != None:
 		# for 90% confidence, use 1.65 instead of 1.96
-		lines = errorbar(xVals,yVals,yerr=stdErrVals*1.96,label=lab,color=lastColor,linestyle="dotted") 
+		lines = errorbar(xVals,yVals,yerr=errBarVals*1.96,label=lab,color=lastColor,linestyle="dotted") 
 	else:
 		lines = plot(xVals,yVals,label=lab,color=lastColor,linestyle="dotted")
 
 
 def getShortNames(filenames):
-	shortnames = list(filenames);
+	shortnames = list(filenames);	
 	if (len(set(shortnames)) == 1):
 		return shortnames
-	while len(set(x[0] for x in shortnames)) == 1:
+	while all ([(len(x) > 1) for x in shortnames]) and len(set(x[0] for x in shortnames)) == 1:
 		shortnames = [x[1:] for x in shortnames]
-	while len(set(x[-1] for x in shortnames)) == 1:
+	while all ([(len(x) > 1) for x in shortnames]) and len(set(x[-1] for x in shortnames)) == 1:
 		shortnames = [x[:-1] for x in shortnames]
 	return shortnames
 
@@ -64,19 +64,25 @@ def main(outputFileName, inputPatterns, options):
 			dat = dat[options.min:options.max:options.interval]
 			
 		numSearches.add(dat[0]['num_searches'])
-			
-		if (options.errorbars):
-			stdErrVals = dat['stderr_fitness']
-			if (options.checked and "stderr_checked_fitness" in dat.dtype.names):
-				checkedStdErrVals = dat['stderr_checked_fitness']
+		
+		if (options.stdevbars):
+			options.errorbars = True
+			errorBarType = "stdev"
 		else:
-			stdErrVals = None
-			checkedStdErrVals = None
+			errorBarType = "stderr"
+		
+		if (options.errorbars):
+			errBarVals = dat['%s_fitness'%errorBarType]
+			if (options.checked and "%s_checked_fitness"%erroBarType in dat.dtype.names):
+				checkedErrBarVals = dat['%s_checked_fitness'%errorBarType]
+		else:
+			errBarVals = None
+			checkedErrBarVals = None
 
-		quickplot(dat['evaluations'],dat['mean_fitness'],stdErrVals,shortname)
+		quickplot(dat['evaluations'],dat['mean_fitness'],errBarVals,shortname)
 		
 		if (options.checked and "mean_checked_fitness" in dat.dtype.names):
-			quickplot2(dat['evaluations'],dat['mean_checked_fitness'],checkedStdErrVals,shortname+"*checked")
+			quickplot2(dat['evaluations'],dat['mean_checked_fitness'],checkedErrBarVals,shortname+"*checked")
 	
 	if (options.ymin != None):
 		ylim(ymin=options.ymin)
@@ -107,7 +113,8 @@ if __name__ == '__main__':
 	parser.set_description("""Takes xxx.performance.csv files and creates a graphic plot of the data.
 The output type is determined by the output_graph file extension (.png, .pdf, .eps, .svg, etc).
 (Note filename wildcards are allowed for input files.)""")
-	parser.add_option("-e", "--errorbars", action="store_true", dest="errorbars", help="include error bars (95% confidence interval)")
+	parser.add_option("-e", "--errorbars", action="store_true", dest="errorbars", help="include error bars (95% confidence interval on the mean)")
+	parser.add_option("--stdevbars", action="store_true", dest="stdevbars", help="include error bars using stdev (95% conf. interval for each search)")
 	parser.add_option("-c", "--checked", action="store_true", dest="checked", help="also include checked fitness values in the plot")
 	parser.add_option("-i", "--interval", action="store", type="int", dest="interval", default=1, help="only plot every Nth row of the input data file.")
 	parser.add_option("--min", action="store", type="int", dest="min", default=0, help="start plotting at the Nth row of the input data file.")

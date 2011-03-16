@@ -5,11 +5,13 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.nlogo.util.MersenneTwisterFast;
+
 import bsearch.app.BehaviorSearchException;
 import bsearch.app.SearchProtocol;
 import bsearch.nlogolink.ModelRunResult;
 import bsearch.representations.Chromosome;
-import bsearch.space.SearchSpace;
+import bsearch.representations.DummyChromosome;
 
 
 /**
@@ -20,15 +22,41 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 	private final SearchProtocol protocol;
 	private final String paramName;
 	private final double deltaDistance; 
+	private final MersenneTwisterFast rng;
 	
-	public DerivativeFitnessFunction(SearchProtocol protocol, String paramName, double deltaDistance)
+	public DerivativeFitnessFunction(SearchProtocol protocol, MersenneTwisterFast rng) throws BehaviorSearchException
 	{
 		this.protocol = protocol;
-		this.paramName = paramName;
-		this.deltaDistance = deltaDistance;
+		this.paramName = protocol.fitnessDerivativeParameter;
+		this.deltaDistance = protocol.fitnessDerivativeDelta;
+		this.rng = rng;
+		if 	(deltaDistance == 0)
+		{
+			throw new BehaviorSearchException("When taking the 'derivative' of the fitness function with respect to parameter X, the delta value (change in X) cannot be 0!");
+		}
+
 	}
-	private Chromosome getPointDeltaNearby(SearchSpace space, Chromosome point) throws BehaviorSearchException
+	private Chromosome getPointDeltaNearby(Chromosome point) throws BehaviorSearchException
 	{
+		//Special case: if we set paramName to "@MUTATE@" then it chooses a neighboring point
+		// in the search space by using mutation (with the mutation rate specified by deltaDistance) 
+		// from the current point.
+		if (paramName.equals("@MUTATE@"))
+		{
+			double mutRate = deltaDistance;
+    		int failedMutationCounter = 0;
+    		final int MAX_MUTATION_ATTEMPTS = 1000000;
+    		Chromosome neighbor = point.mutate(mutRate, rng);
+    		while (neighbor.equals(point) && failedMutationCounter < MAX_MUTATION_ATTEMPTS )
+    		{
+    			neighbor = point.mutate(mutRate, rng);
+    		}
+    		if (failedMutationCounter == MAX_MUTATION_ATTEMPTS)
+    		{
+    			throw new BehaviorSearchException("An extremely large number of mutation attempts all resulted in no mutation - perhaps your mutation-rate is too low?");
+    		}
+			return neighbor;
+		}
 		LinkedHashMap<String, Object> newParamSettings = new LinkedHashMap<String,Object>(point.getParamSettings());
 		
 		Object curVal = newParamSettings.get(paramName);
@@ -40,16 +68,17 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		}
 		else
 		{
-			throw new BehaviorSearchException("Derivative-based fitness measurements only work with numerical parameters!");
+			throw new BehaviorSearchException("Derivative-based fitness measurements currently only work with numerical parameters!");
 		}
-		return null;
+		return new DummyChromosome(point.getSearchSpace(), newParamSettings);
 	}
 
-	public HashMap<Chromosome, Integer> getRunsNeeded(Chromosome point, int repetitionsRequested, ResultsArchive archive)
+	public HashMap<Chromosome, Integer> getRunsNeeded(Chromosome point, int repetitionsRequested, ResultsArchive archive) throws BehaviorSearchException
 	{
 		LinkedHashMap<Chromosome, Integer> map = new LinkedHashMap<Chromosome,Integer>(1);
 		map.put(point, StrictMath.max(0, repetitionsRequested - archive.getResultsCount(point)));
-		//TODO: Fix, by adding deriv point to map too
+		Chromosome deltaComparePoint = getPointDeltaNearby(point);  
+		map.put(deltaComparePoint, repetitionsRequested - archive.getResultsCount(deltaComparePoint));
 		return map;
 	}
 	public int getMaximumRunsThatCouldBeNeeded(Chromosome point, int repetitionsRequested, ResultsArchive archive)
@@ -57,8 +86,8 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		return 2 * repetitionsRequested;
 	}
 	
-	public double evaluate(Chromosome point, ResultsArchive archive)
-	{		
+	public double evaluate(Chromosome point, ResultsArchive archive) throws BehaviorSearchException
+	{	
 		List<ModelRunResult> resultsSoFar = archive.getResults( point );
 		
 		LinkedList<Double> condensedResults = new LinkedList<Double>();
@@ -69,7 +98,28 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 			
 			condensedResults.add(dResult);
 		}
-		return protocol.fitnessCombineReplications.combine(condensedResults);
+		double pointVal = protocol.fitnessCombineReplications.combine(condensedResults);
+		
+		Chromosome deltaComparePoint = getPointDeltaNearby(point);
+		resultsSoFar = archive.getResults( deltaComparePoint );		
+		condensedResults = new LinkedList<Double>();
+		for (ModelRunResult result: resultsSoFar)
+		{
+			List<Double> singleRunHistory = result.getPrimaryTimeSeries();
+			double dResult = protocol.fitnessCollecting.collectFrom(singleRunHistory);
+			
+			condensedResults.add(dResult);
+		}
+		double deltaComparePointVal = protocol.fitnessCombineReplications.combine(condensedResults);  
+
+		if (protocol.fitnessDerivativeUseAbs)
+		{
+			return StrictMath.abs((pointVal - deltaComparePointVal) / deltaDistance);
+		}
+		else
+		{
+			return (pointVal - deltaComparePointVal) / deltaDistance;
+		}
 	}
 
 	public double compare(double v1, double v2)

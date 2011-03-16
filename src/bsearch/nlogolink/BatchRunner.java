@@ -13,10 +13,16 @@ public class BatchRunner {
 	
 	private ModelRunner.Factory factory;
 	ExecutorService pool;
+	private final int numThreads;
 		
 	public BatchRunner(int numThreads, Factory factory) {
 		this.factory = factory;
+		this.numThreads = numThreads;
 		pool = java.util.concurrent.Executors.newFixedThreadPool(numThreads);
+	}
+	public int getNumThreads()
+	{
+		return numThreads;
 	}
 
 	public List<ModelRunResult> doBatchRun(List<ModelRunner.RunSetup> setups) throws NetLogoLinkException, ModelRunnerException, InterruptedException

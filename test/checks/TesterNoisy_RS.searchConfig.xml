@@ -3,12 +3,12 @@
 <search>
 <bsearchVersionNumber>0.72</bsearchVersionNumber>
 <modelInfo>
-<modelFile>/home/forrest/prog/workspace2/behaviorsearch/test/Tester.nlogo</modelFile>
+<modelFile>/home/forrest/prog/workspace/behaviorsearch/test/Tester.nlogo</modelFile>
 <modelSetupCommands>setup</modelSetupCommands>
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
 <modelStepLimit>0</modelStepLimit>
-<modelMetricReporter>ellipsoid</modelMetricReporter>
+<modelMetricReporter>ellipsoid + random-normal 0 20</modelMetricReporter>
 <modelMeasureIf>true</modelMeasureIf>
 </modelInfo>
 <fitnessInfo>
@@ -23,14 +23,9 @@
 <paramSpec>["c" [-32 1 32]]</paramSpec>
 <paramSpec>["d" [-32 1 32]]</paramSpec>
 </searchSpace>
-<searchMethod type="SimulatedAnnealing">
-<searchMethodParameter name="mutation-rate" value="0.05"/>
-<searchMethodParameter name="temperature-change-factor" value="0.98"/>
-<searchMethodParameter name="initial-temperature" value="1"/>
-<searchMethodParameter name="restart-after-stall-count" value="0"/>
-</searchMethod>
-<chromosomeRepresentation type="GrayBinaryChromosome"/>
+<searchMethod type="RandomSearch"/>
+<chromosomeRepresentation type="RealHypercubeChromosome"/>
 <caching>true</caching>
-<evaluationLimit>500</evaluationLimit>
-<bestCheckingNumReplications>0</bestCheckingNumReplications>
+<evaluationLimit>200</evaluationLimit>
+<bestCheckingNumReplications>2</bestCheckingNumReplications>
 </search>

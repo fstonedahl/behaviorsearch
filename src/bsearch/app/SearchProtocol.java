@@ -57,6 +57,9 @@ public strictfp class SearchProtocol
 	public final int fitnessSamplingReplications ; // if == 0, use adaptive sampling.
 	public final FITNESS_COLLECTING fitnessCollecting;
 	public final FITNESS_COMBINE_REPLICATIONS fitnessCombineReplications;
+	public final String fitnessDerivativeParameter;
+	public final double fitnessDerivativeDelta;	
+	public final boolean fitnessDerivativeUseAbs;	
 
 	public String searchMethodType ;
 	public final HashMap<String,String> searchMethodParams;
@@ -76,6 +79,9 @@ public strictfp class SearchProtocol
 			int fitnessSamplingRepetitions,
 			FITNESS_COLLECTING fitnessCollecting,
 			FITNESS_COMBINE_REPLICATIONS fitnessCombineReplications,
+			String fitnessDerivativeParameter,
+			double fitnessDerivativeDelta,
+			boolean fitnessDerivativeUseAbs,
 			String searchMethodType,
 			HashMap<String, String> searchMethodParams,
 			String chromosomeType,
@@ -96,6 +102,9 @@ public strictfp class SearchProtocol
 		this.fitnessSamplingReplications = fitnessSamplingRepetitions;
 		this.fitnessCollecting = fitnessCollecting;
 		this.fitnessCombineReplications = fitnessCombineReplications;
+		this.fitnessDerivativeParameter = fitnessDerivativeParameter;
+		this.fitnessDerivativeDelta = fitnessDerivativeDelta;
+		this.fitnessDerivativeUseAbs = fitnessDerivativeUseAbs;
 		this.searchMethodType = searchMethodType;
 		this.searchMethodParams = searchMethodParams;
 		this.chromosomeType = chromosomeType;
@@ -167,6 +176,10 @@ public strictfp class SearchProtocol
 		fitnessSamplingReplications = loadOrGetDefaultInt(xpath,  xmlDoc, "/search/fitnessInfo/fitnessSamplingReplications/text()" , 10);
 		String fcombine = loadOrGetDefault(xpath, xmlDoc,"/search/fitnessInfo/fitnessCombineReplications/text()" , FITNESS_COMBINE_REPLICATIONS.MEAN.toString());
 		fitnessCombineReplications = FITNESS_COMBINE_REPLICATIONS.valueOf( fcombine.trim() );
+		fitnessDerivativeParameter = loadOrGetDefault(xpath, xmlDoc,"/search/fitnessInfo/fitnessDerivative/@parameter" , ""); 
+		fitnessDerivativeDelta = loadOrGetDefaultDouble(xpath, xmlDoc,"/search/fitnessInfo/fitnessDerivative/@delta" , 0.0); 
+		fitnessDerivativeUseAbs = Boolean.valueOf(loadOrGetDefault(xpath,  xmlDoc, "/search/fitnessInfo/fitnessDerivative/@useabs" , "false").trim()); 
+		
 		NodeList paramSpecNodes = (NodeList) xpath.evaluate("/search/searchSpace/paramSpec/text()" , xmlDoc , XPathConstants.NODESET );
 		paramSpecStrings = new LinkedList<String>();
 		for (int i = 0; i < paramSpecNodes.getLength(); i++)
@@ -192,7 +205,7 @@ public strictfp class SearchProtocol
 		updateForVersionChanges();
 	}
 	/*
-	 * Process it so that old protocol files can be loaded...  
+	 * Do a bit of processing so that old protocol files can be loaded...  
 	 */
 	private void updateForVersionChanges()
 	{
@@ -209,10 +222,22 @@ public strictfp class SearchProtocol
 	// convenience method...
 	private static void xmlElementNoAtts(TransformerHandler hd, String elementName, String cData) throws SAXException
 	{
-		hd.startElement( "" , "" , elementName , new AttributesImpl());
-		hd.characters( cData.toCharArray() , 0 , cData.length() );
+		xmlElementWithAtts(hd,elementName,new AttributesImpl(), cData);
+	}
+	private static void xmlElementWithAtts(TransformerHandler hd, String elementName, AttributesImpl atts) throws SAXException
+	{
+		xmlElementWithAtts(hd,elementName,atts, "");
+	}
+	// another convenience method...
+	private static void xmlElementWithAtts(TransformerHandler hd, String elementName, AttributesImpl atts, String cData) throws SAXException
+	{
+		hd.startElement( "" , "" , elementName , atts);
+		if (cData.length() > 0) { 
+			hd.characters( cData.toCharArray() , 0 , cData.length() );
+		}
 		hd.endElement( "" , "" , elementName );
 	}
+
 	/** Note: This method was adapted from 
 	 *     http://www.javazoom.net/services/newsletter/xmlgeneration.html
 	 * 
@@ -233,7 +258,7 @@ public strictfp class SearchProtocol
 			serializer.setOutputProperty( OutputKeys.INDENT , "yes" ) ;
 			hd.setResult( streamResult ) ;
 			hd.startDocument() ;
-			AttributesImpl noAtts = new AttributesImpl() ;			
+			AttributesImpl noAtts = new AttributesImpl() ;	
 			AttributesImpl atts = new AttributesImpl() ;
 		
 			hd.startElement( "" , "" , "search" , noAtts ) ;
@@ -252,6 +277,14 @@ public strictfp class SearchProtocol
 					xmlElementNoAtts(hd, "fitnessCollecting", fitnessCollecting.toString()) ;
 					xmlElementNoAtts(hd, "fitnessSamplingReplications", Integer.toString( fitnessSamplingReplications )) ;
 					xmlElementNoAtts(hd, "fitnessCombineReplications", fitnessCombineReplications.toString()) ;
+					if (fitnessDerivativeParameter.length() > 0)
+					{
+						atts.clear();
+						atts.addAttribute( "" , "" , "parameter" , "CDATA" , fitnessDerivativeParameter);
+						atts.addAttribute( "" , "" , "delta" , "CDATA" , Double.toString(fitnessDerivativeDelta));
+						atts.addAttribute( "" , "" , "useabs" , "CDATA" , Boolean.toString(fitnessDerivativeUseAbs));
+						xmlElementWithAtts(hd, "fitnessDerivative", atts);
+					}
 				hd.endElement( "" , "" , "fitnessInfo" );
 				hd.startElement( "" , "" , "searchSpace" , noAtts );
 					for (String ps: paramSpecStrings)
@@ -273,8 +306,7 @@ public strictfp class SearchProtocol
 				hd.endElement( "" , "" , "searchMethod" );
 				atts.clear();
 				atts.addAttribute( "" , "" , "type" , "CDATA" ,chromosomeType);
-				hd.startElement( "" , "" , "chromosomeRepresentation" , atts );
-				hd.endElement( "" , "" , "chromosomeRepresentation" );
+				xmlElementWithAtts(hd, "chromosomeRepresentation", atts);
 				
 				xmlElementNoAtts(hd, "caching", Boolean.toString(caching));
 				xmlElementNoAtts(hd, "evaluationLimit", Integer.toString(evaluationLimit));

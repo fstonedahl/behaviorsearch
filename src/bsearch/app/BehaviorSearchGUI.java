@@ -1,9 +1,16 @@
 package bsearch.app ;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -47,6 +54,8 @@ import bsearch.algorithms.SearchMethodLoader;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.ChromosomeFactory;
 import bsearch.representations.ChromosomeTypeLoader;
+import bsearch.space.ParameterSpec;
+import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
 import java.awt.FlowLayout;
 
@@ -120,6 +129,14 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private JTable jTableSearchMethodParams;
 	private JPanel jPanel1;
 	private JButton jButtonHelpSearchSpace;
+	private JLabel jLabelDerivWRT;
+	private JLabel jLabelDerivDELTA;
+	private JTextField jTextFieldFitnessDerivativeDelta;
+	private JComboBox jComboBoxFitnessDerivativeParameter;
+	private JCheckBox jCheckBoxTakeDerivative;
+	private JCheckBox jCheckBoxFitnessDerivativeUseAbs;
+	private JPanel jPanelDeriv;
+	private JPanel jPanelDeriv2;
 	private JButton jButtonHelpSearchSpaceRepresentation;
 	private JSeparator jSeparator2;
 	private JMenuItem jMenuItemOpenExample;
@@ -199,8 +216,8 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			GridBagLayout thisLayout = new GridBagLayout();
 			getContentPane().setLayout(thisLayout);
 			this.setTitle("BehaviorSearch - Experiment Editor");
-			thisLayout.rowWeights = new double[] {0.0, 0.1, 0.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0, 0.1, 0.0};
-			thisLayout.rowHeights = new int[] {7, 25, 10, 25, 25, 25, 25, 20, 25, 10, 25, 25, 25, 25, 20, 20, 23, 20, 7};
+			thisLayout.rowWeights = new double[] {0.0, 0.1, 0.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0, 0.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0, 0.1, 0.0};
+			thisLayout.rowHeights = new int[] {7, 25, 10, 25, 25, 25, 25, 20, 25, 10, 25, 25, 25, 25, 20, 20, 20, 23, 20, 7};
 			thisLayout.columnWeights = new double[] {0.0, 0.1, 0.0, 0.1, 0.0, 0.0};
 			thisLayout.columnWidths = new int[] {7, 300, 29, 200, 207, 7};
 			{
@@ -337,7 +354,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jLabel10 = new JLabel();
 				getContentPane().add(jLabel10, new GridBagConstraints(3, 7, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel10.setText("Stop If:  ");
-				jLabel10.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel10.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				jTextFieldModelStopCondition = new JTextField();
@@ -350,7 +367,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jLabel4 = new JLabel();
 				getContentPane().add(jLabel4, new GridBagConstraints(3, 5, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel4.setText("Measure:  ");
-				jLabel4.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel4.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				jTextFieldFitnessMetric = new JTextField();
@@ -386,11 +403,11 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				{
 					ComboBoxModel jComboBoxSamplingMethodModel = 
 						new DefaultComboBoxModel(
-								new String[] { "Fixed Sampling", "Adaptive Sampling" });
+								new String[] { "Fixed Sampling" }); //, "Adaptive Sampling" });
 					jComboBoxFitnessSamplingMethod = new JComboBox();
 					jPanelSampling.add(jComboBoxFitnessSamplingMethod);
 					jComboBoxFitnessSamplingMethod.setModel(jComboBoxSamplingMethodModel);
-					jComboBoxFitnessSamplingMethod.setEnabled(false);
+					jComboBoxFitnessSamplingMethod.setEditable(false);
 					jComboBoxFitnessSamplingMethod.addActionListener(new ActionListener(){
 						public void actionPerformed(ActionEvent arg0) {
 							actionSamplingMethodChanged();
@@ -413,7 +430,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 			{
 				jScrollPane1 = new JScrollPane();
-				getContentPane().add(jScrollPane1, new GridBagConstraints(1, 12, 1, 3, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jScrollPane1, new GridBagConstraints(1, 12, 1, 4, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
 				jScrollPane1.setPreferredSize(new java.awt.Dimension(202, 58));
 				{
 					TableModel jTableSearchMethodParamsModel = 
@@ -428,7 +445,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 			{
 				jButtonRunNow = new JButton();
-				getContentPane().add(jButtonRunNow, new GridBagConstraints(3, 17, 2, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 10), 0, 0));
+				getContentPane().add(jButtonRunNow, new GridBagConstraints(3, 18, 2, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 10), 0, 0));
 				jButtonRunNow.setText("Run BehaviorSearch");
 				jButtonRunNow.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent evt) {
@@ -500,23 +517,23 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 			{
 				jLabel11 = new JLabel();
-				getContentPane().add(jLabel11, new GridBagConstraints(1, 16, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jLabel11, new GridBagConstraints(1, 17, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel11.setText("Search Encoding Representation");
-				jLabel11.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel11.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				ComboBoxModel jComboBoxChromosomeTypeModel = 
 					new DefaultComboBoxModel(
 							new String[] { "MixedTypeChromosome" });
 				jComboBoxChromosomeType = new JComboBox();
-				getContentPane().add(jComboBoxChromosomeType, new GridBagConstraints(1, 17, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jComboBoxChromosomeType, new GridBagConstraints(1, 18, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jComboBoxChromosomeType.setModel(jComboBoxChromosomeTypeModel);
 			}
 			{
 				jLabel13 = new JLabel();
 				getContentPane().add(jLabel13, new GridBagConstraints(3, 12, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel13.setText("Collected measure:  ");
-				jLabel13.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel13.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				ComboBoxModel jComboBox1Model = 
@@ -530,19 +547,19 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jLabel14 = new JLabel();
 				getContentPane().add(jLabel14, new GridBagConstraints(3, 14, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel14.setText("Combine replicates:  ");
-				jLabel14.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel14.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				jLabel15 = new JLabel();
 				getContentPane().add(jLabel15, new GridBagConstraints(3, 8, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel15.setText("Step Limit:  ");
-				jLabel15.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel15.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				jLabel16 = new JLabel();
 				getContentPane().add(jLabel16, new GridBagConstraints(3, 11, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel16.setText("Goal:  ");
-				jLabel16.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel16.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				ComboBoxModel jComboBox1Model = 
@@ -556,7 +573,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jLabel17 = new JLabel();
 				getContentPane().add(jLabel17, new GridBagConstraints(3, 6, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel17.setText("Measure If:  ");
-				jLabel17.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel17.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				jTextFieldMeasureIf = new JTextField();
@@ -568,16 +585,16 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 			{
 				jLabel9 = new JLabel();
-				getContentPane().add(jLabel9, new GridBagConstraints(3, 15, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jLabel9, new GridBagConstraints(3, 16, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel9.setText("Evaluation limit:  ");
-				jLabel9.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel9.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				jPanel1 = new JPanel();
 				FlowLayout jPanel1Layout = new FlowLayout();
 				jPanel1Layout.setAlignment(FlowLayout.LEFT);
 				jPanel1.setLayout(jPanel1Layout);
-				getContentPane().add(jPanel1, new GridBagConstraints(4, 15, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jPanel1, new GridBagConstraints(4, 16, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
 				jPanel1.setOpaque(false);
 				{
 					jTextFieldEvaluationLimit = new JTextField();
@@ -662,19 +679,19 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 			{
 				jCheckBoxCaching = new JCheckBox();
-				getContentPane().add(jCheckBoxCaching, new GridBagConstraints(1, 15, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jCheckBoxCaching, new GridBagConstraints(1, 16, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jCheckBoxCaching.setText("Use fitness caching");
 				jCheckBoxCaching.setSelected(true);
 			}
 			{
 				jLabel19 = new JLabel();
-				getContentPane().add(jLabel19, new GridBagConstraints(3, 16, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jLabel19, new GridBagConstraints(3, 17, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jLabel19.setText("BestChecking replicates:  ");
-				jLabel19.setFont(new java.awt.Font("Tahoma",1,11));
+				jLabel19.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
 				jTextFieldBestChecking = new JTextField();
-				getContentPane().add(jTextFieldBestChecking, new GridBagConstraints(4, 16, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jTextFieldBestChecking, new GridBagConstraints(4, 17, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jTextFieldBestChecking.setFont(new java.awt.Font("Monospaced",0,11));
 				jTextFieldBestChecking.setText("10");
 				jTextFieldBestChecking.setPreferredSize(new java.awt.Dimension(50,20));
@@ -684,7 +701,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 			{
 				jButtonHelpSearchSpaceRepresentation = new JButton();
-				getContentPane().add(jButtonHelpSearchSpaceRepresentation, new GridBagConstraints(1, 17, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
+				getContentPane().add(jButtonHelpSearchSpaceRepresentation, new GridBagConstraints(1, 18, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jButtonHelpSearchSpaceRepresentation.setText("?");
 				jButtonHelpSearchSpaceRepresentation.setToolTipText("Help about this Search Space Representation");
 				jButtonHelpSearchSpaceRepresentation.addActionListener(new ActionListener() {
@@ -692,6 +709,71 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 						actionHelpSearchSpaceRepresentation();
 					}
 				});
+			}
+			{
+				jPanelDeriv = new JPanel();
+				//jPanelDeriv.setOpaque(false);
+				jPanelDeriv.setBackground(new Color(214,217,223));
+				jPanelDeriv.setLayout(new BorderLayout());
+				getContentPane().add(jPanelDeriv, new GridBagConstraints(3, 15, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
+				{
+					jCheckBoxTakeDerivative = new JCheckBox();
+					JPanel temp = new JPanel();
+					temp.setLayout( new FlowLayout(FlowLayout.CENTER, 40, 10) );
+					temp.add(jCheckBoxTakeDerivative);
+					jPanelDeriv.add(temp, BorderLayout.NORTH);
+					jCheckBoxTakeDerivative.setText("Take derivative?");
+					jCheckBoxTakeDerivative.setPreferredSize(new java.awt.Dimension(134, 22));
+					jCheckBoxTakeDerivative.setFont(new java.awt.Font("SansSerif",1,11));
+					jCheckBoxTakeDerivative.addItemListener(new ItemListener() {
+						public void itemStateChanged(ItemEvent arg0) {
+							updateFitnessDerivativePanel();
+						}
+					});
+					
+					jCheckBoxFitnessDerivativeUseAbs = new JCheckBox();
+					jCheckBoxFitnessDerivativeUseAbs.setText("Use ABS value?");
+					jCheckBoxTakeDerivative.setFont(new java.awt.Font("SansSerif",1,11));
+					temp.add(jCheckBoxFitnessDerivativeUseAbs);
+				}
+				{
+					jPanelDeriv2 = new JPanel();
+					jPanelDeriv2.setOpaque(false);
+					jPanelDeriv.add(jPanelDeriv2,BorderLayout.CENTER);
+					{
+						jLabelDerivWRT = new JLabel();
+						jPanelDeriv2.add(jLabelDerivWRT);
+						jLabelDerivWRT.setText("w.r.t.");
+					}
+					{
+						ComboBoxModel jComboBoxFitnessDerivativeParameterModel = 
+							new DefaultComboBoxModel(
+									new String[] { "----" });
+						jComboBoxFitnessDerivativeParameter = new JComboBox();
+						Dimension d = jComboBoxFitnessDerivativeParameter.getPreferredSize();
+						jComboBoxFitnessDerivativeParameter.setPreferredSize(new Dimension(200,d.height));
+						jPanelDeriv2.add(jComboBoxFitnessDerivativeParameter);
+						jComboBoxFitnessDerivativeParameter.setModel(jComboBoxFitnessDerivativeParameterModel);
+						jComboBoxFitnessDerivativeParameter.addFocusListener(new FocusListener() {
+							public void focusGained(FocusEvent arg0) {
+								updateFitnessDerivativeParameterChoices();
+							}
+							public void focusLost(FocusEvent arg0) {
+							}
+						});
+					}
+					{
+						jLabelDerivDELTA = new JLabel();
+						jPanelDeriv2.add(jLabelDerivDELTA);
+						jLabelDerivDELTA.setText("\u0394=");
+					}
+					{
+						jTextFieldFitnessDerivativeDelta = new JTextField();
+						jPanelDeriv2.add(jTextFieldFitnessDerivativeDelta);
+						jTextFieldFitnessDerivativeDelta.setText("0.100");
+						
+					}
+				}
 			}
 			pack();
 			this.setSize(760, 630);
@@ -813,6 +895,36 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		}
 	}
 
+	private void updateFitnessDerivativePanel()
+	{
+		boolean enabled = jCheckBoxTakeDerivative.isSelected(); 
+		jLabelDerivWRT.setEnabled(enabled);
+		jLabelDerivDELTA.setEnabled(enabled);
+		jComboBoxFitnessDerivativeParameter.setEnabled(enabled);
+		jTextFieldFitnessDerivativeDelta.setEnabled(enabled);
+		jCheckBoxFitnessDerivativeUseAbs.setEnabled(enabled);
+
+		if (enabled)
+		{
+			updateFitnessDerivativeParameterChoices();
+		}
+	}
+	private void updateFitnessDerivativeParameterChoices()
+	{
+		try {
+			Object oldChoice = jComboBoxFitnessDerivativeParameter.getSelectedItem();
+			SearchSpace ss = new SearchSpace(java.util.Arrays.asList(jTextAreaParamSpecs.getText().split("\n")));
+			DefaultComboBoxModel model = (DefaultComboBoxModel) jComboBoxFitnessDerivativeParameter.getModel();
+			model.removeAllElements();
+			for (ParameterSpec spec : ss.getParamSpecs())
+			{
+				model.addElement(spec.getParameterName());
+			}
+			model.addElement("@MUTATE@");
+			jComboBoxFitnessDerivativeParameter.setSelectedItem(oldChoice);
+		}
+		catch (Exception ex) {  }
+	}
 
 	private void actionNew()
 	{
@@ -913,6 +1025,11 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		jTextFieldFitnessSamplingRepetitions.setText(Integer.toString(protocol.fitnessSamplingReplications));
 		jComboBoxFitnessSamplingMethod.setSelectedItem((protocol.fitnessSamplingReplications != 0) ? "Fixed Sampling" : "Adaptive Sampling");
 		jComboBoxFitnessCombineReplications.setSelectedItem(protocol.fitnessCombineReplications.toString());
+		jCheckBoxTakeDerivative.setSelected(protocol.fitnessDerivativeParameter.length() > 0);
+		jCheckBoxFitnessDerivativeUseAbs.setSelected(protocol.fitnessDerivativeUseAbs);
+		updateFitnessDerivativePanel();
+		jComboBoxFitnessDerivativeParameter.setSelectedItem(protocol.fitnessDerivativeParameter);
+		jTextFieldFitnessDerivativeDelta.setText(Double.toString(protocol.fitnessDerivativeDelta));
 		jComboBoxSearchMethodType.setSelectedItem(protocol.searchMethodType);
 		jComboBoxChromosomeType.setSelectedItem(protocol.chromosomeType);
 		updateSearchMethodParamTable(searchMethodChoices.get(protocol.searchMethodType),protocol.searchMethodParams);
@@ -921,7 +1038,8 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		jTextFieldEvaluationLimit.setText(Integer.toString(protocol.evaluationLimit));
 		
 		lastSavedText = protocol.toXMLString();		
-		runOptions = null; // reset the runOptions to defaults, when a different Protocol is loaded			
+		runOptions = null; // reset the runOptions to defaults, when a different Protocol is loaded
+		
 	}
 	private void actionSave()
 	{
@@ -1015,7 +1133,17 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		{
 			throw new UIConstraintException("The number of 'BEST CHECKING' replicates should be a non-negative integer.", "Error: can't create search protocol");
 		}
-
+		double fitnessDerivDelta = 0.0;
+		if (jCheckBoxTakeDerivative.isSelected())
+		{
+			try {
+				fitnessDerivDelta = Double.valueOf(jTextFieldFitnessDerivativeDelta.getText());
+			} catch (NumberFormatException ex)
+			{
+				throw new UIConstraintException("The DELTA value (for taking the derivative of the objective fucntion with respect to a parameter) needs to be a number", "Error: can't create search protocol");
+			}
+		}
+		
 		SearchProtocol protocol = new SearchProtocol(jTextFieldModelFile.getText(), 
 				java.util.Arrays.asList(jTextAreaParamSpecs.getText().split("\n")),
 				jTextFieldModelStepCommands.getText(), jTextFieldModelSetupCommands.getText(), jTextFieldModelStopCondition.getText(),
@@ -1025,7 +1153,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jComboBoxFitnessMinMax.getSelectedItem().toString().equals("Minimize Fitness"),
 				fitnessSamplingRepetitions,
 				SearchProtocol.FITNESS_COLLECTING.valueOf(jComboBoxFitnessCollecting.getSelectedItem().toString()),
-				SearchProtocol.FITNESS_COMBINE_REPLICATIONS.valueOf(jComboBoxFitnessCombineReplications.getSelectedItem().toString()),		
+				SearchProtocol.FITNESS_COMBINE_REPLICATIONS.valueOf(jComboBoxFitnessCombineReplications.getSelectedItem().toString()),
+				jCheckBoxTakeDerivative.isSelected()?jComboBoxFitnessDerivativeParameter.getSelectedItem().toString():"",
+				fitnessDerivDelta,
+				jCheckBoxFitnessDerivativeUseAbs.isSelected(),
 				jComboBoxSearchMethodType.getSelectedItem().toString(),
 				searchMethodParams,
 				jComboBoxChromosomeType.getSelectedItem().toString(),

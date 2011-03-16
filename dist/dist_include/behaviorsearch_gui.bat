@@ -16,10 +16,10 @@ REM and "behaviorsearch" must be installed as a subfolder of the NetLogo folder.
 REM go up a level, to get to the NetLogo folder.
 cd ..
 
-REM If you have enough RAM, up the '1536m' below to '2048m' or more.
+REM If you have enough RAM, up the '768m' below to '1536m' or more.
 REM Or you can set the BSEARCH_MAXMEM environment variable when running the script.
 REM More RAM is especially helpful for multiple threads/parallel execution.
-set BSEARCH_MAXMEM=1536m
+set BSEARCH_MAXMEM=768m
 
 REM This assumes that java was installed bundled with NetLogo. 
 REM If not, you should change the path below for your java installation.

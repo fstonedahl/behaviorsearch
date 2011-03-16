@@ -242,6 +242,9 @@ public strictfp class TestBehaviorSearch
 		scenarios.put("Tester2","-p test/Tester.bsearch -o test/tmp/Tester2 -t 2 -n 3 -f 10 --randomseed 99 --quiet");
 		scenarios.put("TesterNoisy","-p test/TesterNoisy.bsearch -o test/tmp/TesterNoisy -t 2 -n 2 --randomseed 123 --quiet");
 		scenarios.put("TesterGANoCache","-p test/TesterGANoCache.bsearch -o test/tmp/TesterGANoCache -n 1 -t 2 --randomseed 99 --quiet");
+		scenarios.put("TesterSA_Deriv","-p test/TesterSA_Deriv.bsearch -o test/tmp/TesterSA_Deriv -n 2 -t 1 --randomseed 67 --quiet");
+		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 1 -n 1 --randomseed 123 --quiet");
+		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 3 -n 1 --randomseed 123 --quiet");
 		
 		List<String> outputExtensions = Arrays.asList(".searchConfig.xml", ".modelRunHistory.csv", 
 				".objectiveFunctionHistory.csv",  ".bestHistory.csv", ".finalBests.csv", ".finalCheckedBests.csv"); 

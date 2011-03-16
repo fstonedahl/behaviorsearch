@@ -14,7 +14,7 @@
 <fitnessInfo>
 <fitnessMinimized>false</fitnessMinimized>
 <fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
-<fitnessSamplingReplications>5</fitnessSamplingReplications>
+<fitnessSamplingReplications>1</fitnessSamplingReplications>
 <fitnessCombineReplications>MEAN</fitnessCombineReplications>
 <fitnessDerivative parameter="density" delta="1.0"/>
 </fitnessInfo>
@@ -28,5 +28,5 @@
 <chromosomeRepresentation type="MixedTypeChromosome"/>
 <caching>false</caching>
 <evaluationLimit>500</evaluationLimit>
-<bestCheckingNumReplications>20</bestCheckingNumReplications>
+<bestCheckingNumReplications>1</bestCheckingNumReplications>
 </search>

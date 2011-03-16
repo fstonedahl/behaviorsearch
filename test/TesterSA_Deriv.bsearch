@@ -3,7 +3,7 @@
 <search>
 <bsearchVersionNumber>0.72</bsearchVersionNumber>
 <modelInfo>
-<modelFile>/home/forrest/prog/workspace2/behaviorsearch/test/Tester.nlogo</modelFile>
+<modelFile>/home/forrest/prog/workspace/behaviorsearch/test/Tester.nlogo</modelFile>
 <modelSetupCommands>setup</modelSetupCommands>
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
@@ -16,6 +16,7 @@
 <fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
 <fitnessSamplingReplications>1</fitnessSamplingReplications>
 <fitnessCombineReplications>MEAN</fitnessCombineReplications>
+<fitnessDerivative parameter="a" delta="1.0" useabs="true"/>
 </fitnessInfo>
 <searchSpace>
 <paramSpec>["a" [-32 1 32]]</paramSpec>
@@ -25,12 +26,12 @@
 </searchSpace>
 <searchMethod type="SimulatedAnnealing">
 <searchMethodParameter name="mutation-rate" value="0.05"/>
-<searchMethodParameter name="temperature-change-factor" value="0.98"/>
-<searchMethodParameter name="initial-temperature" value="1"/>
+<searchMethodParameter name="temperature-change-factor" value="0.99"/>
+<searchMethodParameter name="initial-temperature" value="1.0"/>
 <searchMethodParameter name="restart-after-stall-count" value="0"/>
 </searchMethod>
-<chromosomeRepresentation type="GrayBinaryChromosome"/>
+<chromosomeRepresentation type="MixedTypeChromosome"/>
 <caching>true</caching>
-<evaluationLimit>500</evaluationLimit>
-<bestCheckingNumReplications>0</bestCheckingNumReplications>
+<evaluationLimit>400</evaluationLimit>
+<bestCheckingNumReplications>1</bestCheckingNumReplications>
 </search>

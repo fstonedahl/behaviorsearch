@@ -42,11 +42,27 @@ public strictfp class RandomSearch extends AbstractSearchMethod {
 	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocol protocol,
 			SearchManager manager, MersenneTwisterFast rng ) throws BehaviorSearchException, NetLogoLinkException, InterruptedException
 	{
+		final int BATCH_SIZE = 16;  // processing model runs in batches allows us to take advantage of multi-threading/multi-processors 
+		
     	while (!manager.searchFinished())
     	{
-   			Chromosome point = cFactory.createChromosome(space, rng);
-   			// Note that the archive automatically tracks the best found so far, so all we have to do is evaluate...
-   			manager.computeFitnessSingle(point, protocol.fitnessSamplingReplications, rng);
+    		if (manager.getRemainingEvaluations() > BATCH_SIZE )
+    		{
+	   			Chromosome[] points = new Chromosome[BATCH_SIZE];
+	   			for (int i = 0; i < points.length; i++)
+	   			{
+	   				points[i] = cFactory.createChromosome(space, rng);
+	   			}
+	   			
+	   			// Note that the archive automatically tracks the best found so far, so all we have to do is evaluate...
+	   			manager.computeFitnessBatch(points, protocol.fitnessSamplingReplications, rng);
+    		}
+    		else
+    		{
+	   			Chromosome point = cFactory.createChromosome(space, rng);
+	   			// Note that the archive automatically tracks the best found so far, so all we have to do is evaluate...
+	   			manager.computeFitnessSingle(point, protocol.fitnessSamplingReplications, rng);
+    		}
     	}            
 	}
 

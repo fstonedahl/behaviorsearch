@@ -15,6 +15,7 @@ import org.xml.sax.SAXException;
 import bsearch.algorithms.SearchMethod;
 import bsearch.algorithms.SearchMethodLoader;
 import bsearch.algorithms.SearchParameterException;
+import bsearch.evaluation.DerivativeFitnessFunction;
 import bsearch.evaluation.StandardFitnessFunction;
 import bsearch.evaluation.FitnessFunction;
 import bsearch.evaluation.ResultListener;
@@ -85,7 +86,13 @@ public strictfp class BehaviorSearch {
         }
 		else
 		{
-			ffun = new StandardFitnessFunction(protocol) ;     		
+			if (protocol.fitnessDerivativeParameter.length() > 0)
+			{
+				ffun = new DerivativeFitnessFunction(protocol,rng);
+			}
+			else {
+				ffun = new StandardFitnessFunction(protocol) ;
+			}
 		}
 
 		SearchManager archive = new SearchManager(searchIDNumber, batchRunner, protocol, ffun, false, 0.0);

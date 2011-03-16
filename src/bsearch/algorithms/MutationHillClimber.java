@@ -2,19 +2,8 @@ package bsearch.algorithms;
 
 import java.util.HashMap;
 
-import org.nlogo.util.MersenneTwisterFast;
 
-import bsearch.app.BehaviorSearchException;
-import bsearch.app.SearchProtocol;
-import bsearch.evaluation.SearchManager;
-import bsearch.nlogolink.NetLogoLinkException;
-import bsearch.representations.Chromosome;
-import bsearch.representations.ChromosomeFactory;
-import bsearch.space.SearchSpace;
-
-public strictfp class MutationHillClimber extends AbstractSearchMethod {
-	private double mutationRate = 0.05;
-	private int restartAfterStallCount = 0;
+public strictfp class MutationHillClimber extends SimulatedAnnealing {
 
 	public MutationHillClimber()
 	{
@@ -29,14 +18,16 @@ public strictfp class MutationHillClimber extends AbstractSearchMethod {
 
 	public void setSearchParams( HashMap<String , String> searchMethodParams ) throws SearchParameterException
 	{
-		mutationRate = validDoubleParam(searchMethodParams, "mutation-rate", 0.0, 1.0);
-		restartAfterStallCount = validIntParam(searchMethodParams, "restart-after-stall-count", 0, 1000);
+		HashMap<String,String> params = new HashMap<String,String>(searchMethodParams);
+		params.put("initial-temperature", "0.0");
+		params.put("temperature-change-factor", "0.0");
+		super.setSearchParams(params);
 	}
 	public HashMap<String , String> getSearchParams()
 	{
-		HashMap<String,String> params = new HashMap<String,String>();
-		params.put("mutation-rate", Double.toString( mutationRate ));
-		params.put("restart-after-stall-count", Integer.toString( restartAfterStallCount ));
+		HashMap<String,String> params = super.getSearchParams();
+		params.remove("initial-temperature");
+		params.remove("temperature-change-factor");
 		return params;
 	}
 	public HashMap<String , String> getSearchParamsHelp()
@@ -47,43 +38,5 @@ public strictfp class MutationHillClimber extends AbstractSearchMethod {
 		return params;
 	}
 
-
-	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocol protocol,
-			SearchManager manager, MersenneTwisterFast rng ) throws BehaviorSearchException, NetLogoLinkException, InterruptedException
-	{
-    	while (!manager.searchFinished())
-    	{
-    		Chromosome current = cFactory.createChromosome(space, rng);
-    		double currentFitness = manager.computeFitnessSingle(current, protocol.fitnessSamplingReplications, rng);
-
-    		int stallCount = 0;
-        	while (!manager.searchFinished())
-        	{
-        		// Use mutation to find a different point to evaluate 
-        		Chromosome candidate = current.mutate(mutationRate, rng);
-        		while (candidate.equals(current))
-        		{
-        			candidate = current.mutate(mutationRate, rng);
-        		}
-
-            	double candidateFitness = manager.computeFitnessSingle(candidate, protocol.fitnessSamplingReplications, rng);
-            	if (manager.fitnessStrictlyBetter(candidateFitness, currentFitness))
-            	{
-            		current = candidate;
-            		currentFitness = candidateFitness;
-            	}
-        		else
-        		{
-        			stallCount++;
-        			// if we haven't made any progress after a specified amount of time,
-        			// start over in a new random location 
-        			if (restartAfterStallCount > 0 && stallCount >= restartAfterStallCount)
-        			{
-        				break;
-        			}
-        		}
-            }
-    	}
-	}
 
 }

@@ -2,6 +2,7 @@ package bsearch.evaluation;
 
 import java.util.HashMap;
 
+import bsearch.app.BehaviorSearchException;
 import bsearch.representations.Chromosome;
 
 
@@ -13,7 +14,7 @@ public strictfp interface FitnessFunction
 	 * how many additional repetitions (runs) are needed at each of those points.
 	 * 
 	 */
-	public abstract HashMap<Chromosome, Integer> getRunsNeeded(Chromosome point, int repetitionsRequested, ResultsArchive archive);
+	public abstract HashMap<Chromosome, Integer> getRunsNeeded(Chromosome point, int repetitionsRequested, ResultsArchive archive) throws BehaviorSearchException;
 
 	//TODO: javadoc here
 	/**
@@ -22,7 +23,7 @@ public strictfp interface FitnessFunction
 	 */
 	public abstract int getMaximumRunsThatCouldBeNeeded(Chromosome chromosome, int i, ResultsArchive archive);
 
-	public abstract double evaluate(Chromosome point , ResultsArchive archive);
+	public abstract double evaluate(Chromosome point , ResultsArchive archive) throws BehaviorSearchException;
 	
 	/** @return a number representing how much better v2 is than v1 (0 if they are equal, negative if v1 is better) */
 	public abstract double compare(double v1, double v2);

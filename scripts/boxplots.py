@@ -64,7 +64,8 @@ def plotFromFile(fname, graphTitle, options):
 	suptitle(graphTitle, fontsize=15)
 	#Note at the bottom
 	#figtext(0.05,0.02,"[Each plot represents %s data points]"%len(dat), ha='left', fontstyle='italic')
-	axislims = [(255,257),(0,100),(3,5),(0,2),(0,1.0),(-1,1),(0,64)]
+	#axislims = [(255,257),(0,100),(3,5),(0,2),(0,1.0),(-1,1),(0,64)] #linguistics?
+	axislims = [(0,1),(0,2),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1),(-1,1)]
 	
 	for i in range(numSubPlots):
 		param = plotParams[i]
