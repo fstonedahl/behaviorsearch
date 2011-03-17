@@ -21,7 +21,7 @@ public strictfp interface FitnessFunction
 	 * How many runs would be needed if caching were turned off 
 	 * (or if caching is on, but none of the needed runs had been done previously)
 	 */
-	public abstract int getMaximumRunsThatCouldBeNeeded(Chromosome chromosome, int i, ResultsArchive archive);
+	public abstract int getMaximumRunsThatCouldBeNeeded(int repetitionsRequested);
 
 	public abstract double evaluate(Chromosome point , ResultsArchive archive) throws BehaviorSearchException;
 	

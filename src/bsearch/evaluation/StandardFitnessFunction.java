@@ -24,7 +24,7 @@ public strictfp class StandardFitnessFunction implements FitnessFunction
 		map.put(point, StrictMath.max(0, repetitionsRequested - archive.getResultsCount(point)));
 		return map;
 	}
-	public int getMaximumRunsThatCouldBeNeeded(Chromosome point, int repetitionsRequested, ResultsArchive archive)
+	public int getMaximumRunsThatCouldBeNeeded(int repetitionsRequested)
 	{
 		return repetitionsRequested;
 	}

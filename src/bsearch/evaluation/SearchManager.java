@@ -157,7 +157,7 @@ public class SearchManager
 		
 		for (int i = 0; i < points.length; i++)
 		{
-			requestedCounter += fitnessFunction.getMaximumRunsThatCouldBeNeeded(points[i], numReplicationsDesired[i], cache);
+			requestedCounter += fitnessFunction.getMaximumRunsThatCouldBeNeeded(numReplicationsDesired[i]);
 			HashMap<Chromosome, Integer> desiredRuns = fitnessFunction.getRunsNeeded(points[i], numReplicationsDesired[i], cache);
 			for (Chromosome p: desiredRuns.keySet())
 			{
@@ -289,12 +289,20 @@ public class SearchManager
 		return auxilliaryEvaluationCounter;
 	}
 	/**
-	 * @return true if 100000 evaluations requests have been made without any new evaluations actually taking place.
+	 * @return true if a very large evaluations requests have been made without any new evaluations actually taking place.
 	 * This will likely only happen if a search is completely stalled, and no longer exploring any new territory.
 	 */
 	private boolean searchHasTotallyStalled()
 	{
-		return (requestedCounter - requestedCounterWhenLastEvaluated) > 100000;
+		if (protocol.fitnessSamplingReplications > 0)
+		{
+			int evaluationsPerPoint = fitnessFunction.getMaximumRunsThatCouldBeNeeded(protocol.fitnessSamplingReplications);
+			return (requestedCounter - requestedCounterWhenLastEvaluated) > 10000000 * evaluationsPerPoint;
+		}
+		else
+		{
+			return (requestedCounter - requestedCounterWhenLastEvaluated) > 10000000;			
+		}
 	}
 	public boolean searchFinished()
 	{

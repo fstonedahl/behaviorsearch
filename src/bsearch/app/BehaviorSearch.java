@@ -174,6 +174,8 @@ public strictfp class BehaviorSearch {
 		@Option(name="--suppress-best-history",usage="don't create the .bestHistory.csv file")
 		boolean suppressBestHistory = false;
 
+		@Option(name="-v", aliases={"--version"},usage="print version number and exit")
+		boolean printVersion = false;
 		//@Argument(usage="any number of arguments...")
 		//List<String> arguments;
 		
@@ -196,6 +198,11 @@ public strictfp class BehaviorSearch {
 			parser.parseArgument(args);
 			
 		} catch( CmdLineException e ) {
+			if (runOptions.printVersion)
+			{
+				System.out.println("BehaviorSearch v" + GeneralUtils.getVersionString());
+				System.exit(0);
+			}
 			if (args.length == 0)
 			{
 				System.err.println("BehaviorSearch v" + GeneralUtils.getVersionString() + "\n");

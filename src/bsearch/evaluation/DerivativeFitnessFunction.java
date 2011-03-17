@@ -81,7 +81,7 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		map.put(deltaComparePoint, repetitionsRequested - archive.getResultsCount(deltaComparePoint));
 		return map;
 	}
-	public int getMaximumRunsThatCouldBeNeeded(Chromosome point, int repetitionsRequested, ResultsArchive archive)
+	public int getMaximumRunsThatCouldBeNeeded(int repetitionsRequested)
 	{
 		return 2 * repetitionsRequested;
 	}
