@@ -33,7 +33,8 @@ WARNING: Work in progress.  ~Forrest (10/05/2008)
 <!ELEMENT fitnessDerivative EMPTY>
 <!ATTLIST fitnessDerivative
   parameter  CDATA #REQUIRED
-  delta CDATA #REQUIRED>
+  delta CDATA #REQUIRED
+  useabs CDATA #REQUIRED>
 
 
 <!--  *********** SEARCH SPACE SECTION ************** -->

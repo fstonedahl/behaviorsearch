@@ -9,8 +9,9 @@ TODO:
  * make the NetLogo model path relative to the .bsearch file, if natural to do so (i.e. same directory) 
  * add UNIT test coverage for "caching" and "measure if"...
  * add a variety of different experiments to output consistency unit testing, (cover stuff like caching on/off, each different search method, etc)
-  * NEED to output True best values (at least for the finalBests, and might be good for every best found along the way...)
+ * NEED to output True best values (at least for the finalBests, and might be good for every best found along the way...)
    - Still need to add support for this to SearchProtocol and the UI.
+   - Can't remember what this bullet was about?  Was it just bestchecking, or was it about comparing to the true mean value (minus noise)?
  * add stopTargetGoalFitness for FitnessFunctions: move to AbstractSearchMethod?
  *  - put this in SearchProtocol? ALSO, move evaluationLimit into SearchProtocol too?
  * -is the "finalCheckedBests.csv" file worthwhile?  
