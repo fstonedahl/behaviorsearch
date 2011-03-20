@@ -1202,9 +1202,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			// if we can't create a valid protocol object from the form data, assume the user has changed something...
 			return true;    
 		}
-		System.out.println(xmlStr);
-		System.out.println("--");
-		System.out.println(lastSavedText);
+		//System.out.println(xmlStr);
+		//System.out.println("--");
+		//System.out.println(lastSavedText);
+		
 		// Note: lastSavedText == null ONLY when the GUI is being loaded for the first time.
 		return (lastSavedText != null && !lastSavedText.equals(xmlStr));
 	}

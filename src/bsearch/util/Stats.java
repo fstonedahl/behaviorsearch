@@ -5,6 +5,17 @@ import java.util.List;
 
 public class Stats {
 
+	/** calculates sum of a list of numbers */
+	public static double sum( List<Double> dlist )
+	{
+		double sum = 0;
+		for (double d: dlist)
+		{
+			sum += d;
+		}
+		return sum ;
+	}
+
 	/** calculates arithmetic mean of a list of numbers */
 	public static double mean( List<Double> dlist )
 	{

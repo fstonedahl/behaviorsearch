@@ -430,6 +430,11 @@ public strictfp class SearchProtocol
 			@Override 
 			public double collectFrom(List<Double> results) { 
 				return bsearch.util.Stats.variance(results);
+			}},
+		SUM_ACROSS_STEPS {
+			@Override 
+			public double collectFrom(List<Double> results) { 
+				return bsearch.util.Stats.sum(results);
 			}}
 		;
         public abstract double collectFrom(List<Double> stepResults);

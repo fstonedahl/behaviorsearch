@@ -226,13 +226,14 @@ public strictfp class BehaviorSearch {
         }
         catch(Exception ex) {
             ex.printStackTrace();
+            System.exit(1);
         }
         finally {
         	try {
 				Utils.fullyShutDownNetLogoLink();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}        	
+			}
         }
 	}
 	
