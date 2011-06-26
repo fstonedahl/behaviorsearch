@@ -5,8 +5,8 @@ import java.util.LinkedHashMap;
 import java.util.Scanner;
 
 public class GeneralUtils {
-	private static final String VERSION_STRING = "0.74 (beta)";
-	private static final double VERSION_NUMBER = 0.74;
+	private static final String VERSION_STRING = "0.75 (beta)";
+	private static final double VERSION_NUMBER = 0.75;
 	
 	public static String getVersionString()
 	{

@@ -162,7 +162,7 @@ public strictfp class SearchProtocol
 		// and I find XPath nice and readable. ~Forrest (10/28/2008)
 		XPathFactory factory = XPathFactory.newInstance();
 		XPath xpath = factory.newXPath();
-		bsearchVersionNumber = loadOrGetDefaultDouble(xpath,  xmlDoc, "/search/bsearchVersionNumber/text()" , 0.71);
+		bsearchVersionNumber = loadOrGetDefaultDouble(xpath,  xmlDoc, "/search/bsearchVersionNumber/text()" , 0.71); // 0.71 since that was the version before we added this XML tag
 		modelFile = loadOrGetDefault(xpath,  xmlDoc, "/search/modelInfo/modelFile/text()" , "");
 		modelSetupCommands = loadOrGetDefault(xpath,  xmlDoc, "/search/modelInfo/modelSetupCommands/text()", "");
 		modelStepCommands = loadOrGetDefault(xpath,  xmlDoc, "/search/modelInfo/modelStepCommands/text()" , "" );
@@ -216,7 +216,6 @@ public strictfp class SearchProtocol
 				searchMethodType = "StandardGA";
 			}			
 		}
-		
 	}
 	
 	// convenience method...
@@ -262,7 +261,7 @@ public strictfp class SearchProtocol
 			AttributesImpl atts = new AttributesImpl() ;
 		
 			hd.startElement( "" , "" , "search" , noAtts ) ;
-				xmlElementNoAtts(hd, "bsearchVersionNumber", String.format("%.2f", bsearchVersionNumber ));
+				xmlElementNoAtts(hd, "bsearchVersionNumber", String.format("%.2f", GeneralUtils.getVersionNumber()));
 				hd.startElement( "" , "" , "modelInfo" , noAtts );
 					xmlElementNoAtts(hd, "modelFile", modelFile ) ;
 					xmlElementNoAtts(hd, "modelSetupCommands", modelSetupCommands ) ;

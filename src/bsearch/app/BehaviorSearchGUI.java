@@ -771,7 +771,8 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 						jTextFieldFitnessDerivativeDelta = new JTextField();
 						jPanelDeriv2.add(jTextFieldFitnessDerivativeDelta);
 						jTextFieldFitnessDerivativeDelta.setText("0.100");
-						
+						int prefHeight = jTextFieldFitnessDerivativeDelta.getPreferredSize().height;
+						jTextFieldFitnessDerivativeDelta.setPreferredSize(new Dimension(50, prefHeight));						
 					}
 				}
 			}

@@ -102,6 +102,7 @@ public strictfp class SimulatedAnnealing extends AbstractSearchMethod {
             	{
             		current = candidate;
             		currentFitness = candidateFitness;
+            		temperature = temperature * temperatureChangeFactor;
             	}
         		else
         		{

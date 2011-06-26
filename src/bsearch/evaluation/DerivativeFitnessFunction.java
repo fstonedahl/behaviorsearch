@@ -24,6 +24,8 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 	private final double deltaDistance; 
 	private final MersenneTwisterFast rng;
 	
+	private Chromosome prevDeltaComparePoint = null; 
+	
 	public DerivativeFitnessFunction(SearchProtocol protocol, MersenneTwisterFast rng) throws BehaviorSearchException
 	{
 		this.protocol = protocol;
@@ -78,6 +80,7 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		LinkedHashMap<Chromosome, Integer> map = new LinkedHashMap<Chromosome,Integer>(1);
 		map.put(point, StrictMath.max(0, repetitionsRequested - archive.getResultsCount(point)));
 		Chromosome deltaComparePoint = getPointDeltaNearby(point);  
+		prevDeltaComparePoint = deltaComparePoint;
 		map.put(deltaComparePoint, repetitionsRequested - archive.getResultsCount(deltaComparePoint));
 		return map;
 	}
@@ -100,8 +103,8 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		}
 		double pointVal = protocol.fitnessCombineReplications.combine(condensedResults);
 		
-		Chromosome deltaComparePoint = getPointDeltaNearby(point);
-		resultsSoFar = archive.getResults( deltaComparePoint );		
+		
+		resultsSoFar = archive.getResults( prevDeltaComparePoint );	
 		condensedResults = new LinkedList<Double>();
 		for (ModelRunResult result: resultsSoFar)
 		{
@@ -112,13 +115,21 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		}
 		double deltaComparePointVal = protocol.fitnessCombineReplications.combine(condensedResults);  
 
+		double denominator = deltaDistance;
+		
+		// Special case, to see how much fitness varies between neighbors in the search space
+		if (paramName.equals("@MUTATE@"))   
+		{
+			denominator = 1;
+		}
+		
 		if (protocol.fitnessDerivativeUseAbs)
 		{
-			return StrictMath.abs((pointVal - deltaComparePointVal) / deltaDistance);
+			return StrictMath.abs((pointVal - deltaComparePointVal) / denominator);
 		}
 		else
 		{
-			return (pointVal - deltaComparePointVal) / deltaDistance;
+			return (pointVal - deltaComparePointVal) / denominator;
 		}
 	}
 
