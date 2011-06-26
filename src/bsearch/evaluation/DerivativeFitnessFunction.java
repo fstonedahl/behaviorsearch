@@ -24,7 +24,8 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 	private final double deltaDistance; 
 	private final MersenneTwisterFast rng;
 	
-	private Chromosome prevDeltaComparePoint = null; 
+	private List<Chromosome> SPECIAL_MUTATE_pointsqueue = new LinkedList<Chromosome>(); 
+	private List<Chromosome> SPECIAL_MUTATE_neighborsqueue = new LinkedList<Chromosome>(); 
 	
 	public DerivativeFitnessFunction(SearchProtocol protocol, MersenneTwisterFast rng) throws BehaviorSearchException
 	{
@@ -57,6 +58,8 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
     		{
     			throw new BehaviorSearchException("An extremely large number of mutation attempts all resulted in no mutation - perhaps your mutation-rate is too low?");
     		}
+    		SPECIAL_MUTATE_pointsqueue.add(point);
+    		SPECIAL_MUTATE_neighborsqueue.add(neighbor);
 			return neighbor;
 		}
 		LinkedHashMap<String, Object> newParamSettings = new LinkedHashMap<String,Object>(point.getParamSettings());
@@ -80,8 +83,7 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		LinkedHashMap<Chromosome, Integer> map = new LinkedHashMap<Chromosome,Integer>(1);
 		map.put(point, StrictMath.max(0, repetitionsRequested - archive.getResultsCount(point)));
 		Chromosome deltaComparePoint = getPointDeltaNearby(point);  
-		prevDeltaComparePoint = deltaComparePoint;
-		map.put(deltaComparePoint, repetitionsRequested - archive.getResultsCount(deltaComparePoint));
+		map.put(deltaComparePoint, StrictMath.max(0, repetitionsRequested - archive.getResultsCount(deltaComparePoint)));
 		return map;
 	}
 	public int getMaximumRunsThatCouldBeNeeded(int repetitionsRequested)
@@ -102,18 +104,33 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 			condensedResults.add(dResult);
 		}
 		double pointVal = protocol.fitnessCombineReplications.combine(condensedResults);
+		System.out.println("pointVal= " + pointVal);
 		
+		Chromosome neighbor;
+		if (paramName.equals("@MUTATE@"))   
+		{
+			int index = SPECIAL_MUTATE_pointsqueue.indexOf(point);
+			neighbor = SPECIAL_MUTATE_neighborsqueue.get(index);
+			SPECIAL_MUTATE_pointsqueue.remove(index);
+			SPECIAL_MUTATE_neighborsqueue.remove(index);
+		}
+		else
+		{
+			neighbor = getPointDeltaNearby( point );
+		}
 		
-		resultsSoFar = archive.getResults( prevDeltaComparePoint );	
+		resultsSoFar = archive.getResults( neighbor );	
 		condensedResults = new LinkedList<Double>();
 		for (ModelRunResult result: resultsSoFar)
 		{
 			List<Double> singleRunHistory = result.getPrimaryTimeSeries();
 			double dResult = protocol.fitnessCollecting.collectFrom(singleRunHistory);
 			
+			System.out.println("dResult= " + dResult);
 			condensedResults.add(dResult);
 		}
 		double deltaComparePointVal = protocol.fitnessCombineReplications.combine(condensedResults);  
+		System.out.println("deltaComparePointVal= " + deltaComparePointVal);
 
 		double denominator = deltaDistance;
 		
@@ -122,6 +139,7 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		{
 			denominator = 1;
 		}
+		System.out.println("deriv= " + (pointVal - deltaComparePointVal) / denominator);
 		
 		if (protocol.fitnessDerivativeUseAbs)
 		{
