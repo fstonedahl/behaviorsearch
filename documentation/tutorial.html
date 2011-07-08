@@ -232,6 +232,8 @@ We know how to collect the data, but now we need to turn it into an objective fu
 Such volatility <i>might</i> indicate a phase transition between two regimes of model behavior.  STDEV is the same, except that the fitness function values will be in the same units of the original parameter, which may be preferable for human interpretation.</li>
 </ul>
 </li>
+<li><strong>Take derivative?</strong> Sometimes you would like to find a point in the parameter space where the change in your behavioral measure is maximized (or minimized) with respect to a small change in some parameter.  Such places may indicate a <i>phase transition</i>, <i>critical point</i>, or <i>leverage point</i>.  The <strong>Take derivative?</strong> option allows you to maximize/minimize the approximate derivative of your fitness function with respect to a specified parameter and a specified delta (change amount).  (If <strong>Use ABS value?</strong> is checked, then the reported difference is always positive.)  This Flocking example does not use the derivative functionality, but the <i>Example Fire Derivative</i> example that comes with BehaviorSearch does.
+</li>
 <li><strong>Evaluation limit:</strong> How many total model runs should the search process perform, before stopping?</li>
 <li><strong>BestChecking replicates:</strong> the number of additional replicate model runs that should be performed to get an unbiased estimate of the true objective function value, each time the search algorithm finds a new set of parameters that it thinks is "better" than any previous set.  
 <ul><li>The motivation for this is that ABMs are usually stochastic, and when sampling a measure a small/finite number of times (such as 5, in our example here), there is likely to still be some "noise" in the objective function.  Thus a search algorithm may appear to be making progress, finding better and better parameter settings, when in fact the better results are due to random noise.  Using <i>BestChecking</i> replicates can help you identify when this is the case.</li>
@@ -288,13 +290,20 @@ BehaviorSearch currently supports four different search space encodings (and its
 The search algorithm determines what order the different parameter settings will be tried in, in order to find the behavior that you quantified above.
 </p>		
 
-<p>BehaviorSearch v0.72 includes 3 search algorithm (though additional algorithms will be added in future releases).  Here is a description of each:</p>
+<p>BehaviorSearch currently includes 4 search algorithms (though additional algorithms will be added in future releases).  Here is a description of each:</p>
 
 <ul>
 <li><strong>RandomSearch</strong> This is a naive baseline search algorithm, which simply randomly generates one set of parameters after another, computing the objective function for each in turn, and at the end it returns the best settings it found.  RandomSearch is unlikely to be the most efficient search choice, but it is very straightforward method, and it performs an unbiased exploration of the search space.</li>
 <li><strong>MutationHillClimber</strong> This search algorithm starts with a random location in the search space (i.e. set of parameters), and then repeatedly generates a neighboring location (using a mutation operator) and moves to that new location only if it is better than the old location.
 <ul><li><strong>mutation-rate</strong> controls the probability of mutation</li>
 <li><strong>restart-after-stall-count:</strong> if the hill climber makes some number (<i>restart-after-stall-count</i>) of unsuccessful attempts to move to a random neighbor, it assumes it is trapped at a local optimum in the space, so it restarts by jumping to a new random location anywhere in the search space.</li>
+</ul>
+</li>
+<li><strong>SimualtedAnnealing</strong> This search algorithm is similar to a hill climbing approach, except that a downhill (inferior) move may also occur, but only with a certain probability based on the <i>temperature</i> of the system, which decreases over time.  Simulated annealing is inspired by the physical annealing process in metallurgy: heating followed by the controlled cooling of a material in order to increase crystal size.
+<ul><li><strong>mutation-rate</strong>  how much mutation occurs when choosing a candidate location for moving.</li>
+<li><strong>restart-after-stall-count:</strong> if it doesn't manage to move to a new location after X attempts, reset the temperature, jump to a random location in the search space and try again.</li>
+<li><strong>initial-temperature</strong> the system's initial 'temperature' (a reasonable choice would be the average expected difference in the fitness function's value for two random points in the search space)</li>
+<li><strong>temperature-change-factor</strong> the system's current 'temperature' is multiplied by this factor (which needs to be less than 1!) after each move. (Using this exponential temperature decay means that temperature will approach 0 over time.  Unfortunately, the optimal rate for the temperature to decrease varies between problems.)</li>
 </ul>
 </li>
 <li><strong>StandardGA</strong> This is a simple (classic) Genetic Algorithm, which can operate on any of the available search representations.
@@ -321,7 +330,7 @@ In the StandardBinary and GrayBinary encodings, the mutation-rate is the probabi
 <h4>Fitness Caching</h4>
 
 <p>There is also a checkbox labeled <strong>Use fitness caching</strong>.  
-This controls whether the search algorithm caches (memorizes) the result of the objective (fitness) function every time it gets evaluated, so that it doesn't have to recompute it if it the search returns to those exact same parameter settings again.
+This controls whether the search algorithm caches (memorizes) the result of the objective (fitness) function every time it gets evaluated, so that it doesn't have to recompute it if the search returns to those exact same parameter settings again.
 Since running ABM simulations can be time-consuming (especially when dealing with large agent populations for many ticks), turning on "fitness caching" can potentially be a considerable time-saver.  
 <i>However</i>, because ABMs are usually stochastic, each time a point in the space is re-evaluated, the search process would get a new independent estimation of the value at that location.  
 The trade-offs in the interaction between the effects of fitness caching and "noisy" fitness evaluation have not been fully investigated -- at present it is unclear precisely when fitness caching will improve overall search performance.</p>
@@ -426,8 +435,8 @@ This paper discusses results for a Flocking convergence search experiment very s
 <!-- ------------  --> <br/><hr/><br/> <!-- ------------  -->
 
 <div class="figure">
-<a href="img/command_line_usage.png"><img src="img/command_line_usage.png" width=360 title="Click to enlarge" /></a>
-<p>Figure X: Terminal displaying command line arguments usage.<br/>
+<br/><br/><a href="img/command_line_usage.png"><img src="img/command_line_usage.png" width=360 title="Click to enlarge" /></a>
+<p>Figure 8: Terminal displaying command line arguments usage.<br/>
 (click to enlarge)</p>
 </div>
 <br/>
@@ -441,7 +450,7 @@ The "headless" version of BehaviorSearch does not support designing new search e
 <p>This mode of running BehaviorSearch without a GUI is particularly useful for long batch runs, or running searches on high performance computing clusters.</p>
 
 <p>
-To see the command line argument options, just run it without any arguments, as shown in Figure X.
+To see the command line argument options, just run it without any arguments, as shown in Figure 8.
 </p>
 
 <p>The most basic usage is:</p>
@@ -455,7 +464,7 @@ To see the command line argument options, just run it without any arguments, as 
 <h2>Additional help, feedback, bug reports, etc.</h2>
 <h4>Additional help:</h4> 
 <p>At present, this tutorial is the only documentation available for BehaviorSearch, apart from some context-sensitive help in the software (in the form of mouse-over tooltips and help buttons).  
-However, if you have questions that were note covered in this documentation, please <a href="http://www.behaviorsearch.org/contact_us.html">contact us</a>, and we will do our best to respond promptlly with answers. </p>
+However, if you have questions that were not covered in this documentation, please <a href="http://www.behaviorsearch.org/contact_us.html">contact us</a>, and we will do our best to respond promptly with answers. </p>
 
 <h4>Feedback and bugs:</h4> 
 

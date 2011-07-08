@@ -52,7 +52,7 @@ public strictfp class SimulatedAnnealing extends AbstractSearchMethod {
 		params.put("mutation-rate", "controls how much mutation occurs when choosing a new location to try to climb uphill");
 		params.put("restart-after-stall-count", "if it doesn't move to a new location after X attempts, reset the temperature, jump to a random location in the search space and try again.");
 		params.put("initial-temperature", "the system's initial 'temperature': a reasonable choice would be the average expected difference in the fitness function's value for two random points in the search space.");
-		params.put("temperature-change-factor", "the system's current 'temperature' is multiplied by this factor (which needs to be less than 1!) after each (attempted) move.  (Using this exponential temperature means that temperature will approach 0 over time.)");
+		params.put("temperature-change-factor", "the system's current 'temperature' is multiplied by this factor (which needs to be less than 1!) after each move. (Using this exponential temperature decay means that temperature will approach 0 over time.)");
 		return params;
 	}
 	

@@ -1,3 +1,7 @@
+Version 0.75:
+* Added Simulated Annealing search algorithm.
+* Added "Derivative" functionality, for searching for the amount of change caused with respect to a certain parameter.
+
 
 Version 0.73:
 * Fixed possible problem behaviorsearch_gui launcher script for Linux, when JAVA_HOME was defined.
