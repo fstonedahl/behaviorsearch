@@ -104,7 +104,6 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 			condensedResults.add(dResult);
 		}
 		double pointVal = protocol.fitnessCombineReplications.combine(condensedResults);
-		System.out.println("pointVal= " + pointVal);
 		
 		Chromosome neighbor;
 		if (paramName.equals("@MUTATE@"))   
@@ -126,11 +125,9 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 			List<Double> singleRunHistory = result.getPrimaryTimeSeries();
 			double dResult = protocol.fitnessCollecting.collectFrom(singleRunHistory);
 			
-			System.out.println("dResult= " + dResult);
 			condensedResults.add(dResult);
 		}
 		double deltaComparePointVal = protocol.fitnessCombineReplications.combine(condensedResults);  
-		System.out.println("deltaComparePointVal= " + deltaComparePointVal);
 
 		double denominator = deltaDistance;
 		
@@ -139,7 +136,6 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		{
 			denominator = 1;
 		}
-		System.out.println("deriv= " + (pointVal - deltaComparePointVal) / denominator);
 		
 		if (protocol.fitnessDerivativeUseAbs)
 		{

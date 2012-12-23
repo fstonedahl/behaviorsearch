@@ -10,6 +10,7 @@ import org.nlogo.api.AgentException;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.LogoException;
 import org.nlogo.nvm.Procedure;
+import org.nlogo.util.MersenneTwisterFast;
 import org.nlogo.headless.HeadlessWorkspace;
 
 public strictfp class ModelRunner {
@@ -28,11 +29,16 @@ public strictfp class ModelRunner {
 		
 	private boolean runIsDone; 
 	
+	//private MersenneTwisterFast myRNG; 
+	
 	private ModelRunner(String modelFileName, boolean recordEveryTick, int maxModelSteps) 
 		throws LogoException, IOException, CompilerException 
 	{
 		workspace = Utils.createWorkspace();
 		workspace.open(modelFileName);
+		 
+		//myRNG = workspace.world.mainRNG.clone();
+		
 		this.recordEveryTick = recordEveryTick;
 		this.maxModelSteps = maxModelSteps;
 	}

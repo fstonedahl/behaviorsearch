@@ -3,7 +3,7 @@
 <search>
 <bsearchVersionNumber>0.75</bsearchVersionNumber>
 <modelInfo>
-<modelFile>/home/forrest/prog/workspace/behaviorsearch/test/Tester.nlogo</modelFile>
+<modelFile>Tester.nlogo</modelFile>
 <modelSetupCommands>setup</modelSetupCommands>
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>

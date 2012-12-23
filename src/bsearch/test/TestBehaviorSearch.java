@@ -37,7 +37,7 @@ import bsearch.util.GeneralUtils;
 
 public strictfp class TestBehaviorSearch
 {
-	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo/models/Sample Models/";
+	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo-4.1.3/models/Sample Models/";
 	
 	// a main method to run it -- for convenience.
 	public static void main( String... args )
@@ -109,7 +109,7 @@ public strictfp class TestBehaviorSearch
 	public void testConstraintsTextGeneration() throws BehaviorSearchException, NetLogoLinkException
     {
 		Assert.assertEquals(bsearch.nlogolink.Utils.getDefaultConstraintsText(PATH_TO_NETLOGO_MODELS + "/Social Science/Ethnocentrism.nlogo").trim(),
-		"[\"mutation-rate\" [0 0.0010 1]]\n[\"death-rate\" [0 0.05 1]]\n[\"immigrants-per-day\" [0 1 100]]\n[\"initial-ptr\" [0 0.01 1]]\n[\"cost-of-giving\" [0 0.01 1]]\n[\"gain-of-receiving\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-same\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-different\" [0 0.01 1]]");
+		"[\"mutation-rate\" [0 0.001 1]]\n[\"death-rate\" [0 0.05 1]]\n[\"immigrants-per-day\" [0 1 100]]\n[\"initial-ptr\" [0 0.01 1]]\n[\"cost-of-giving\" [0 0.01 1]]\n[\"gain-of-receiving\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-same\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-different\" [0 0.01 1]]");
     }
 	
 
@@ -238,13 +238,14 @@ public strictfp class TestBehaviorSearch
 	public void testConsistentOutputResults() throws IOException , SAXException, SearchParameterException, BehaviorSearchException, InterruptedException, CmdLineException
 	{
 		LinkedHashMap<String,String> scenarios = new LinkedHashMap<String,String>();
+		scenarios.put("TesterSuperRandom","-p test/TesterSuperRandom.bsearch -o test/tmp/TesterSuperRandom -t 7 -n 2 --randomseed 123 --quiet");
 		scenarios.put("Tester1","-p test/Tester.bsearch -o test/tmp/Tester1 -t 1 -n 2 -f 3 --randomseed 1234 --quiet");
 		scenarios.put("Tester2","-p test/Tester.bsearch -o test/tmp/Tester2 -t 2 -n 3 -f 10 --randomseed 99 --quiet");
 		scenarios.put("TesterNoisy","-p test/TesterNoisy.bsearch -o test/tmp/TesterNoisy -t 2 -n 2 --randomseed 123 --quiet");
 		scenarios.put("TesterGANoCache","-p test/TesterGANoCache.bsearch -o test/tmp/TesterGANoCache -n 1 -t 2 --randomseed 99 --quiet");
 		scenarios.put("TesterSA_Deriv","-p test/TesterSA_Deriv.bsearch -o test/tmp/TesterSA_Deriv -n 2 -t 1 --randomseed 67 --quiet");
 		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 1 -n 1 --randomseed 123 --quiet");
-		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 3 -n 1 --randomseed 123 --quiet");
+		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 5 -n 1 --randomseed 123 --quiet");
 		
 		List<String> outputExtensions = Arrays.asList(".searchConfig.xml", ".modelRunHistory.csv", 
 				".objectiveFunctionHistory.csv",  ".bestHistory.csv", ".finalBests.csv", ".finalCheckedBests.csv"); 
@@ -268,7 +269,7 @@ public strictfp class TestBehaviorSearch
 				if (!result.equals(expected))
 				{
 					failedList.add(key + extension);
-				}	
+				}
 			}
 		}
 		if (!failedList.isEmpty())

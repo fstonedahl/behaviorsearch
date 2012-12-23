@@ -60,8 +60,6 @@ public strictfp class GenerationalGA extends AbstractSearchMethod{
 			 SearchManager manager, MersenneTwisterFast rng ) 
 		throws BehaviorSearchException, NetLogoLinkException, InterruptedException
 	{
-		int generationNumber = 0;
-		
 		Chromosome[] population = new Chromosome[populationSize];
 		Chromosome[] newpopulation = new Chromosome[populationSize];
 		
@@ -74,7 +72,6 @@ public strictfp class GenerationalGA extends AbstractSearchMethod{
 		
 		while ( !manager.searchFinished() )
 		{
-			generationNumber++;
 		    int crossoverPairs = (int) (crossoverRate * populationSize / 2) ;
 		    int newPopIndex = 0;
 		    for (int i = 0; i < crossoverPairs; i++)
