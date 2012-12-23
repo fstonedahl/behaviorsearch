@@ -17,8 +17,9 @@ REM go up a level, to get to the NetLogo folder.
 cd ..
 
 REM If you have enough RAM, up the '768m' below to '1536m' or more.
-REM Or you can set the BSEARCH_MAXMEM environment variable when running the script.
 REM More RAM is especially helpful for multiple threads/parallel execution.
+REM CAUTION: for some reason if the max memory is set too high on certain Windows
+REM machines, then the program won't launch at all!
 set BSEARCH_MAXMEM=768m
 
 REM This assumes that java was installed bundled with NetLogo. 

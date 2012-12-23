@@ -22,11 +22,11 @@ if [ $JAVA_VERSION -lt 106 ]; then  #106 = java 1.6
 	exit 1
 fi
 
-# If you have enough RAM, up the '976m' below to '2048m' or more.
+# If you have enough RAM, up the '1536m' below to '2048m' or more.
 # Or you can set the BSEARCH_MAXMEM environment variable when running the script
 # More RAM is especially helpful for multiple threads/parallel execution.
 if [ -z "$BSEARCH_MAXMEM" ]; then
-    BSEARCH_MAXMEM=976m
+    BSEARCH_MAXMEM=1536m
 fi
 
 "$BSEARCH_JAVA" -Dbsearch.startupfolder="$WD" -Dbsearch.appfolder="$BSEARCH_DIR" -server -Xms256m "-Xmx$BSEARCH_MAXMEM" -jar "$BSEARCH_DIR/behaviorsearch.jar" "$@"

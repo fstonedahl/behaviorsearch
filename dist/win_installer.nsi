@@ -1,5 +1,5 @@
 !define MUI_VERSION "0.75"
-;;NOTE: the FIRST LINE of the file must be the !define MUI_VERSION, as above, since automate changing it.
+;;NOTE: the FIRST LINE of the file must be the !define MUI_VERSION, as above, as the release script automatically changes it.
 !define MUI_PRODUCT "BehaviorSearch ${MUI_VERSION}"
 
 !define BSEARCH_FILE_TYPE "BehaviorSearch.Protocol"
@@ -28,7 +28,7 @@
 ;--------------------------------
 ;Folder selection page
  
-  InstallDir "$PROGRAMFILES\NetLogo 4.1\${MUI_PRODUCT}"
+  InstallDir "$PROGRAMFILES\NetLogo 4.1.3\${MUI_PRODUCT}"
  
  
 ;--------------------------------
