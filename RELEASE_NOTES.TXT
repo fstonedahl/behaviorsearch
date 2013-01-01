@@ -1,11 +1,15 @@
+Version 0.76:
+* Mostly code cleanup & documentation fixes
+
 Version 0.75:
 * Added Simulated Annealing search algorithm.
-* Added "Derivative" functionality, for searching for the amount of change caused with respect to a certain parameter.
-
+* Added "Derivative" functionality, for searching for the amount of change caused by a small change in a specified parameter.
+* Added additional example search files.
+* Lowered default maximum Java heap size on Windows, since it was causing problems for some people so they couldn't even launch the application. 
+* Various other fixes & enhancements I didn't write down...
 
 Version 0.73:
-* Fixed possible problem behaviorsearch_gui launcher script for Linux, when JAVA_HOME was defined.
-
+* Fixed possible problem in behaviorsearch_gui launcher script for Linux, when JAVA_HOME was defined.
 
 Version 0.72:
 

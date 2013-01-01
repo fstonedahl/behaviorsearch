@@ -60,10 +60,11 @@ public strictfp class StandardFitnessFunction implements FitnessFunction
 		return compare(v1,v2) > 0.0;
 	}
 
-	public double getWorstPossibleFitnessValue() {
+	public double getWorstConceivableFitnessValue() {
 		return protocol.fitnessMinimized?Double.POSITIVE_INFINITY:Double.NEGATIVE_INFINITY;
 	}
-	public double getBestPossibleFitnessValue() {
+	
+	public double getBestConceivableFitnessValue() {
 		return protocol.fitnessMinimized?Double.NEGATIVE_INFINITY:Double.POSITIVE_INFINITY;
 	}
 

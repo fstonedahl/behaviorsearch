@@ -1,4 +1,4 @@
-!define MUI_VERSION "0.75"
+!define MUI_VERSION "0.76"
 ;;NOTE: the FIRST LINE of the file must be the !define MUI_VERSION, as above, as the release script automatically changes it.
 !define MUI_PRODUCT "BehaviorSearch ${MUI_VERSION}"
 

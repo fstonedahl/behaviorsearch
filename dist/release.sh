@@ -61,11 +61,13 @@ echo "Creating behaviorsearch_${VERSION}_installer.exe"
 # use "makensis" to create windows executable.  
 makensis -V2 win_installer.nsi
 
-echo "Copying setup files to /home/forrest/web_localcopy/behaviorsearch/"
+##No longer copying files to web downloads... upload them to Google Code instead, using another script.
 
-cp "behaviorsearch_${VERSION}.tar.gz" /home/forrest/web_localcopy/behaviorsearch/downloads/
-cp "behaviorsearch_${VERSION}.zip" /home/forrest/web_localcopy/behaviorsearch/downloads/
-cp "behaviorsearch_${VERSION}_installer.exe" /home/forrest/web_localcopy/behaviorsearch/downloads/
+#echo "Copying setup files to /home/forrest/web_localcopy/behaviorsearch/"
+#cp "behaviorsearch_${VERSION}.tar.gz" /home/forrest/web_localcopy/behaviorsearch/downloads/
+#cp "behaviorsearch_${VERSION}.zip" /home/forrest/web_localcopy/behaviorsearch/downloads/
+#cp "behaviorsearch_${VERSION}_installer.exe" /home/forrest/web_localcopy/behaviorsearch/downloads/
 
-#and copy LICENSE.TXT file too
+#and copy LICENSE.TXT & RELEASE_NOTES.TXT files to website though...
 cp ../LICENSE.TXT /home/forrest/web_localcopy/behaviorsearch/
+cp ../RELEASE_NOTES.TXT /home/forrest/web_localcopy/behaviorsearch/

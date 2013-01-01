@@ -59,7 +59,7 @@ public class SearchManager
 		this.fitnessGoalLimit = fitnessGoalLimit;
 		this.cache = new ResultsArchive(4096);
 
-		setCurrentBest(null, fitnessFunction.getWorstPossibleFitnessValue());		
+		setCurrentBest(null, fitnessFunction.getWorstConceivableFitnessValue());		
 	}
 
 	public void addResultsListener(ResultListener listener)
@@ -192,11 +192,7 @@ public class SearchManager
 		
 		List<ModelRunner.RunSetup> setupList = new ArrayList<ModelRunner.RunSetup>(evaluationQueue.size());
 		for (Chromosome point: evaluationQueue)
-		{
-			//TODO: instead of using a new random-seed for every run, consider using the same sequence of 
-			//       random seeds for each point in the space, to help remove some noise from fitness comparison?
-			//      If we change it here, should we also change it in computeFitnessWithoutSideEffects() also, or maybe not?
-			
+		{	
 			//Note: We use a seed that is within the representable range for NetLogo, so that users can recreate the runs
 			// in NetLogo by running "RANDOM-SEED XXXX" and then running their model.  
 			long seed = rng.nextLong(bsearch.nlogolink.Utils.MAX_EXACT_NETLOGO_INT - bsearch.nlogolink.Utils.MIN_EXACT_NETLOGO_INT + 1) +
@@ -381,7 +377,7 @@ public class SearchManager
 		}
 		
 		int bestIndex = -1;
-		double bestFitness = fitnessFunction.getWorstPossibleFitnessValue() ;
+		double bestFitness = fitnessFunction.getWorstConceivableFitnessValue() ;
 		for (i = 0 ; i < randomIndices.length; i++)
 		{
 			double f = fitness[randomIndices[i]];

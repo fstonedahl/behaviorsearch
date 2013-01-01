@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 
 import org.nlogo.util.MersenneTwisterFast;
 
-//TODO: Remove this class sometime.  It was just for some quick code testing.
+//TODO: Remove this class sometime.  It is just for some quick code testing.
 public class TempTest {
 
 	/**

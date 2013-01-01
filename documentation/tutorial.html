@@ -232,7 +232,13 @@ We know how to collect the data, but now we need to turn it into an objective fu
 Such volatility <i>might</i> indicate a phase transition between two regimes of model behavior.  STDEV is the same, except that the fitness function values will be in the same units of the original parameter, which may be preferable for human interpretation.</li>
 </ul>
 </li>
-<li><strong>Take derivative?</strong> Sometimes you would like to find a point in the parameter space where the change in your behavioral measure is maximized (or minimized) with respect to a small change in some parameter.  Such places may indicate a <i>phase transition</i>, <i>critical point</i>, or <i>leverage point</i>.  The <strong>Take derivative?</strong> option allows you to maximize/minimize the approximate derivative of your fitness function with respect to a specified parameter and a specified delta (change amount).  (If <strong>Use ABS value?</strong> is checked, then the reported difference is always positive.)  This Flocking example does not use the derivative functionality, but the <i>Example Fire Derivative</i> example that comes with BehaviorSearch does.
+<li><strong>Take derivative?</strong> Sometimes you would like to find a point in the parameter space where the change in your behavioral measure is maximized (or minimized) with respect to a small change in some parameter.  
+Such places may indicate a <i>phase transition</i>, <i>critical point</i>, or <i>leverage point</i>.  
+The <strong>Take derivative?</strong> option allows you to maximize/minimize the approximate derivative of your fitness function with respect to a specified parameter and a specified <em>delta</em> (change amount).  
+<ul><li>If <strong>Use ABS value?</strong> is checked, then the reported difference is always positive.</li>
+    <li>If you choose the special value &ldquo;@MUTATE@&rdquo; then finds a neighboring point in the search space using mutation from the parameter settings being evaluated, with the mutation rate specified by <em>delta</em>.</li>
+	<li>This Flocking example does not use the derivative functionality, but the <i>Example Fire Derivative</i> example that comes with BehaviorSearch does.</li>
+</ul>
 </li>
 <li><strong>Evaluation limit:</strong> How many total model runs should the search process perform, before stopping?</li>
 <li><strong>BestChecking replicates:</strong> the number of additional replicate model runs that should be performed to get an unbiased estimate of the true objective function value, each time the search algorithm finds a new set of parameters that it thinks is "better" than any previous set.  
@@ -410,7 +416,7 @@ If not, then the plot will show the fitness values that the search algorithm obs
 <h4>Examining the results:</h4><br/>
 
 <p>
-While future versions of BehaviorSearch may include some tools/scripts for visualizing the search results, currently the output data is given in several files, using straightforward CSV (comma separated value) file format, and the methods of processing or visualizing it are up to you (Excel, <a href="http://www.r-project.org/">R</a>, <a href="http://www.scipy.org/">SciPy</a>/<a href="http://matplotlib.sourceforge.net/">matplotlib</a>, etc).  
+While future versions of BehaviorSearch may include some tools/scripts for visualizing the search results, currently the output data is given in several files, using the straightforward CSV (comma separated value) file format, and the methods of processing or visualizing it are up to you (Excel, <a href="http://www.r-project.org/">R</a>, <a href="http://www.scipy.org/">SciPy</a>/<a href="http://matplotlib.sourceforge.net/">matplotlib</a>, etc).  
 Here is the list of output files that were generated for our Flocking convergence example:
 </p>
 
@@ -426,7 +432,8 @@ Here is the list of output files that were generated for our Flocking convergenc
 The most basic usage of search results is to look at the parameter settings in the final best files, and then open your agent-based model back up in NetLogo and run the model with those parameters, to see how the model behaves under these conditions.  
 Doing this can help uncover unexpected or interesting behavior occurring in the model, and it can also help you identify whether the quantitative measure of model behavior that you created is doing a sufficiently good job of identifying the type of behavior that you are interested in.
 
-For further discussion of the type of graphs that one might make, or inferences that one might draw from search results, you might find it useful to read "Finding Forms of Flocking" on the <a href="http://www.behaviorsearch.org/papers.html">papers page</a>.  
+For further discussion of the type of graphs that one might make, or inferences that one might draw from search results, you might find it useful to read &ldquo;Finding Forms of Flocking&rdquo; or one of the other papers linked to on the <a href="http://www.behaviorsearch.org/papers.html">papers page</a>.  
+
 This paper discusses results for a Flocking convergence search experiment very similar to the one presented here, as well as several examples of searching for other types of flocking behavior.
 
 <br/><br/><br/>

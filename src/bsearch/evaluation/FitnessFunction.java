@@ -16,7 +16,6 @@ public strictfp interface FitnessFunction
 	 */
 	public abstract HashMap<Chromosome, Integer> getRunsNeeded(Chromosome point, int repetitionsRequested, ResultsArchive archive) throws BehaviorSearchException;
 
-	//TODO: javadoc here
 	/**
 	 * How many runs would be needed if caching were turned off 
 	 * (or if caching is on, but none of the needed runs had been done previously)
@@ -34,12 +33,12 @@ public strictfp interface FitnessFunction
 	/** 
 	 * @return a fitness value that is worse than anything that could actually be obtained by evaluating an individual.
 	 */
-	public abstract double getWorstPossibleFitnessValue();
+	public abstract double getWorstConceivableFitnessValue();
 
 	/** 
 	 * @return a fitness value that is better than anything that could actually be obtained by evaluating an individual.
 	 */
-	public abstract double getBestPossibleFitnessValue();
+	public abstract double getBestConceivableFitnessValue();
 	
 	/** @return true if the fitness has reached a goal level, signaling that the search algorithm should terminate */
 	public abstract boolean reachedStopGoalFitness(double fitness);

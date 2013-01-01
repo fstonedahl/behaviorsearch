@@ -236,7 +236,7 @@ public class RunOptionsDialog extends javax.swing.JDialog {
 	}
 	public void updateOptions(BehaviorSearch.RunOptions runOptions)
 	{
-		//TODO: input validation for this dialog, and don't let then press OK to close unless it's valid. 
+		//TODO: input validation for this dialog, and don't let them press OK to close unless it's valid. 
 		runOptions.outputStem = jTextFieldOutputStem.getText();
 		runOptions.numSearches = (Integer) jSpinnerNumSearches.getValue();
 		runOptions.firstSearchNumber = (Integer) jSpinnerFirstSearchNumber.getValue();

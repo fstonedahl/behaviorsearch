@@ -141,8 +141,8 @@ public class CSVLoggerListener implements ResultListener {
 		if (finalCheckedBestOut != null)
 		{
 			finalCheckedBestOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerList));
-			//TODO: FIXME! should we use headerList, since it will contain recheck-replications slot? hmm.  
-			// (also look for FIXME below)
+			//TODO: should we use headerList here, since it will contain recheck-replications slot?
+			// perhaps we should tailor it to this file more specifically?
 		}
 		
 	}
@@ -154,7 +154,7 @@ public class CSVLoggerListener implements ResultListener {
 		{
 			return;
 		}
-		//TODO: add in field for "[ticks]" 
+		//TODO: add in field for "[ticks]" ?
 		List<Object> dataList = new LinkedList<Object>();
 		dataList.add(manager.getSearchIDNumber());
 		dataList.add(manager.getEvaluationCount());

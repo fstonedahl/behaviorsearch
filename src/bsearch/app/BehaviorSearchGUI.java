@@ -1282,10 +1282,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		int returnVal = chooser.showOpenDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			jTextFieldModelFile.setText(chooser.getSelectedFile().getPath());
-		}	
-		//TODO: When you choose a model, offer an option for replacing the parameter settings 
-		// with the default ones (or ranges) from the model.
-		
+		}		
 	}
 	protected void actionSuggestParamRanges()
 	{

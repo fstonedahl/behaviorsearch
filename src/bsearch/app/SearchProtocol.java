@@ -42,6 +42,7 @@ import bsearch.util.GeneralUtils;
 
 public strictfp class SearchProtocol
 {
+	//TODO: Add a "documentation" field to store text/comments about the search protocol.
 	public final double bsearchVersionNumber;
 	public final String modelFile ;
 	public final String modelStepCommands ;
@@ -354,7 +355,7 @@ public strictfp class SearchProtocol
 			// To validate, we may need to help it find the DTD file...
 			// inputSource.setSystemId( getClass().getResource( "/" ).toString() ) ;
 			fac = DocumentBuilderFactory.newInstance() ;
-			//TODO: (before release) turn xml DTD validation back on
+			//TODO: (before release) turn xml DTD validation back on?
 			//fac.setValidating( true ) ;
 			DocumentBuilder builder = fac.newDocumentBuilder() ;
 			// Choke on any error or warning during parsing, not just fatal errors.

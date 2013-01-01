@@ -10,7 +10,6 @@ import org.nlogo.api.AgentException;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.LogoException;
 import org.nlogo.nvm.Procedure;
-import org.nlogo.util.MersenneTwisterFast;
 import org.nlogo.headless.HeadlessWorkspace;
 
 public strictfp class ModelRunner {
@@ -194,7 +193,7 @@ public strictfp class ModelRunner {
 	/**
 	 * Note: this method uses the main random-number generator, and thus 
 	 * will affect the state of the RNG for future calls.
-	 * @param cmd 
+	 * @param cmd - the NetLogo command to be run on the current headless workspace.
 	 * @throws CompilerException
 	 * @throws LogoException
 	 */

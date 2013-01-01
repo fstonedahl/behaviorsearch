@@ -94,7 +94,7 @@ public strictfp abstract class ParameterSpec {
 			{
 				throw (IllegalArgumentException) ex;
 			}
-			//TODO: Better error messages
+			//TODO: Better error messages?
 			throw new IllegalArgumentException("Invalid parameter range spec: " + paramString + ".  Error was " + ex.getMessage(), ex); 			
 		}
 	}	
