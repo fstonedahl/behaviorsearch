@@ -681,6 +681,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jCheckBoxCaching = new JCheckBox();
 				getContentPane().add(jCheckBoxCaching, new GridBagConstraints(1, 16, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jCheckBoxCaching.setText("Use fitness caching");
+				jCheckBoxCaching.setToolTipText("If fitness caching is turned on then the result of running the model with certain parameters gets saved so the model won't be re-run if a run with those same parameters are requested again.");
 				jCheckBoxCaching.setSelected(true);
 			}
 			{
@@ -712,7 +713,6 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 			{
 				jPanelDeriv = new JPanel();
-				//jPanelDeriv.setOpaque(false);
 				jPanelDeriv.setBackground(new Color(214,217,223));
 				jPanelDeriv.setLayout(new BorderLayout());
 				getContentPane().add(jPanelDeriv, new GridBagConstraints(3, 15, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
@@ -723,6 +723,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 					temp.add(jCheckBoxTakeDerivative);
 					jPanelDeriv.add(temp, BorderLayout.NORTH);
 					jCheckBoxTakeDerivative.setText("Take derivative?");
+					jCheckBoxTakeDerivative.setToolTipText("Instead of using the measure you've specified, use the *change* in that measure (with respect to a certain parameter) for your objective function.");
 					jCheckBoxTakeDerivative.setPreferredSize(new java.awt.Dimension(134, 22));
 					jCheckBoxTakeDerivative.setFont(new java.awt.Font("SansSerif",1,11));
 					jCheckBoxTakeDerivative.addItemListener(new ItemListener() {
@@ -733,6 +734,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 					
 					jCheckBoxFitnessDerivativeUseAbs = new JCheckBox();
 					jCheckBoxFitnessDerivativeUseAbs.setText("Use ABS value?");
+					jCheckBoxFitnessDerivativeUseAbs.setToolTipText("You might want to take the absolute value if you don't care about the direction of the measured change... e.g., for trying to find phase transitions");
 					jCheckBoxTakeDerivative.setFont(new java.awt.Font("SansSerif",1,11));
 					temp.add(jCheckBoxFitnessDerivativeUseAbs);
 				}
@@ -750,6 +752,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 							new DefaultComboBoxModel(
 									new String[] { "----" });
 						jComboBoxFitnessDerivativeParameter = new JComboBox();
+						jComboBoxFitnessDerivativeParameter.setToolTipText("Which parameter should be varied by a small amount to see how much change results?");
 						Dimension d = jComboBoxFitnessDerivativeParameter.getPreferredSize();
 						jComboBoxFitnessDerivativeParameter.setPreferredSize(new Dimension(200,d.height));
 						jPanelDeriv2.add(jComboBoxFitnessDerivativeParameter);
@@ -771,6 +774,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 						jTextFieldFitnessDerivativeDelta = new JTextField();
 						jPanelDeriv2.add(jTextFieldFitnessDerivativeDelta);
 						jTextFieldFitnessDerivativeDelta.setText("0.100");
+						jTextFieldFitnessDerivativeDelta.setToolTipText("How much should be subtracted from the parameter's value, to get the measured change?");
 						int prefHeight = jTextFieldFitnessDerivativeDelta.getPreferredSize().height;
 						jTextFieldFitnessDerivativeDelta.setPreferredSize(new Dimension(50, prefHeight));						
 					}

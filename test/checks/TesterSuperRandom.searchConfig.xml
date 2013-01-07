@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <!DOCTYPE search SYSTEM "behaviorsearch.dtd">
 <search>
-<bsearchVersionNumber>0.75</bsearchVersionNumber>
+<bsearchVersionNumber>1.00</bsearchVersionNumber>
 <modelInfo>
 <modelFile>Tester.nlogo</modelFile>
-<modelSetupCommands>clear-all </modelSetupCommands>
+<modelSetupCommands>clear-all reset-ticks</modelSetupCommands>
 <modelStepCommands>ask one-of patches [ set pcolor random 100 ] tick</modelStepCommands>
 <modelStopCondition>ticks &gt; 20 and random-float 1.0 &gt; 0.7 </modelStopCondition>
 <modelStepLimit>60</modelStepLimit>

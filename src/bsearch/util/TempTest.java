@@ -2,7 +2,13 @@ package bsearch.util;
 
 import java.io.FileNotFoundException;
 
+import org.nlogo.agent.Observer;
+import org.nlogo.api.CompilerException;
+import org.nlogo.api.SimpleJobOwner;
+import org.nlogo.headless.HeadlessWorkspace;
+import org.nlogo.nvm.Procedure;
 import org.nlogo.util.MersenneTwisterFast;
+
 
 //TODO: Remove this class sometime.  It is just for some quick code testing.
 public class TempTest {
@@ -25,14 +31,37 @@ public class TempTest {
 	}
 
 	public static void main(String[] args) {
-		//String fstr = "%.6g";
+		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
+		try {
+			Procedure p = workspace.compileCommands("tick"); // error because reset-ticks hasn't been called yet.
+			SimpleJobOwner owner = new SimpleJobOwner("", new MersenneTwisterFast(), Observer.class);
+			System.out.println("before running commands");
+			Object obj = workspace.runCompiledCommands(owner, p);
+			System.out.println("returned: " + obj);
+			System.out.println("done");
+		} catch (CompilerException e) {
+			e.printStackTrace();
+		}
 		
+
+		try {
+			Procedure p = workspace.compileReporter("ticks"); // error because reset-ticks hasn't been called yet.
+			SimpleJobOwner owner = new SimpleJobOwner("", new MersenneTwisterFast(), Observer.class);
+			System.out.println("before running commands");
+			Object obj = workspace.runCompiledCommands(owner, p);
+			System.out.println("returned: " + obj);
+			System.out.println("done");
+		} catch (CompilerException e1) {
+			e1.printStackTrace();
+		}
+
+		System.exit(0);
+
 		try {
 			SimpleDiGraph.readEdgeListFromFile("testgraph.txt");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		System.exit(0);
 		
 		MersenneTwisterFast rng = new MersenneTwisterFast();
 		double d = 0.99;

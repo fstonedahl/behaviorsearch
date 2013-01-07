@@ -37,7 +37,7 @@ import bsearch.util.GeneralUtils;
 
 public strictfp class TestBehaviorSearch
 {
-	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo-4.1.3/models/Sample Models/";
+	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo-5.0.3/models/Sample Models/";
 	
 	// a main method to run it -- for convenience.
 	public static void main( String... args )
@@ -71,9 +71,6 @@ public strictfp class TestBehaviorSearch
         Assert.assertEquals(37.0, runner.report( "ticks" ));
         runner.command("go");
         Assert.assertEquals(3068.0, runner.measureResults().get("burned-trees"));
-
-        // Test that the random number generation isn't being affected by reporters
-        Assert.assertEquals(runner.report("random 10000"), runner.report("random 10000"));
 
         runner.dispose();
 	}
@@ -253,6 +250,7 @@ public strictfp class TestBehaviorSearch
 		List<String> failedList = new ArrayList<String>();
 		for (String key: scenarios.keySet())
 		{
+			//System.out.println("key: + " + key);
         	RunOptions clOptions = new RunOptions();
         	CmdLineParser parser = new CmdLineParser(clOptions);        	
         	parser.parseArgument(scenarios.get(key).split("\\s"));

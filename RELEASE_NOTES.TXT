@@ -1,3 +1,21 @@
+NEW for Version 1.00: 
+ * Updated for NetLogo 5.x  
+   (Kudos to Kevin Zollman for submitting a patch that helped with this transition.)
+ * Fixed issue with range of possible initial seeds for the random number generator.
+   (This was fixed in NetLogo here: https://github.com/NetLogo/NetLogo/issues/111 )  
+ * Search protocols (.bsearch files) created with earlier versions of BehaviorSearch
+   should still load/work in this version, although the change in how random seeds
+   are handled means that results from doing the same search with the same random 
+   seed may differ slightly from the results from previous versions.
+
+ - KNOWN ISSUES for Version 1.00:
+   * Due to a change (regression?) in how NetLogo 5's controlling API handles 
+     runtime errors, these errors may not always be properly reported by BehaviorSearch.
+     I am looking into it, but the fix for this may have to wait for a future NetLogo release.
+     In the meantime, as long as you carefully debug your model beforehand to make sure that it 
+     won't pop up any errors while running, this shouldn't be an issue.          
+
+
 Version 0.76:
 * Mostly code cleanup & documentation fixes
 

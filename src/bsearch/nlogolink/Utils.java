@@ -1,12 +1,8 @@
 package bsearch.nlogolink;
 
-import java.io.IOException;
-
 import org.nlogo.agent.BooleanConstraint;
 import org.nlogo.agent.ChooserConstraint;
 import org.nlogo.agent.SliderConstraint;
-import org.nlogo.api.CompilerException;
-import org.nlogo.api.LogoException;
 import org.nlogo.api.ValueConstraint;
 import org.nlogo.headless.HeadlessWorkspace;
 
@@ -49,15 +45,15 @@ public strictfp class Utils {
 	public static String getDefaultConstraintsText(String modelFileName) throws NetLogoLinkException
 	{
 		HeadlessWorkspace workspace = Utils.createWorkspace();
-		try {
+//		try {
 		workspace.open(modelFileName);
-		} catch (IOException e) {
-			throw new NetLogoLinkException("I/O Error trying to open model file '" + modelFileName + "'\n " + e.toString(), e);
-		} catch (CompilerException e) {
-			throw new NetLogoLinkException("Model file '" + modelFileName + "' didn't compile: " + e.toString(), e);
-		} catch (LogoException e) {
-			throw new NetLogoLinkException("Unexpected error loading model: " + e.toString(), e);
-		}
+//		} catch (IOException e) {
+//			throw new NetLogoLinkException("I/O Error trying to open model file '" + modelFileName + "'\n " + e.toString(), e);
+//		} catch (CompilerException e) {
+//			throw new NetLogoLinkException("Model file '" + modelFileName + "' didn't compile: " + e.toString(), e);
+//		} catch (LogoException e) {
+//			throw new NetLogoLinkException("Unexpected error loading model: " + e.toString(), e);
+//		}
 		
 		StringBuilder sb = new StringBuilder();
 		int numVars = workspace.world().observer().getVariableCount();
@@ -74,30 +70,24 @@ public strictfp class Utils {
 	    		if (con instanceof SliderConstraint)
 	    		{
 	    			SliderConstraint scon = (SliderConstraint) con;
-	    			try {
-	    				double min = scon.minimum();
-	    				double incr = scon.increment();
-	    				double max = scon.maximum();
-	    				String strIncr = org.nlogo.api.Dump.logoObject(incr, true, false);
-	    				
-	    				// if it's a non-integer slider with more than 100 factor levels, let's suggest continuous "C"
-	    				if (min != StrictMath.floor(min) && incr != StrictMath.floor(incr) &&
-	    						StrictMath.abs((max - min) / incr) > 100)
-	    				{
-	    					strIncr = "\"C\"";
-	    				}
-	    				sb2.append("["); 
-	    				sb2.append(org.nlogo.api.Dump.logoObject(min, true, false));
-	    				sb2.append(" "); 
-	    				sb2.append(strIncr);
-	    				sb2.append(" "); 
-	    				sb2.append(org.nlogo.api.Dump.logoObject(max, true, false));
-	    				sb2.append("]"); 
-	    			} catch (LogoException ex)
-	    			{
-	    				sb2.setLength(0);
-		    			sb2.append(org.nlogo.api.Dump.logoObject(con.defaultValue(), true, false));
-	    			}
+    				double min = scon.minimum();
+    				double incr = scon.increment();
+    				double max = scon.maximum();
+    				String strIncr = org.nlogo.api.Dump.logoObject(incr, true, false);
+    				
+    				// if it's a non-integer slider with more than 100 factor levels, let's suggest continuous "C"
+    				if (min != StrictMath.floor(min) && incr != StrictMath.floor(incr) &&
+    						StrictMath.abs((max - min) / incr) > 100)
+    				{
+    					strIncr = "\"C\"";
+    				}
+    				sb2.append("["); 
+    				sb2.append(org.nlogo.api.Dump.logoObject(min, true, false));
+    				sb2.append(" "); 
+    				sb2.append(strIncr);
+    				sb2.append(" "); 
+    				sb2.append(org.nlogo.api.Dump.logoObject(max, true, false));
+    				sb2.append("]"); 
 	    		}
 	    		else if (con instanceof ChooserConstraint)
 	    		{

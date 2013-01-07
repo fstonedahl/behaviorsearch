@@ -93,7 +93,7 @@ public class SearchManager
 		List<ModelRunner.RunSetup> setupList = new ArrayList<ModelRunner.RunSetup>(evaluationQueue.size());
 		for (Chromosome point: evaluationQueue)
 		{
-			setupList.add(new ModelRunner.RunSetup(rng.nextLong(), point.getParamSettings()));
+			setupList.add(new ModelRunner.RunSetup(rng.nextInt(), point.getParamSettings()));
 		}
 
 		List<ModelRunResult> results = runner.doBatchRun(setupList);
@@ -117,6 +117,7 @@ public class SearchManager
 		try {
 			return computeFitnessBatch(points, repsDesired, rng);
 		} catch (NetLogoLinkException ex) {
+			ex.printStackTrace();
 			throw new BehaviorSearchException(ex.getMessage(), ex.getCause());
 		}
 	}
@@ -193,12 +194,15 @@ public class SearchManager
 		List<ModelRunner.RunSetup> setupList = new ArrayList<ModelRunner.RunSetup>(evaluationQueue.size());
 		for (Chromosome point: evaluationQueue)
 		{	
-			//Note: We use a seed that is within the representable range for NetLogo, so that users can recreate the runs
-			// in NetLogo by running "RANDOM-SEED XXXX" and then running their model.  
-			long seed = rng.nextLong(bsearch.nlogolink.Utils.MAX_EXACT_NETLOGO_INT - bsearch.nlogolink.Utils.MIN_EXACT_NETLOGO_INT + 1) +
-					bsearch.nlogolink.Utils.MIN_EXACT_NETLOGO_INT;
+			//Note: We use a seed that is within the valid seed range for the PRNG. 
+			// users can recreate a specific run in NetLogo by running "RANDOM-SEED XXXX" and then running their model.  
+			int seed = rng.nextInt();
 			setupList.add(new ModelRunner.RunSetup(seed, point.getParamSettings()));
 		}
+
+		// We create an auxilliaryRNG to use for "best-checking", so that the number of best-checking
+		// replicates doesn't affect the search process at all. 
+		MersenneTwisterFast auxilliaryRNG = new MersenneTwisterFast(rng.clone().nextInt());
 
 		// We save the value of the evaluationCounter here, so we can count up with it once while
 		// adding the ModelRunResults to the cache, and then back it up, and do it again
@@ -247,7 +251,7 @@ public class SearchManager
 				setCurrentBest(points[i],fitness);
 				if (protocol.useBestChecking())
 				{
-					currentBestFitnessCheckedEstimate = computeFitnessWithoutSideEffects(points[i], protocol.bestCheckingNumReplications, rng.clone());
+					currentBestFitnessCheckedEstimate = computeFitnessWithoutSideEffects(points[i], protocol.bestCheckingNumReplications, auxilliaryRNG);
 				}
 				for (ResultListener listener : resultListeners)
 				{

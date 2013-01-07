@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <!DOCTYPE search SYSTEM "behaviorsearch.dtd">
 <search>
-<bsearchVersionNumber>0.72</bsearchVersionNumber>
+<bsearchVersionNumber>1.00</bsearchVersionNumber>
 <modelInfo>
 <modelFile>../../models/Sample Models/Biology/Flocking.nlogo</modelFile>
 <modelSetupCommands>setup</modelSetupCommands>

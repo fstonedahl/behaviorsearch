@@ -6,10 +6,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Queue;
 
+import org.nlogo.agent.Observer;
 import org.nlogo.api.AgentException;
 import org.nlogo.api.CompilerException;
 import org.nlogo.api.LogoException;
+import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.nvm.Procedure;
+import org.nlogo.util.MersenneTwisterFast;
 import org.nlogo.headless.HeadlessWorkspace;
 
 public strictfp class ModelRunner {
@@ -22,22 +25,23 @@ public strictfp class ModelRunner {
 	private Procedure measureIfReporter = null;
 	private final boolean recordEveryTick;
 	private final int maxModelSteps;
-	 
+	
 	// Note: ModelRunner can collect multiple measures, for eventual support for extending to multi-objective optimization.
 	private LinkedHashMap<String,Procedure> resultReporters = new LinkedHashMap<String,Procedure>();
 		
 	private boolean runIsDone; 
-	
-	//private MersenneTwisterFast myRNG; 
+
+	// Until setup() is run for the first time (and the random seed can be set appropriately), 
+	// we'll leave the JobOwners as null.  
+	private SimpleJobOwner mainJobOwner = null; // uses NetLogo world's mainRNG (and thus affects the state of the world)
+	private SimpleJobOwner extraJobOwner = null; // uses a private RNG, and thus may not affect world state (unless the NetLogo code being run has side effects)
 	
 	private ModelRunner(String modelFileName, boolean recordEveryTick, int maxModelSteps) 
 		throws LogoException, IOException, CompilerException 
 	{
 		workspace = Utils.createWorkspace();
 		workspace.open(modelFileName);
-		 
-		//myRNG = workspace.world.mainRNG.clone();
-		
+
 		this.recordEveryTick = recordEveryTick;
 		this.maxModelSteps = maxModelSteps;
 	}
@@ -68,13 +72,25 @@ public strictfp class ModelRunner {
 			measureIfReporter = workspace.compileReporter(reporter);
 		}
 	}
-	public boolean checkStopCondition()
+	public boolean checkStopCondition() throws NetLogoLinkException
 	{
-		return (stopConditionReporter != null) &&
-			(Boolean) workspace.runCompiledReporter( stopConditionReporter , workspace.world.mainRNG.clone());
+		if (extraJobOwner == null)
+		{
+			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
+		}
+		if (stopConditionReporter != null)
+		{
+			Object obj = workspace.runCompiledReporter( extraJobOwner, stopConditionReporter);
+			if (obj instanceof Exception)
+			{
+				throw new NetLogoLinkException(((Exception) obj).toString());
+			}
+			return 	(Boolean) obj;
+		}
+		return false;
 	}
 	
-	public void setup(long seed, LinkedHashMap<String,Object> parameterSettings ) throws LogoException, AgentException
+	public void setup(int seed, LinkedHashMap<String,Object> parameterSettings ) throws LogoException, AgentException, NetLogoLinkException
 	{
 		workspace.clearAll();
 		for (String s: parameterSettings.keySet())
@@ -83,17 +99,38 @@ public strictfp class ModelRunner {
 		}
 		try {
 			workspace.world.mainRNG.setSeed( seed );
+			// For evaluating reporters (like measureIfReporter) we want to use a separate RNG 
+			// (which is seeded by a random number that depends on the random seed for this model run,
+			//  so that the results are deterministic/repeatable, but will generate an independent 
+			// stream of random numbers that does not affect the main NetLogo world's RNG.)
+			// This approach should allow the user to recreate a run by setting RANDOM-SEED XXX
+			// and running SETUP followed by GO, without worrying about all of the additional conditions
+			// and reporters affecting the state of the RNG and changing the outcome of the run...
+			mainJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Main", workspace.mainRNG(), Observer.class);
+			MersenneTwisterFast extraReporterRNG = new MersenneTwisterFast(workspace.mainRNG().clone().nextInt());
+			extraJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Extra", extraReporterRNG, Observer.class);
 		} catch (Exception ex) {ex.printStackTrace(); }
-
-		workspace.runCompiledCommands(setupCommands);
+		
+		if (setupCommands != null)
+		{
+			workspace.runCompiledCommands(mainJobOwner,setupCommands);			
+		}
 		
 		runIsDone = checkStopCondition();		
 	}
 	
-	/** returns true if the run is finished **/
-	public boolean go()
+	/** returns true if the run is finished 
+	 * @throws NetLogoLinkException **/
+	public boolean go() throws NetLogoLinkException
 	{
-		workspace.runCompiledCommands(stepCommands );		
+		if (mainJobOwner == null)
+		{
+			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
+		}
+		if (stepCommands != null)
+		{
+			workspace.runCompiledCommands(mainJobOwner, stepCommands );				
+		}
 
 		runIsDone = checkStopCondition();
 		return runIsDone;
@@ -111,9 +148,13 @@ public strictfp class ModelRunner {
 	
 	private Double measureResultReporter(Procedure reporter) throws NetLogoLinkException
 	{
+		if (extraJobOwner == null)
+		{
+			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
+		}
 		Object obj = null;
 		try {
-			obj = workspace.runCompiledReporter( reporter , workspace.world.mainRNG.clone());
+			obj = workspace.runCompiledReporter( extraJobOwner, reporter);
 			return (Double) obj;
 		} catch (ClassCastException ex)
 		{
@@ -124,7 +165,12 @@ public strictfp class ModelRunner {
 
 	private void conditionallyRecordResults(ModelRunResult results) throws NetLogoLinkException
 	{
-		if ((measureIfReporter == null) || (workspace.runCompiledReporter( measureIfReporter , workspace.world.mainRNG.clone()).equals(Boolean.TRUE)))
+		if (extraJobOwner == null)
+		{
+			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
+		}
+
+		if ((measureIfReporter == null) || (workspace.runCompiledReporter(extraJobOwner, measureIfReporter).equals(Boolean.TRUE)))
 		{
 			for (String key: resultReporters.keySet())
 			{
@@ -175,7 +221,7 @@ public strictfp class ModelRunner {
 	}
 	
 	
-	/** Note: This uses a cloned random number generator, so it 
+	/** Note: This uses the "extra" random number generator, so it 
 	 * won't affect the state of the main RNG for the run.  
 	 * Still, be careful because some reporters could have side-effects in the model
 	 * (for instance, if the reporter creates some agents 
@@ -188,7 +234,7 @@ public strictfp class ModelRunner {
 	public Object report(String reporter) throws CompilerException
 	{
 		Procedure procReporter = workspace.compileReporter( reporter );
-		return workspace.runCompiledReporter( procReporter, workspace.world.mainRNG.clone() );
+		return workspace.runCompiledReporter( extraJobOwner, procReporter );
 	}
 	/**
 	 * Note: this method uses the main random-number generator, and thus 
@@ -225,10 +271,10 @@ public strictfp class ModelRunner {
 	}
 	
 	public static class RunSetup {
-		final long seed;
+		final int seed;
 		final private LinkedHashMap<String,Object> parameterSettings;
 		
-		public RunSetup(long seed,
+		public RunSetup(int seed,
 				LinkedHashMap<String, Object> parameterSettings) {
 			super();
 			this.seed = seed;

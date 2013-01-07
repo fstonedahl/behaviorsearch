@@ -72,7 +72,11 @@ public strictfp class SearchProtocol
 	public final int bestCheckingNumReplications; // if == 0, no best checking is done
 
 
-	//TODO: Javadoc...
+	/**
+	 * A SearchProtocol stores the information about what is being searched, and how it should be done.
+	 * These fields map to the BehaviorSearch GUI for designing an experiment/protocol in a 
+	 * relatively straightforward fashion. 
+	 */
 	public SearchProtocol(String modelFile, List<String> paramSpecStrings,
 			String modelStepCommands, String modelSetupCommands, String modelStopCondition,
 			int modelStepLimit, String modelMetricReporter, String modelMeasureIf, 
@@ -355,7 +359,7 @@ public strictfp class SearchProtocol
 			// To validate, we may need to help it find the DTD file...
 			// inputSource.setSystemId( getClass().getResource( "/" ).toString() ) ;
 			fac = DocumentBuilderFactory.newInstance() ;
-			//TODO: (before release) turn xml DTD validation back on?
+			//TODO: Perhaps turn xml DTD validation back on?  Or is that too strict?  Is the DTD up to date?
 			//fac.setValidating( true ) ;
 			DocumentBuilder builder = fac.newDocumentBuilder() ;
 			// Choke on any error or warning during parsing, not just fatal errors.
