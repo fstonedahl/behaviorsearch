@@ -81,9 +81,15 @@ public strictfp class ModelRunner {
 		if (stopConditionReporter != null)
 		{
 			Object obj = workspace.runCompiledReporter( extraJobOwner, stopConditionReporter);
-			if (obj instanceof Exception)
+			LogoException ex = workspace.lastLogoException();
+			if (ex != null)
 			{
-				throw new NetLogoLinkException(((Exception) obj).toString());
+				workspace.lastLogoException_$eq(null);
+				throw new NetLogoLinkException(ex.toString());
+			}
+			if (!(obj instanceof Boolean))
+			{
+				throw new NetLogoLinkException("The stop condition reporter must report a TRUE/FALSE value.  Error occurred because it reported: " + obj);
 			}
 			return 	(Boolean) obj;
 		}
@@ -113,7 +119,13 @@ public strictfp class ModelRunner {
 		
 		if (setupCommands != null)
 		{
-			workspace.runCompiledCommands(mainJobOwner,setupCommands);			
+			workspace.runCompiledCommands(mainJobOwner,setupCommands);
+			LogoException ex = workspace.lastLogoException();
+			if (ex != null)
+			{
+				workspace.lastLogoException_$eq(null);
+				throw new NetLogoLinkException(ex.toString());
+			}
 		}
 		
 		runIsDone = checkStopCondition();		
@@ -130,6 +142,12 @@ public strictfp class ModelRunner {
 		if (stepCommands != null)
 		{
 			workspace.runCompiledCommands(mainJobOwner, stepCommands );				
+			LogoException ex = workspace.lastLogoException();
+			if (ex != null)
+			{
+				workspace.lastLogoException_$eq(null);
+				throw new NetLogoLinkException(ex.toString());
+			}
 		}
 
 		runIsDone = checkStopCondition();
@@ -152,17 +170,40 @@ public strictfp class ModelRunner {
 		{
 			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
 		}
-		Object obj = null;
-		try {
-			obj = workspace.runCompiledReporter( extraJobOwner, reporter);
-			return (Double) obj;
-		} catch (ClassCastException ex)
+		Object obj = workspace.runCompiledReporter( extraJobOwner, reporter);
+		LogoException ex = workspace.lastLogoException();
+		if (ex != null)
 		{
-			ex.printStackTrace();
-			throw new NetLogoLinkException("Result reporters must return numeric results!  Invalid reported value was: " + obj );
+			workspace.lastLogoException_$eq(null);
+			throw new NetLogoLinkException(ex.toString());
 		}
+		if (! (obj instanceof Double))
+		{
+			throw new NetLogoLinkException("Result reporters must return numeric results!  Invalid reported value was: " + obj );				
+		}
+		return (Double) obj;
 	}
 
+	private boolean evaluateMeasureIfReporter() throws NetLogoLinkException
+	{
+		// If they left the field blank, we'll assume we should measure every time.
+		if (measureIfReporter == null) 
+		{
+			return true;
+		}
+		Object obj = workspace.runCompiledReporter(extraJobOwner, measureIfReporter).equals(Boolean.TRUE);
+		LogoException ex = workspace.lastLogoException();
+		if (ex != null)
+		{
+			workspace.lastLogoException_$eq(null);
+			throw new NetLogoLinkException(ex.toString());
+		}
+		if (!(obj instanceof Boolean))
+		{
+			throw new NetLogoLinkException("The 'measure if' condition must report a TRUE/FALSE value.  Error occurred because it reported: " + obj);
+		}
+		return 	(Boolean) obj;		
+	}
 	private void conditionallyRecordResults(ModelRunResult results) throws NetLogoLinkException
 	{
 		if (extraJobOwner == null)
@@ -170,7 +211,7 @@ public strictfp class ModelRunner {
 			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
 		}
 
-		if ((measureIfReporter == null) || (workspace.runCompiledReporter(extraJobOwner, measureIfReporter).equals(Boolean.TRUE)))
+		if (evaluateMeasureIfReporter())
 		{
 			for (String key: resultReporters.keySet())
 			{
@@ -196,7 +237,7 @@ public strictfp class ModelRunner {
 			conditionallyRecordResults(results);
 			if (results.isEmpty())
 			{
-				throw new NetLogoLinkException("No metric values were collected during this model run! (Model was run for " + steps + " steps.)");
+				throw new NetLogoLinkException("No values were measured/collected during this model run! (Model was run for " + steps + " steps.)");
 			}
 			return results;
 		}
@@ -214,7 +255,7 @@ public strictfp class ModelRunner {
 		workspace.dispose();		
 	}
 
-	/** Just used for testing - preferable to use the Factory paradigm  */
+	/** Just used for unit testing - preferable to use the ModelRunner.Factory paradigm */
 	public static ModelRunner createModelRunnerForTesting (String s, boolean recordEveryTick, int maxModelSteps) throws LogoException, IOException, CompilerException
 	{
 		return new ModelRunner(s, recordEveryTick, maxModelSteps);				
@@ -230,11 +271,19 @@ public strictfp class ModelRunner {
 	 * @param reporter	the NetLogo reporter expression to run.
 	 * @return 			the result of running the reporter
 	 * @throws CompilerException
+	 * @throws NetLogoLinkException 
 	 */
-	public Object report(String reporter) throws CompilerException
+	public Object report(String reporter) throws CompilerException, NetLogoLinkException
 	{
 		Procedure procReporter = workspace.compileReporter( reporter );
-		return workspace.runCompiledReporter( extraJobOwner, procReporter );
+		Object obj = workspace.runCompiledReporter( extraJobOwner, procReporter );
+		LogoException ex = workspace.lastLogoException();
+		if (ex != null)
+		{
+			workspace.lastLogoException_$eq(null);
+			throw new NetLogoLinkException(ex.toString());
+		}
+		return obj;
 	}
 	/**
 	 * Note: this method uses the main random-number generator, and thus 

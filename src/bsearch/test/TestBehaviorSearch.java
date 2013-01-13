@@ -1,5 +1,7 @@
 package bsearch.test;
 
+//TODO: Improve test coverage!  (It's pretty weak right now... :-/)
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,11 +35,9 @@ import bsearch.representations.StandardBinaryChromosome;
 import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
 
-
-
 public strictfp class TestBehaviorSearch
 {
-	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo-5.0.3/models/Sample Models/";
+	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo/models/Sample Models/";
 	
 	// a main method to run it -- for convenience.
 	public static void main( String... args )

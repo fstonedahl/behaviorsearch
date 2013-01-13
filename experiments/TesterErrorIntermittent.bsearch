@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <!DOCTYPE search SYSTEM "behaviorsearch.dtd">
 <search>
+<bsearchVersionNumber>1.00</bsearchVersionNumber>
 <modelInfo>
-<modelFile>/home/forrest/prog/workspace/behaviorsearch/test/Tester.nlogo</modelFile>
+<modelFile>../test/Tester.nlogo</modelFile>
 <modelSetupCommands>setup</modelSetupCommands>
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
-<modelMetricReporter>ifelse-value (random 100 = 0) [5 / __boom ] [ellipsoid] </modelMetricReporter>
 <modelStepLimit>0</modelStepLimit>
+<modelMetricReporter>ifelse-value (random 100 = 0) [5 / __boom ] [ellipsoid] </modelMetricReporter>
+<modelMeasureIf>true</modelMeasureIf>
 </modelInfo>
 <fitnessInfo>
 <fitnessMinimized>false</fitnessMinimized>
@@ -26,5 +28,7 @@
 <searchMethodParameter name="restart-after-stall-count" value="0"/>
 </searchMethod>
 <chromosomeRepresentation type="MixedTypeChromosome"/>
+<caching>true</caching>
 <evaluationLimit>300</evaluationLimit>
+<bestCheckingNumReplications>0</bestCheckingNumReplications>
 </search>

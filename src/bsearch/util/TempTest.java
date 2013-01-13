@@ -33,10 +33,12 @@ public class TempTest {
 	public static void main(String[] args) {
 		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
 		try {
-			Procedure p = workspace.compileCommands("tick"); // error because reset-ticks hasn't been called yet.
+			Procedure p = workspace.compileReporter("ticks"); // error because reset-ticks hasn't been called yet.
 			SimpleJobOwner owner = new SimpleJobOwner("", new MersenneTwisterFast(), Observer.class);
 			System.out.println("before running commands");
-			Object obj = workspace.runCompiledCommands(owner, p);
+			Object obj = workspace.runCompiledReporter(owner, p);
+			System.out.println("LLE: " + workspace.lastLogoException());
+			workspace.lastLogoException_$eq(null);
 			System.out.println("returned: " + obj);
 			System.out.println("done");
 		} catch (CompilerException e) {
@@ -44,16 +46,13 @@ public class TempTest {
 		}
 		
 
-		try {
-			Procedure p = workspace.compileReporter("ticks"); // error because reset-ticks hasn't been called yet.
-			SimpleJobOwner owner = new SimpleJobOwner("", new MersenneTwisterFast(), Observer.class);
-			System.out.println("before running commands");
-			Object obj = workspace.runCompiledCommands(owner, p);
-			System.out.println("returned: " + obj);
-			System.out.println("done");
-		} catch (CompilerException e1) {
-			e1.printStackTrace();
-		}
+		//Procedure p = workspace.compileReporter("ticks"); // error because reset-ticks hasn't been called yet.
+		//SimpleJobOwner owner = new SimpleJobOwner("", new MersenneTwisterFast(), Observer.class);
+		System.out.println("before running commands");
+		Object obj = workspace.report("5+5");
+		System.out.println("LLE: " + workspace.lastLogoException());
+		System.out.println("returned: " + obj);
+		System.out.println("done");
 
 		System.exit(0);
 

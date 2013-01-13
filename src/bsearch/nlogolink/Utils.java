@@ -45,8 +45,13 @@ public strictfp class Utils {
 	public static String getDefaultConstraintsText(String modelFileName) throws NetLogoLinkException
 	{
 		HeadlessWorkspace workspace = Utils.createWorkspace();
+
+// TODO: THIS try/catch stuff is commented out for now, because of a Scala-based regression in NetLogo 5.x,
+// which neglected to put in "throws" annotations for these various exceptions, even though they actually 
+// can occur.  Once NetLogo fixes the issue on their end, we can put this error handling back in place.
+		
 //		try {
-		workspace.open(modelFileName);
+//		workspace.open(modelFileName);
 //		} catch (IOException e) {
 //			throw new NetLogoLinkException("I/O Error trying to open model file '" + modelFileName + "'\n " + e.toString(), e);
 //		} catch (CompilerException e) {
@@ -55,6 +60,12 @@ public strictfp class Utils {
 //			throw new NetLogoLinkException("Unexpected error loading model: " + e.toString(), e);
 //		}
 		
+		try {
+			workspace.open(modelFileName);
+		} catch (Exception e)
+		{
+			throw new NetLogoLinkException("A problem occurred trying to open or compile model file '" + modelFileName + "'\n " + e.toString(), e);
+		}
 		StringBuilder sb = new StringBuilder();
 		int numVars = workspace.world().observer().getVariableCount();
 	    for (int i = 0; i < numVars; i++)
