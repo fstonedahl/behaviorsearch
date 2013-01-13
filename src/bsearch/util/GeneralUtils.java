@@ -7,7 +7,7 @@ import java.util.Scanner;
 public class GeneralUtils {
 	//NOTE: Before release, need to change the version number here, 
 	//      and in the dist/version_number.txt file
-	private static final String VERSION_STRING = "1.00 (beta)";
+	private static final String VERSION_STRING = "1.00";
 	private static final double VERSION_NUMBER = 1.00;
 	
 	public static String getVersionString()
