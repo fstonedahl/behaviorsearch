@@ -132,7 +132,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private JLabel jLabelDerivWRT;
 	private JLabel jLabelDerivDELTA;
 	private JTextField jTextFieldFitnessDerivativeDelta;
-	private JComboBox jComboBoxFitnessDerivativeParameter;
+	private JComboBox<String> jComboBoxFitnessDerivativeParameter;
 	private JCheckBox jCheckBoxTakeDerivative;
 	private JCheckBox jCheckBoxFitnessDerivativeUseAbs;
 	private JPanel jPanelDeriv;
@@ -153,25 +153,25 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private JLabel jLabel18;
 	private JLabel jLabel9;
 	private JTextField jTextFieldFitnessSamplingRepetitions;
-	private JComboBox jComboBoxFitnessSamplingMethod;
-	private JComboBox jComboBoxSearchMethodType;
+	private JComboBox<String> jComboBoxFitnessSamplingMethod;
+	private JComboBox<String> jComboBoxSearchMethodType;
 	private JTextField jTextFieldModelStepLimit;
 	private JTextArea jTextAreaParamSpecs;
 	private JButton jButtonBrowseModel;
 	private JTextField jTextFieldMeasureIf;
 	private JLabel jLabel17;
-	private JComboBox jComboBoxFitnessCombineReplications;
+	private JComboBox<String> jComboBoxFitnessCombineReplications;
 	private JLabel jLabel16;
 	private JLabel jLabel15;
 	private JLabel jLabel14;
-	private JComboBox jComboBoxFitnessCollecting;
+	private JComboBox<String> jComboBoxFitnessCollecting;
 	private JLabel jLabel13;
-	private JComboBox jComboBoxChromosomeType;
+	private JComboBox<String> jComboBoxChromosomeType;
 	private JLabel jLabel11;
 	private JScrollPane jScrollPane2;
 	private JTextField jTextFieldModelFile;
 	private JTextField jTextFieldModelStopCondition;
-	private JComboBox jComboBoxFitnessMinMax;
+	private JComboBox<String> jComboBoxFitnessMinMax;
 	private JTextField jTextFieldFitnessMetric;
 	private JTextField jTextFieldModelStepCommands;
 	private JTextField jTextFieldModelSetupCommands;
@@ -401,10 +401,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				getContentPane().add(jPanelSampling, new GridBagConstraints(3, 13, 2, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jPanelSampling.setOpaque(false);
 				{
-					ComboBoxModel jComboBoxSamplingMethodModel = 
-						new DefaultComboBoxModel(
+					ComboBoxModel<String> jComboBoxSamplingMethodModel = 
+						new DefaultComboBoxModel<String>(
 								new String[] { "Fixed Sampling" }); //, "Adaptive Sampling" });
-					jComboBoxFitnessSamplingMethod = new JComboBox();
+					jComboBoxFitnessSamplingMethod = new JComboBox<String>();
 					jPanelSampling.add(jComboBoxFitnessSamplingMethod);
 					jComboBoxFitnessSamplingMethod.setModel(jComboBoxSamplingMethodModel);
 					jComboBoxFitnessSamplingMethod.setEditable(false);
@@ -454,10 +454,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				});
 			}
 			{
-				ComboBoxModel jComboBoxMinMaxModel = 
-					new DefaultComboBoxModel(
+				ComboBoxModel<String> jComboBoxMinMaxModel = 
+					new DefaultComboBoxModel<String>(
 							new String[] { "Minimize Fitness", "Maximize Fitness" });
-				jComboBoxFitnessMinMax = new JComboBox();
+				jComboBoxFitnessMinMax = new JComboBox<String>();
 				getContentPane().add(jComboBoxFitnessMinMax, new GridBagConstraints(4, 11, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jComboBoxFitnessMinMax.setModel(jComboBoxMinMaxModel);
 			}
@@ -522,10 +522,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jLabel11.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
-				ComboBoxModel jComboBoxChromosomeTypeModel = 
-					new DefaultComboBoxModel(
+				ComboBoxModel<String> jComboBoxChromosomeTypeModel = 
+					new DefaultComboBoxModel<String>(
 							new String[] { "MixedTypeChromosome" });
-				jComboBoxChromosomeType = new JComboBox();
+				jComboBoxChromosomeType = new JComboBox<String>();
 				getContentPane().add(jComboBoxChromosomeType, new GridBagConstraints(1, 18, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jComboBoxChromosomeType.setModel(jComboBoxChromosomeTypeModel);
 			}
@@ -536,10 +536,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jLabel13.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
-				ComboBoxModel jComboBox1Model = 
-					new DefaultComboBoxModel(
+				ComboBoxModel<String> jComboBox1Model = 
+					new DefaultComboBoxModel<String>(
 							new String[] { "Item One", "Item Two" });
-				jComboBoxFitnessCollecting = new JComboBox();
+				jComboBoxFitnessCollecting = new JComboBox<String>();
 				getContentPane().add(jComboBoxFitnessCollecting, new GridBagConstraints(4, 12, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jComboBoxFitnessCollecting.setModel(jComboBox1Model);
 			}
@@ -562,10 +562,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				jLabel16.setFont(new java.awt.Font("SansSerif",1,11));
 			}
 			{
-				ComboBoxModel jComboBox1Model = 
-					new DefaultComboBoxModel(
+				ComboBoxModel<String> jComboBox1Model = 
+					new DefaultComboBoxModel<String>(
 							new String[] { "Item One", "Item Two" });
-				jComboBoxFitnessCombineReplications = new JComboBox();
+				jComboBoxFitnessCombineReplications = new JComboBox<String>();
 				getContentPane().add(jComboBoxFitnessCombineReplications, new GridBagConstraints(4, 14, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jComboBoxFitnessCombineReplications.setModel(jComboBox1Model);
 			}
@@ -643,10 +643,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				
 			}
 			{
-				ComboBoxModel jComboBoxSearchMethodModel = 
-					new DefaultComboBoxModel(
+				ComboBoxModel<String> jComboBoxSearchMethodModel = 
+					new DefaultComboBoxModel<String>(
 							new String[] { "xxxx", "yyyy" });
-				jComboBoxSearchMethodType = new JComboBox();
+				jComboBoxSearchMethodType = new JComboBox<String>();
 				getContentPane().add(jComboBoxSearchMethodType, new GridBagConstraints(1, 11, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 				jComboBoxSearchMethodType.setModel(jComboBoxSearchMethodModel);
 				jComboBoxSearchMethodType.addActionListener(new ActionListener(){
@@ -748,10 +748,10 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 						jLabelDerivWRT.setText("w.r.t.");
 					}
 					{
-						ComboBoxModel jComboBoxFitnessDerivativeParameterModel = 
-							new DefaultComboBoxModel(
+						ComboBoxModel<String> jComboBoxFitnessDerivativeParameterModel = 
+							new DefaultComboBoxModel<String>(
 									new String[] { "----" });
-						jComboBoxFitnessDerivativeParameter = new JComboBox();
+						jComboBoxFitnessDerivativeParameter = new JComboBox<String>();
 						jComboBoxFitnessDerivativeParameter.setToolTipText("Which parameter should be varied by a small amount to see how much change results?");
 						Dimension d = jComboBoxFitnessDerivativeParameter.getPreferredSize();
 						jComboBoxFitnessDerivativeParameter.setPreferredSize(new Dimension(200,d.height));
@@ -848,7 +848,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private void initComboBoxes()
 	{
 		////////////// SearchMethods
-		DefaultComboBoxModel model = (DefaultComboBoxModel) jComboBoxSearchMethodType.getModel();
+		DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) jComboBoxSearchMethodType.getModel();
 		model.removeAllElements();
 		List<String> names = null;
 		try {
@@ -868,7 +868,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 		}
 		////////////// ChromosomeType
-		model = (DefaultComboBoxModel) jComboBoxChromosomeType.getModel();
+		model = (DefaultComboBoxModel<String>) jComboBoxChromosomeType.getModel();
 		model.removeAllElements();
 		names = null;
 		try {
@@ -884,7 +884,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		}
 
 		////////////// FitnessCollecting
-		model = (DefaultComboBoxModel) jComboBoxFitnessCollecting.getModel();
+		model = (DefaultComboBoxModel<String>) jComboBoxFitnessCollecting.getModel();
 		model.removeAllElements();
 		for (SearchProtocol.FITNESS_COLLECTING f: SearchProtocol.FITNESS_COLLECTING.values())
 		{
@@ -892,7 +892,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		}
 
 		////////////// FitnessCollecting
-		model = (DefaultComboBoxModel) jComboBoxFitnessCombineReplications.getModel();
+		model = (DefaultComboBoxModel<String>) jComboBoxFitnessCombineReplications.getModel();
 		model.removeAllElements();
 		for (SearchProtocol.FITNESS_COMBINE_REPLICATIONS f: SearchProtocol.FITNESS_COMBINE_REPLICATIONS.values())
 		{
@@ -919,7 +919,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		try {
 			Object oldChoice = jComboBoxFitnessDerivativeParameter.getSelectedItem();
 			SearchSpace ss = new SearchSpace(java.util.Arrays.asList(jTextAreaParamSpecs.getText().split("\n")));
-			DefaultComboBoxModel model = (DefaultComboBoxModel) jComboBoxFitnessDerivativeParameter.getModel();
+			DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>) jComboBoxFitnessDerivativeParameter.getModel();
 			model.removeAllElements();
 			for (ParameterSpec spec : ss.getParamSpecs())
 			{
