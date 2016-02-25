@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <MenuBar layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Edit">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Delete" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <TextField layoutX="31.0" layoutY="41.0" prefHeight="25.0" prefWidth="576.0" AnchorPane.leftAnchor="25.0" AnchorPane.topAnchor="40.0" />
+      <TabPane layoutX="28.0" layoutY="80.0" prefHeight="350.0" prefWidth="700.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="80.0">
+        <tabs>
+          <Tab text="Model">
+               <content>
+                  <Pane prefHeight="200.0" prefWidth="200.0">
+                     <children>
+                        <Label layoutX="128.0" layoutY="11.0" text="Parameter Specification">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="440.0" layoutY="95.0" text="Step: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="432.0" layoutY="59.0" text="Setup: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="429.0" layoutY="198.0" text="Stop if: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="417.0" layoutY="129.0" text="Measure: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="406.0" layoutY="164.0" text="Measure if: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="412.0" layoutY="232.0" text="Step limit: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <TextField layoutX="481.0" layoutY="55.0" prefHeight="25.0" prefWidth="195.0" />
+                        <TextField layoutX="481.0" layoutY="91.0" prefHeight="25.0" prefWidth="194.0" />
+                        <TextField layoutX="481.0" layoutY="126.0" prefHeight="25.0" prefWidth="194.0" />
+                        <TextField layoutX="481.0" layoutY="160.0" prefHeight="25.0" prefWidth="194.0" />
+                        <TextField layoutX="481.0" layoutY="194.0" prefHeight="25.0" prefWidth="194.0" />
+                        <TextField layoutX="481.0" layoutY="228.0" prefHeight="25.0" prefWidth="60.0" />
+                        <Label layoutX="550.0" layoutY="232.0" text="model steps" />
+                        <TextArea layoutX="22.0" layoutY="39.0" prefHeight="230.0" prefWidth="368.0" />
+                        <Button layoutX="339.0" layoutY="8.0" mnemonicParsing="false" text="?" />
+                        <Button layoutX="79.0" layoutY="282.0" mnemonicParsing="false" text="Load parameter ranges from model interface" />
+                     </children>
+                  </Pane>
+               </content>
+            </Tab>
+          <Tab text="Search Objective">
+               <content>
+                  <Pane prefHeight="200.0" prefWidth="200.0" />
+               </content>
+            </Tab>
+            <Tab text="Search Algorithm">
+               <content>
+                  <Pane prefHeight="200.0" prefWidth="200.0">
+                     <children>
+                        <CheckBox layoutX="28.0" layoutY="225.0" mnemonicParsing="false" text="Use fitness caching" />
+                        <Label layoutX="354.0" layoutY="229.0" text="Evaluation limit: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="610.0" layoutY="259.0" text="model runs" />
+                        <Label layoutX="28.0" layoutY="255.0" text="Search Encoding Representation">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="312.0" layoutY="259.0" text="Best Cheking replicates: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox layoutX="25.0" layoutY="282.0" prefWidth="150.0" />
+                        <Button layoutX="211.0" layoutY="282.0" mnemonicParsing="false" text="?" />
+                        <TextField layoutX="450.0" layoutY="255.0" />
+                        <TextField layoutX="451.0" layoutY="225.0" />
+                     </children>
+                  </Pane>
+               </content>
+            </Tab>
+        </tabs>
+      </TabPane>
+      <Button layoutX="609.0" layoutY="41.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="116.0" text="Browse for model" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="40.0" />
+      <Button layoutX="606.0" layoutY="448.0" mnemonicParsing="false" text="Run BehaviorSearch" AnchorPane.rightAnchor="25.0" />
+   </children>
+</AnchorPane>
