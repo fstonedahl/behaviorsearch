@@ -5,7 +5,6 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <MenuBar layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -85,7 +84,45 @@
             </Tab>
           <Tab text="Search Objective">
                <content>
-                  <Pane prefHeight="200.0" prefWidth="200.0" />
+                  <Pane prefHeight="200.0" prefWidth="200.0">
+                     <children>
+                        <Label text="Objective / Fitness Function">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                        <Button layoutX="217.0" layoutY="-2.0" mnemonicParsing="false" text="?" />
+                        <Label layoutX="79.0" layoutY="69.0" text="Goal: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="71.0" layoutY="118.0" text="Collected measure: ">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <Label layoutX="79.0" layoutY="179.0" text="Combine replicates:">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <CheckBox layoutX="91.0" layoutY="235.0" mnemonicParsing="false" text="Take derivatives?">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </CheckBox>
+                        <CheckBox layoutX="363.0" layoutY="235.0" mnemonicParsing="false" text="Use ABS value?" />
+                        <ChoiceBox layoutX="182.0" layoutY="65.0" prefWidth="150.0" />
+                        <ChoiceBox layoutX="209.0" layoutY="114.0" prefWidth="150.0" />
+                        <ChoiceBox layoutX="75.0" layoutY="148.0" prefWidth="150.0" />
+                        <ChoiceBox layoutX="217.0" layoutY="184.0" prefWidth="150.0" />
+                        <ChoiceBox layoutX="163.0" layoutY="263.0" prefWidth="150.0" />
+                        <Label layoutX="81.0" layoutY="267.0" text="w.r.t." />
+                        <Label layoutX="345.0" layoutY="267.0" text="Δ = " />
+                        <TextField layoutX="239.0" layoutY="148.0" />
+                        <TextField layoutX="390.0" layoutY="263.0" />
+                     </children></Pane>
                </content>
             </Tab>
             <Tab text="Search Algorithm">
@@ -113,6 +150,22 @@
                         <Button layoutX="211.0" layoutY="282.0" mnemonicParsing="false" text="?" />
                         <TextField layoutX="450.0" layoutY="255.0" />
                         <TextField layoutX="451.0" layoutY="225.0" />
+                        <Label layoutX="252.0" layoutY="18.0" text="Search Method Configuration">
+                           <font>
+                              <Font name="System Bold" size="14.0" />
+                           </font>
+                        </Label>
+                        <ChoiceBox layoutX="14.0" layoutY="38.0" prefWidth="150.0" />
+                        <Button layoutX="184.0" layoutY="38.0" mnemonicParsing="false" text="?" />
+                        <TableView layoutX="16.0" layoutY="77.0" prefHeight="140.0" prefWidth="667.0">
+                          <columns>
+                            <TableColumn prefWidth="397.0" text="Parameter" />
+                            <TableColumn minWidth="0.0" prefWidth="268.0" text="Value" />
+                          </columns>
+                           <columnResizePolicy>
+                              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                           </columnResizePolicy>
+                        </TableView>
                      </children>
                   </Pane>
                </content>
