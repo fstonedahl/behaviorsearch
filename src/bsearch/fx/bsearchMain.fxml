@@ -5,7 +5,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" >
    <children>
       <MenuBar layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
@@ -86,42 +86,42 @@
                <content>
                   <Pane prefHeight="200.0" prefWidth="200.0">
                      <children>
-                        <Label text="Objective / Fitness Function">
+                        <Label layoutX="265.0" layoutY="30.0" text="Objective / Fitness Function">
                            <font>
                               <Font name="System Bold" size="14.0" />
                            </font>
                         </Label>
-                        <Button layoutX="217.0" layoutY="-2.0" mnemonicParsing="false" text="?" />
-                        <Label layoutX="79.0" layoutY="69.0" text="Goal: ">
+                        <Button layoutX="464.0" layoutY="28.0" mnemonicParsing="false" text="?" />
+                        <Label layoutX="222.0" layoutY="78.0" text="Goal: ">
                            <font>
                               <Font name="System Bold" size="12.0" />
                            </font>
                         </Label>
-                        <Label layoutX="71.0" layoutY="118.0" text="Collected measure: ">
+                        <Label layoutX="218.0" layoutY="118.0" text="Collected measure: ">
                            <font>
                               <Font name="System Bold" size="12.0" />
                            </font>
                         </Label>
-                        <Label layoutX="79.0" layoutY="179.0" text="Combine replicates:">
+                        <Label layoutX="217.0" layoutY="188.0" text="Combine replicates:">
                            <font>
                               <Font name="System Bold" size="12.0" />
                            </font>
                         </Label>
-                        <CheckBox layoutX="91.0" layoutY="235.0" mnemonicParsing="false" text="Take derivatives?">
+                        <CheckBox layoutX="177.0" layoutY="235.0" mnemonicParsing="false" text="Take derivatives?">
                            <font>
                               <Font name="System Bold" size="12.0" />
                            </font>
                         </CheckBox>
-                        <CheckBox layoutX="363.0" layoutY="235.0" mnemonicParsing="false" text="Use ABS value?" />
-                        <ChoiceBox layoutX="182.0" layoutY="65.0" prefWidth="150.0" />
-                        <ChoiceBox layoutX="209.0" layoutY="114.0" prefWidth="150.0" />
-                        <ChoiceBox layoutX="75.0" layoutY="148.0" prefWidth="150.0" />
-                        <ChoiceBox layoutX="217.0" layoutY="184.0" prefWidth="150.0" />
-                        <ChoiceBox layoutX="163.0" layoutY="263.0" prefWidth="150.0" />
-                        <Label layoutX="81.0" layoutY="267.0" text="w.r.t." />
-                        <Label layoutX="345.0" layoutY="267.0" text="Δ = " />
-                        <TextField layoutX="239.0" layoutY="148.0" />
-                        <TextField layoutX="390.0" layoutY="263.0" />
+                        <CheckBox layoutX="449.0" layoutY="235.0" mnemonicParsing="false" text="Use ABS value?" />
+                        <ChoiceBox layoutX="356.0" layoutY="74.0" prefWidth="150.0" />
+                        <ChoiceBox layoutX="356.0" layoutY="114.0" prefWidth="150.0" />
+                        <ChoiceBox layoutX="218.0" layoutY="148.0" prefWidth="150.0" />
+                        <ChoiceBox layoutX="356.0" layoutY="184.0" prefWidth="150.0" />
+                        <ChoiceBox layoutX="195.0" layoutY="263.0" prefWidth="150.0" />
+                        <Label layoutX="156.0" layoutY="267.0" text="w.r.t." />
+                        <Label layoutX="388.0" layoutY="267.0" text="Δ = " />
+                        <TextField layoutX="376.0" layoutY="148.0" prefHeight="25.0" prefWidth="128.0" />
+                        <TextField layoutX="416.0" layoutY="263.0" />
                      </children></Pane>
                </content>
             </Tab>
