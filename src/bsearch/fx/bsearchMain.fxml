@@ -5,7 +5,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" >
+<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="bsearch.fx.MainController">
    <children>
       <MenuBar layoutY="2.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
@@ -26,7 +26,7 @@
           </Menu>
         </menus>
       </MenuBar>
-      <TextField layoutX="31.0" layoutY="41.0" prefHeight="25.0" prefWidth="576.0" AnchorPane.leftAnchor="25.0" AnchorPane.topAnchor="40.0" />
+      <TextField fx:id="browseField" layoutX="31.0" layoutY="41.0" prefHeight="25.0" prefWidth="576.0" AnchorPane.leftAnchor="25.0" AnchorPane.topAnchor="40.0" />
       <TabPane layoutX="28.0" layoutY="80.0" prefHeight="350.0" prefWidth="700.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.leftAnchor="25.0" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="80.0">
         <tabs>
           <Tab text="Model">
@@ -172,7 +172,7 @@
             </Tab>
         </tabs>
       </TabPane>
-      <Button layoutX="609.0" layoutY="41.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="116.0" text="Browse for model" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="40.0" />
+      <Button fx:id="browseButton" layoutX="609.0" layoutY="41.0" mnemonicParsing="false" onAction="#browseFile" prefHeight="25.0" prefWidth="116.0" text="Browse for model" AnchorPane.rightAnchor="25.0" AnchorPane.topAnchor="40.0" />
       <Button layoutX="606.0" layoutY="448.0" mnemonicParsing="false" text="Run BehaviorSearch" AnchorPane.rightAnchor="25.0" />
    </children>
 </AnchorPane>
