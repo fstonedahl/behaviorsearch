@@ -113,11 +113,11 @@
                            </font>
                         </CheckBox>
                         <CheckBox layoutX="449.0" layoutY="235.0" mnemonicParsing="false" text="Use ABS value?" />
-                        <ChoiceBox layoutX="356.0" layoutY="74.0" prefWidth="150.0" />
-                        <ChoiceBox layoutX="356.0" layoutY="114.0" prefWidth="150.0" />
-                        <ChoiceBox layoutX="218.0" layoutY="148.0" prefWidth="150.0" />
-                        <ChoiceBox layoutX="356.0" layoutY="184.0" prefWidth="150.0" />
-                        <ChoiceBox layoutX="195.0" layoutY="263.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SOGoalBox" layoutX="356.0" layoutY="74.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SOCollectedMearsureBox" layoutX="356.0" layoutY="114.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SOFixedSamplingBox" layoutX="218.0" layoutY="148.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SOCombineReplicatesBox" layoutX="356.0" layoutY="184.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SOWrtBox" layoutX="195.0" layoutY="263.0" prefWidth="150.0" />
                         <Label layoutX="156.0" layoutY="267.0" text="w.r.t." />
                         <Label layoutX="388.0" layoutY="267.0" text="Δ = " />
                         <TextField layoutX="376.0" layoutY="148.0" prefHeight="25.0" prefWidth="128.0" />
