@@ -31,7 +31,7 @@
         <tabs>
           <Tab text="Model">
                <content>
-                  <Pane prefHeight="200.0" prefWidth="200.0">
+                  <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0">
                      <children>
                         <Label layoutX="128.0" layoutY="11.0" text="Parameter Specification">
                            <font>
@@ -84,7 +84,7 @@
             </Tab>
           <Tab text="Search Objective">
                <content>
-                  <Pane prefHeight="200.0" prefWidth="200.0">
+                  <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0">
                      <children>
                         <Label layoutX="265.0" layoutY="30.0" text="Objective / Fitness Function">
                            <font>
@@ -114,7 +114,7 @@
                         </CheckBox>
                         <CheckBox layoutX="449.0" layoutY="235.0" mnemonicParsing="false" text="Use ABS value?" />
                         <ChoiceBox fx:id="SOGoalBox" layoutX="356.0" layoutY="74.0" prefWidth="150.0" />
-                        <ChoiceBox fx:id="SOCollectedMearsureBox" layoutX="356.0" layoutY="114.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SOFitnessCollectingBox" layoutX="356.0" layoutY="114.0" prefWidth="150.0" />
                         <ChoiceBox fx:id="SOFixedSamplingBox" layoutX="218.0" layoutY="148.0" prefWidth="150.0" />
                         <ChoiceBox fx:id="SOCombineReplicatesBox" layoutX="356.0" layoutY="184.0" prefWidth="150.0" />
                         <ChoiceBox fx:id="SOWrtBox" layoutX="195.0" layoutY="263.0" prefWidth="150.0" />
@@ -127,7 +127,7 @@
             </Tab>
             <Tab text="Search Algorithm">
                <content>
-                  <Pane prefHeight="200.0" prefWidth="200.0">
+                  <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="200.0" prefWidth="200.0">
                      <children>
                         <CheckBox layoutX="28.0" layoutY="225.0" mnemonicParsing="false" text="Use fitness caching" />
                         <Label layoutX="354.0" layoutY="229.0" text="Evaluation limit: ">
@@ -146,7 +146,7 @@
                               <Font name="System Bold" size="12.0" />
                            </font>
                         </Label>
-                        <ChoiceBox layoutX="25.0" layoutY="282.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SAChromosomeTypeBox" layoutX="25.0" layoutY="282.0" prefWidth="150.0" />
                         <Button layoutX="211.0" layoutY="282.0" mnemonicParsing="false" text="?" />
                         <TextField layoutX="450.0" layoutY="255.0" />
                         <TextField layoutX="451.0" layoutY="225.0" />
@@ -155,7 +155,7 @@
                               <Font name="System Bold" size="14.0" />
                            </font>
                         </Label>
-                        <ChoiceBox layoutX="14.0" layoutY="38.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SASearchMethodBox" layoutX="14.0" layoutY="38.0" prefWidth="150.0" />
                         <Button layoutX="184.0" layoutY="38.0" mnemonicParsing="false" text="?" />
                         <TableView layoutX="16.0" layoutY="77.0" prefHeight="140.0" prefWidth="667.0">
                           <columns>

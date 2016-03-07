@@ -3,8 +3,16 @@ package bsearch.fx;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import javax.swing.JOptionPane;
+
+import bsearch.algorithms.SearchMethodLoader;
+import bsearch.app.BehaviorSearchException;
+import bsearch.app.SearchProtocol;
+import bsearch.representations.ChromosomeTypeLoader;
 import bsearch.util.GeneralUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,36 +38,61 @@ public class MainController extends Application implements Initializable {
 	
 	// component in Search Objective tab will start with SO
 	@FXML public ChoiceBox<String> SOGoalBox;
-	@FXML public ChoiceBox<String> SOCollectedMearsureBox;
+	@FXML public ChoiceBox<String> SOFitnessCollectingBox;
 	@FXML public ChoiceBox<String> SOFixedSamplingBox;
 	@FXML public ChoiceBox<String> SOCombineReplicatesBox;
 	@FXML public ChoiceBox<String> SOWrtBox;
 	
 	// component in Search Algorithm tab will start with SA
 	@FXML public ChoiceBox<String> SASearchMethodBox;
-	@FXML public ChoiceBox<String> SASearchEncodingBox;
+	@FXML public ChoiceBox<String> SAChromosomeTypeBox;
+	
 	
 
+	
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-		// TODO Auto-generated method stub
+		
 		// set up ChoiceBox in SO tab
 		SOGoalBox.setItems(FXCollections.observableArrayList(
 		    "Minimize Fitness", "Maximize Fitness"));
-		SOCollectedMearsureBox.setItems(FXCollections.observableArrayList(
-			"AT_FINAL_STEP", "MEAN_ACROSS_STEPS", "MEDIAN_ACROSS_STEPS", 
-			"MIN_ACROSS_STEPS", "MAX_ACROSS_STEPS", "VARIANCE_ACROSS_STEPS",
-			"SUM_ACROSS_STEPS"));
+		List<String> fitnessCollecting = new ArrayList<String>();
+		for (SearchProtocol.FITNESS_COLLECTING f: SearchProtocol.FITNESS_COLLECTING.values())
+		{
+			
+			fitnessCollecting.add(f.toString());
+			
+		}	
+		SOFitnessCollectingBox.setItems(FXCollections.observableArrayList(
+			fitnessCollecting));
 		SOFixedSamplingBox.setItems(FXCollections.observableArrayList("Fixed Sampling"));
+		List<String> combineReplication = new ArrayList<String>();
+		for (SearchProtocol.FITNESS_COMBINE_REPLICATIONS f: SearchProtocol.FITNESS_COMBINE_REPLICATIONS.values())
+		{
+			combineReplication.add(f.toString());
+		}
 		SOCombineReplicatesBox.setItems(FXCollections.observableArrayList(
-			"MEAN", "MEDIAN", "MIN", "MAX", "VARIANCE", "STDEV"));
+			combineReplication));
 		SOWrtBox.setItems(FXCollections.observableArrayList(
 			"integerParameter", "continuousParameter", "choiceParameter", "@MUTATE@"));
 		
 		//// set up ChoiceBox in SA tab
+		try {
+			SASearchMethodBox.setItems(FXCollections.observableArrayList(SearchMethodLoader.getAllSearchMethodNames()));
+		} catch (BehaviorSearchException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-	}
 
+		try {
+			SAChromosomeTypeBox.setItems(FXCollections.observableArrayList(ChromosomeTypeLoader.getAllChromosomeTypes()));
+		} catch (BehaviorSearchException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	
+	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		try {
@@ -92,5 +125,23 @@ public class MainController extends Application implements Initializable {
 			}
 
 
+	}
+	
+	
+	//TODO: change to JavaFx dialog 
+	public static void handleError(String msg, java.awt.Container parentContainer)
+	{
+		JOptionPane wrappingTextOptionPane = new JOptionPane(msg, JOptionPane.ERROR_MESSAGE) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public int getMaxCharactersPerLineCount() { return 58; } };
+		javax.swing.JDialog dialog = wrappingTextOptionPane.createDialog(parentContainer, "Error!");
+		dialog.setVisible(true);
+//		javax.swing.JOptionPane.showMessageDialog(this, msg, "ERROR!", JOptionPane.ERROR_MESSAGE);
+		
+	}
+	private void handleError(String msg)
+	{
+		handleError(msg,new java.awt.Container());
 	}
 }
