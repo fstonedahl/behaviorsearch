@@ -75,9 +75,9 @@
                         <TextField layoutX="481.0" layoutY="194.0" prefHeight="25.0" prefWidth="194.0" />
                         <TextField layoutX="481.0" layoutY="228.0" prefHeight="25.0" prefWidth="60.0" />
                         <Label layoutX="550.0" layoutY="232.0" text="model steps" />
-                        <TextArea layoutX="22.0" layoutY="39.0" prefHeight="230.0" prefWidth="368.0" />
+                        <TextArea fx:id="MParamSpecsArea" layoutX="22.0" layoutY="39.0" prefHeight="230.0" prefWidth="368.0" />
                         <Button layoutX="339.0" layoutY="8.0" mnemonicParsing="false" text="?" />
-                        <Button layoutX="79.0" layoutY="282.0" mnemonicParsing="false" text="Load parameter ranges from model interface" />
+                        <Button fx:id="MSuggestParamButton" layoutX="79.0" layoutY="282.0" mnemonicParsing="false" onAction="#suggestParam" text="Load parameter ranges from model interface" />
                      </children>
                   </Pane>
                </content>
@@ -107,7 +107,7 @@
                               <Font name="System Bold" size="12.0" />
                            </font>
                         </Label>
-                        <CheckBox layoutX="177.0" layoutY="235.0" mnemonicParsing="false" text="Take derivatives?">
+                        <CheckBox fx:id="SOTakeDerivativeCheckBox" layoutX="177.0" layoutY="235.0" mnemonicParsing="false" onAction="#takeDerivativeAction" text="Take derivatives?">
                            <font>
                               <Font name="System Bold" size="12.0" />
                            </font>
@@ -117,11 +117,11 @@
                         <ChoiceBox fx:id="SOFitnessCollectingBox" layoutX="356.0" layoutY="114.0" prefWidth="150.0" />
                         <ChoiceBox fx:id="SOFixedSamplingBox" layoutX="218.0" layoutY="148.0" prefWidth="150.0" />
                         <ChoiceBox fx:id="SOCombineReplicatesBox" layoutX="356.0" layoutY="184.0" prefWidth="150.0" />
-                        <ChoiceBox fx:id="SOWrtBox" layoutX="195.0" layoutY="263.0" prefWidth="150.0" />
+                        <ChoiceBox fx:id="SOWrtBox" disable="true" layoutX="195.0" layoutY="263.0" prefWidth="150.0" />
                         <Label layoutX="156.0" layoutY="267.0" text="w.r.t." />
                         <Label layoutX="388.0" layoutY="267.0" text="Δ = " />
                         <TextField layoutX="376.0" layoutY="148.0" prefHeight="25.0" prefWidth="128.0" />
-                        <TextField layoutX="416.0" layoutY="263.0" />
+                        <TextField fx:id="SODeltaField" disable="true" layoutX="416.0" layoutY="263.0" />
                      </children></Pane>
                </content>
             </Tab>
