@@ -926,6 +926,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				model.addElement(spec.getParameterName());
 			}
 			model.addElement("@MUTATE@");
+			//TODO: Question: what if old choice not in new list of param
 			jComboBoxFitnessDerivativeParameter.setSelectedItem(oldChoice);
 		}
 		catch (Exception ex) {  }
