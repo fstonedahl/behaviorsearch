@@ -241,7 +241,7 @@ public class MainController extends Application implements Initializable {
 
 	}
 
-	private void actionNew() {
+	public void actionNew() {
 		// TODO: add this method
 		/*
 		 * if (!checkDiscardOkay()) { return; } currentFile = null;
@@ -262,6 +262,51 @@ public class MainController extends Application implements Initializable {
 		}
 		// TODO: getWindowTitleSuffix()
 		// this.setTitle("Untitled" + getWindowTitleSuffix());
+	}
+	
+	public void actionOpen()
+	{
+		if (!checkDiscardOkay())
+		{
+			return;
+		}
+		FileChooser chooser = new FileChooser();
+		
+		
+	    //JFileChooser chooser = new JFileChooser(); 
+	    if (currentFile != null)
+	    {
+	    	chooser.setInitialDirectory(currentFile);;
+	    	
+	    }
+	    /*chooser.addChoosableFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+		        "Completed search configurations (*.xml)", "xml"));
+	    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+		        "Search protocols (*.bsearch)", "bsearch"));*/
+	    chooser.getExtensionFilters().addAll(
+	    		new ExtensionFilter("bsearch File", "*.bsearch"), new ExtensionFilter("XML File", "*.xml"));
+
+	    File selectedFile = chooser.showOpenDialog(null);
+	    if (selectedFile != null){
+	    	openFile(selectedFile);
+	    }
+	}
+	
+	private void openFile(File fProtocol)
+	{
+    	try {
+			SearchProtocol protocol = SearchProtocol.loadFile(fProtocol.getPath());
+
+			currentFile = fProtocol;
+			loadProtocol(protocol);
+			//this.setTitle(currentFile.getName() + getWindowTitleSuffix());		
+		} catch (IOException e) {
+			handleError("IO Error occurred attempting to load file: " + fProtocol.getPath());
+			e.printStackTrace();
+		} catch (SAXException e) {
+			handleError("XML Parsing error occurred attempting to load file: " + fProtocol.getPath());
+			e.printStackTrace();
+		}
 	}
 
 	public void loadProtocol(SearchProtocol protocol) {
@@ -314,7 +359,8 @@ public class MainController extends Application implements Initializable {
 		}
 		int modelStepLimit = 0;
 		try {
-			modelStepLimit = Integer.valueOf(MModelStepField.getText());
+			modelStepLimit = Integer.valueOf(MModelStepLimitField.getText());
+			//System.out.println(modelStepLimit);
 			if (modelStepLimit < 0) 
 			{
 				throw new NumberFormatException();
@@ -458,6 +504,7 @@ public class MainController extends Application implements Initializable {
 				ex.printStackTrace();
 				handleError("IO Error occurred attempting to save file: " + currentFile.getPath());
 			} catch (UIConstraintException ex) {
+				System.out.println(ex.getMessage());
 				//JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getTitle(), JOptionPane.WARNING_MESSAGE);
 			}
 	}
