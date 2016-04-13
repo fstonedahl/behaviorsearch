@@ -12,6 +12,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 
 import org.xml.sax.SAXException;
 
@@ -37,6 +38,7 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -49,6 +51,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 import javafx.application.Application;
@@ -124,15 +127,17 @@ public class MainController extends Application implements Initializable {
 	@FXML
 	public TableView<SearchMethodParamTableRow> SASearchMethodTable;
 	@FXML
-	public TableColumn SAParamCol;
+	public TableColumn<SearchMethodParamTableRow,String> SAParamCol;
 	@FXML
-	public TableColumn SAValCol;
+	public TableColumn<SearchMethodParamTableRow,String> SAValCol;
 
 	// other component that not in GUI
 	private File defaultUserDocumentsFolder = new FileChooser().getInitialDirectory();
 	private File currentSearchProtocolFile;
 	private String defaultProtocolXMLForNewSearch;
 	private HashMap<String, SearchMethod> searchMethodChoices = new HashMap<String, SearchMethod>();
+	private File currentFile;
+	private String lastSavedText;
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -232,6 +237,7 @@ public class MainController extends Application implements Initializable {
 		if (selectedFile != null) {
 			browseField.setText(selectedFile.getPath());
 		}
+		
 
 	}
 
@@ -298,6 +304,202 @@ public class MainController extends Application implements Initializable {
 		 */
 	}
 
+	private SearchProtocol createProtocolFromFormData() throws UIConstraintException
+	{
+		HashMap<String, String> searchMethodParams = new java.util.LinkedHashMap<String, String>();
+		List<SearchMethodParamTableRow> currentTable = this.SASearchMethodTable.getItems();
+		
+		for (SearchMethodParamTableRow row : currentTable){
+			searchMethodParams.put(row.getParam().trim(), row.getValue().trim());
+		}
+		int modelStepLimit = 0;
+		try {
+			modelStepLimit = Integer.valueOf(MModelStepField.getText());
+			if (modelStepLimit < 0) 
+			{
+				throw new NumberFormatException();
+			}
+		} catch (NumberFormatException ex)
+		{
+			throw new UIConstraintException("STEP LIMIT should be a non-negative integer.", "Error: can't create search protocol");
+		}
+		int fitnessSamplingRepetitions = 0;
+		if (SOFixedSamplingBox.getValue().toString().equals("Fixed Sampling"))
+		{
+			try {
+				fitnessSamplingRepetitions = Integer.valueOf(SOFitnessSamplingRepetitionsField.getText());
+				if (fitnessSamplingRepetitions < 0) 
+				{
+					throw new NumberFormatException();
+				}
+			} catch (NumberFormatException ex)
+			{
+				throw new UIConstraintException("SAMPLING REPETITIONS should be a positive integer, or 0 if using adaptive sampling.", "Error: can't create protocol");
+			}
+		}
+	
+		boolean caching = SACachingCheckBox.isSelected();
+		
+		int evaluationLimit = 0;
+		try {
+			evaluationLimit = Integer.valueOf(SAEvaluationLimitField.getText());
+			if (evaluationLimit <= 0) 
+			{
+				throw new NumberFormatException();
+			}
+		} catch (NumberFormatException ex)
+		{
+			throw new UIConstraintException("EVALUATION LIMIT should be a positive integer.", "Error: can't create search protocol");
+		}
+		
+		
+		
+		int bestCheckingNumReplications = 0;
+		try {
+			bestCheckingNumReplications = Integer.valueOf(SABestCheckingField.getText());
+			if (bestCheckingNumReplications < 0) 
+			{
+				throw new NumberFormatException();
+			}
+		} catch (NumberFormatException ex)
+		{
+			throw new UIConstraintException("The number of 'BEST CHECKING' replicates should be a non-negative integer.", "Error: can't create search protocol");
+		}
+		double fitnessDerivDelta = 0.0;
+		if (SOTakeDerivativeCheckBox.isSelected())
+		{
+			try {
+				fitnessDerivDelta = Double.valueOf(SODeltaField.getText());
+			} catch (NumberFormatException ex)
+			{
+				throw new UIConstraintException("The DELTA value (for taking the derivative of the objective fucntion with respect to a parameter) needs to be a number", "Error: can't create search protocol");
+			}
+		}
+		SearchProtocol protocol = new SearchProtocol(browseField.getText(), 
+				java.util.Arrays.asList(MParamSpecsArea.getText().split("\n")),
+				MModelStepField.getText(), MModelSetupField.getText(), MModelStopConditionField.getText(),
+				modelStepLimit,
+				MMeasureField.getText(),
+				MMeasureIfField.getText(),
+				SOGoalBox.getValue().toString().equals("Minimize Fitness"),
+				fitnessSamplingRepetitions,
+				SearchProtocol.FITNESS_COLLECTING.valueOf(SOFitnessCollectingBox.getValue().toString()),
+				SearchProtocol.FITNESS_COMBINE_REPLICATIONS.valueOf(SOCombineReplicatesBox.getValue().toString()),
+				SOTakeDerivativeCheckBox.isSelected()?SOWrtBox.getValue().toString():"",
+				fitnessDerivDelta,
+				SOFitnessDerivativeUseAbsCheckBox.isSelected(),
+				SASearchMethodBox.getValue().toString(),
+				searchMethodParams,
+				SAChromosomeTypeBox.getValue().toString(),
+				caching,
+				evaluationLimit,
+				bestCheckingNumReplications
+				);
+		
+		
+		return protocol;
+	}
+	
+	public void actionSave()
+	{
+		if (currentFile == null)
+		{
+			actionSaveAs();
+		}
+		else
+		{
+		    doSave();			
+		}
+	}
+	public void actionSaveAs()
+	{
+		FileChooser chooser = new FileChooser();
+		chooser.getExtensionFilters().addAll(
+				new ExtensionFilter("bsearch File", "*.bsearch"));
+		
+
+		
+		//File chooser = fileChooser.showOpenDialog(null);
+		
+		/*if (selectedFile != null) {
+			browseField.setText(selectedFile.getPath());
+		}*/
+		//JFileChooser chooser = new JFileChooser("./experiments/");
+	    if (currentFile != null)
+	    {
+	    	chooser.setInitialFileName(currentFile.getName());
+	    }
+	    else
+	    {
+	    	chooser.setInitialFileName("Untitled.bsearch");
+	    }
+	    /*chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+		        "Search protocols (*.bsearch)", "bsearch"));*/
+	    File tempFile = chooser.showSaveDialog(null);
+	    if (tempFile != null){
+	    	currentFile = tempFile;
+	    }
+	    doSave();
+	//		this.setTitle(currentFile.getName() + getWindowTitleSuffix());
+	    	    
+	}
+	
+	private void doSave()
+	{
+			java.io.FileWriter fout;
+			try {
+				fout = new java.io.FileWriter(currentFile);
+				SearchProtocol protocol = createProtocolFromFormData(); 
+				protocol.save(fout);
+				fout.close();
+				lastSavedText = protocol.toXMLString();
+				//javax.swing.JOptionPane.showMessageDialog(this, "Saved successfully.", "Saved.", JOptionPane.PLAIN_MESSAGE);
+			} catch (IOException ex) {
+				ex.printStackTrace();
+				handleError("IO Error occurred attempting to save file: " + currentFile.getPath());
+			} catch (UIConstraintException ex) {
+				//JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getTitle(), JOptionPane.WARNING_MESSAGE);
+			}
+	}
+	public void actionExit()
+	{
+		if (!checkDiscardOkay())
+		{
+			return;
+		}
+		System.exit(0);
+	}
+	
+	private boolean protocolChangedSinceLastSave()
+	{
+		String xmlStr = "";
+		try {
+			xmlStr = createProtocolFromFormData().toXMLString();
+		} catch (UIConstraintException ex) 
+		{
+			// if we can't create a valid protocol object from the form data, assume the user has changed something...
+			return true;    
+		}
+		//System.out.println(xmlStr);
+		//System.out.println("--");
+		//System.out.println(lastSavedText);
+		
+		// Note: lastSavedText == null ONLY when the GUI is being loaded for the first time.
+		return (lastSavedText != null && !lastSavedText.equals(xmlStr));
+	}
+	private boolean checkDiscardOkay()
+	{
+		/*if (protocolChangedSinceLastSave())
+		{
+			if (JOptionPane.showConfirmDialog(this, "Discard changes you've made to this search experiment?", "Discard changes?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
+					== JOptionPane.NO_OPTION)
+			{
+				return false;
+			}			
+		}*/
+		return true;
+	}
+	
 	//
 	public void takeDerivativeAction(ActionEvent event) {
 		if (SOTakeDerivativeCheckBox.isSelected()) {
@@ -375,7 +577,7 @@ public class MainController extends Application implements Initializable {
 		 */
 
 		// http://java-buddy.blogspot.com/2013/05/detect-mouse-click-on-javafx-tableview.html
-		Callback<TableColumn, TableCell> stringCellFactory = new Callback<TableColumn, TableCell>() {
+		/*Callback<TableColumn<SearchMethodParamTableRow, String>, TableCell<SearchMethodParamTableRow, String>> stringCellFactory = new Callback<TableColumn<SearchMethodParamTableRow, String>, TableCell() {
 			@Override
 			public TableCell call(TableColumn p) {
 				MyStringTableCell cell = new MyStringTableCell();
@@ -385,8 +587,15 @@ public class MainController extends Application implements Initializable {
 				return cell;
 			}
 		};
-		SAParamCol.setCellFactory(stringCellFactory);
-		SAValCol.setCellFactory(TextFieldTableCell.forTableColumn());
+		SAParamCol.setCellFactory(stringCellFactory);*/
+		SAValCol.setCellFactory(TextFieldTableCell.<SearchMethodParamTableRow>forTableColumn());
+		SAValCol.setOnEditCommit( 
+				(CellEditEvent<SearchMethodParamTableRow, String> evt) -> {
+					((SearchMethodParamTableRow) evt.getTableView().getItems().get(
+							evt.getTablePosition().getRow())
+							).setValue(evt.getNewValue());
+				}
+				);
 
 		// set up table data
 		SAParamCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("param"));
@@ -397,7 +606,7 @@ public class MainController extends Application implements Initializable {
 
 	public class SearchMethodParamTableRow {
 		private final SimpleStringProperty param;
-		private final SimpleStringProperty value;
+		private SimpleStringProperty value;
 
 		public SearchMethodParamTableRow(String param, String value) {
 			this.param = new SimpleStringProperty(param);
@@ -410,6 +619,10 @@ public class MainController extends Application implements Initializable {
 
 		public String getValue() {
 			return value.get();
+		}
+
+		public void setValue(String value) {
+			this.value.set(value);
 		}
 
 		// TODO: use this method to test
@@ -439,73 +652,18 @@ public class MainController extends Application implements Initializable {
 			return getItem() == null ? "" : getItem().toString();
 		}
 	}
-
-/*	class EditingCell extends TableCell<SearchMethodParamTableRow, String> {
-	
-		private TextField textField;
-
-		public EditingCell() {
-		}
-		@Override
-		public void startEdit() {
+	private class UIConstraintException extends Exception
+	{
+		private String title;
 		
-			super.startEdit();
-
-			if (textField == null) {
-				createTextField();
-			}
-			setGraphic(textField);
-			setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-			textField.selectAll();
+		public UIConstraintException(String msg, String title) {
+			super(msg);
+			this.title = title;
 		}
-
-		@Override
-		public void cancelEdit() {
-		super.cancelEdit();
-
-		setText(String.valueOf(getItem()));
-		setContentDisplay(ContentDisplay.TEXT_ONLY);
-		}                  
-
-		@Override
-		public void updateItem(String item, boolean empty) {
-		super.updateItem(item, empty);
-		              
-		if (empty) {
-			setText(null);
-			setGraphic(null);
-		} else {
-		    if (isEditing()) {
-		    	if (textField != null) {
-		        textField.setText(getString());
-		        }
-		        setGraphic(textField);
-		        setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-		    } else {
-		        setText(getString());
-		        setContentDisplay(ContentDisplay.TEXT_ONLY);
-		        }
-		    }
-		 }                  
-
-		private void createTextField() {
-			textField = new TextField(getString());
-			textField.setMinWidth(this.getWidth() - this.getGraphicTextGap()*2);
-			textField.setOnKeyPressed(new EventHandler<KeyEvent>() {
-		                  
-					@Override
-		            public void handle(KeyEvent t) {
-		            	if (t.getCode() == KeyCode.ENTER) {
-		                	commitEdit(Integer.parseInt(textField.getText()));
-		                } else if (t.getCode() == KeyCode.ESCAPE) {
-		                	cancelEdit();
-		                }
-		            }
-		     });
-		}                  
-
-		private String getString() {
-			return getItem() == null ? "" : getItem().toString();
-		}    
-	} */
+		public String getTitle()
+		{
+			return title;
+		}
+		private static final long serialVersionUID = 1L;		
+	}
 }
