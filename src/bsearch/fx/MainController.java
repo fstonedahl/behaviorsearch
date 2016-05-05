@@ -29,6 +29,7 @@ import bsearch.util.GeneralUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -53,6 +54,7 @@ import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Callback;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
@@ -64,6 +66,7 @@ import javafx.event.ActionEvent;
 
 public class MainController extends Application implements Initializable {
 	// component outside of tab will have normal name
+	
 	@FXML
 	public AnchorPane anchorPane;
 	@FXML
@@ -138,6 +141,16 @@ public class MainController extends Application implements Initializable {
 	private HashMap<String, SearchMethod> searchMethodChoices = new HashMap<String, SearchMethod>();
 	private File currentFile;
 	private String lastSavedText;
+	private Window mainWindow;
+	//private Stage mainStage;
+	
+	
+	
+	public static void main(String[] args) {
+		launch(args);
+	}
+
+
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -215,30 +228,54 @@ public class MainController extends Application implements Initializable {
 			Parent root = FXMLLoader.load(getClass().getResource("bsearchMain.fxml"));
 			Scene scene = new Scene(root);
 			primaryStage.setScene(scene);
+			primaryStage.setTitle("Untitled" + getWindowTitleSuffix());
 			primaryStage.show();
+			//mainStage = (Stage) anchorPane.getScene().getWindow();
 			Image icon = new Image(GeneralUtils.getResource("icon_behaviorsearch.png").toURI().toString());
 			primaryStage.getIcons().add(icon);
+			
+
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 	}
-
-	public static void main(String[] args) {
-		launch(args);
-
+	
+	
+	private Window getMainWindow(){
+		if (anchorPane != null && anchorPane.getScene()!= null){
+			return anchorPane.getScene().getWindow();
+		} else {
+			return null;
+		}
 	}
 
 	//
 	public void browseFile(ActionEvent event) {
 		FileChooser fileChooser = new FileChooser();
-		File selectedFile = fileChooser.showOpenDialog(null);
+		File parentFolder = new File(browseField.getText()).getParentFile();
+		if (parentFolder!=null && parentFolder.exists()){
+			fileChooser.setInitialDirectory(parentFolder);
+		}
+		
+		File selectedFile = fileChooser.showOpenDialog(getMainWindow());
 		if (selectedFile != null) {
 			browseField.setText(selectedFile.getPath());
 		}
 		
 
+	}
+	
+	private void updateWindowTitle(String fileName){
+		Window mainWindow = getMainWindow();
+		if (mainWindow != null) {
+			((Stage)mainWindow).setTitle(fileName + getWindowTitleSuffix());
+		}
+	}
+	private static String getWindowTitleSuffix()
+	{
+		return " - BehaviorSearch " + GeneralUtils.getVersionString();
 	}
 
 	public void actionNew() {
@@ -260,8 +297,11 @@ public class MainController extends Application implements Initializable {
 			e.printStackTrace();
 			throw new IllegalStateException("Error loading default XML protocol to initialize UI!");
 		}
-		// TODO: getWindowTitleSuffix()
-		// this.setTitle("Untitled" + getWindowTitleSuffix());
+		
+		updateWindowTitle("Untitled");
+		
+		
+		
 	}
 	
 	public void actionOpen()
@@ -276,7 +316,8 @@ public class MainController extends Application implements Initializable {
 	    //JFileChooser chooser = new JFileChooser(); 
 	    if (currentFile != null)
 	    {
-	    	chooser.setInitialDirectory(currentFile);;
+	    	//System.out.println(currentFile.getParentFile());
+	    	chooser.setInitialDirectory(currentFile.getParentFile());;
 	    	
 	    }
 	    /*chooser.addChoosableFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
@@ -299,7 +340,7 @@ public class MainController extends Application implements Initializable {
 
 			currentFile = fProtocol;
 			loadProtocol(protocol);
-			//this.setTitle(currentFile.getName() + getWindowTitleSuffix());		
+			updateWindowTitle(currentFile.getName());
 		} catch (IOException e) {
 			handleError("IO Error occurred attempting to load file: " + fProtocol.getPath());
 			e.printStackTrace();
@@ -471,22 +512,28 @@ public class MainController extends Application implements Initializable {
 			browseField.setText(selectedFile.getPath());
 		}*/
 		//JFileChooser chooser = new JFileChooser("./experiments/");
-	    if (currentFile != null)
-	    {
-	    	chooser.setInitialFileName(currentFile.getName());
+	    File parentFolder = null;
+		if (currentFile != null) {
+			parentFolder  = currentFile.getParentFile();
+		    chooser.setInitialFileName(currentFile.getName());
 	    }
-	    else
-	    {
+	    else {
+	    	parentFolder = new File(browseField.getText()).getParentFile();
 	    	chooser.setInitialFileName("Untitled.bsearch");
 	    }
-	    /*chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+		if (parentFolder != null && parentFolder.exists()) {
+			chooser.setInitialDirectory(parentFolder);
+		}
+
+		/*chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
 		        "Search protocols (*.bsearch)", "bsearch"));*/
 	    File tempFile = chooser.showSaveDialog(null);
 	    if (tempFile != null){
 	    	currentFile = tempFile;
+	    	doSave();
 	    }
-	    doSave();
-	//		this.setTitle(currentFile.getName() + getWindowTitleSuffix());
+	    
+	    updateWindowTitle(currentFile.getName());
 	    	    
 	}
 	
@@ -635,7 +682,11 @@ public class MainController extends Application implements Initializable {
 			}
 		};
 		SAParamCol.setCellFactory(stringCellFactory);*/
-		SAValCol.setCellFactory(TextFieldTableCell.<SearchMethodParamTableRow>forTableColumn());
+		Callback<TableColumn<SearchMethodParamTableRow, String>, 
+        TableCell<SearchMethodParamTableRow, String>> cellFactory
+            = (TableColumn<SearchMethodParamTableRow, String> p) -> new EditingCell();
+		
+        SAValCol.setCellFactory(cellFactory);
 		SAValCol.setOnEditCommit( 
 				(CellEditEvent<SearchMethodParamTableRow, String> evt) -> {
 					((SearchMethodParamTableRow) evt.getTableView().getItems().get(
@@ -699,6 +750,69 @@ public class MainController extends Application implements Initializable {
 			return getItem() == null ? "" : getItem().toString();
 		}
 	}
+	public class EditingCell extends TableCell<SearchMethodParamTableRow, String> {
+		 
+        private TextField textField;
+ 
+        public EditingCell() {
+        }
+ 
+        @Override
+        public void startEdit() {
+            if (!isEmpty()) {
+                super.startEdit();
+                createTextField();
+                setText(null);
+                setGraphic(textField);
+                textField.selectAll();
+            }
+        }
+ 
+        @Override
+        public void cancelEdit() {
+            super.cancelEdit();
+ 
+            setText((String) getItem());
+            setGraphic(null);
+        }
+ 
+        @Override
+        public void updateItem(String item, boolean empty) {
+            super.updateItem(item, empty);
+ 
+            if (empty) {
+                setText(null);
+                setGraphic(null);
+            } else {
+                if (isEditing()) {
+                    if (textField != null) {
+                        textField.setText(getString());
+                    }
+                    setText(null);
+                    setGraphic(textField);
+                } else {
+                    setText(getString());
+                    setGraphic(null);
+                }
+            }
+        }
+ 
+        private void createTextField() {
+            textField = new TextField(getString());
+            textField.setMinWidth(this.getWidth() - this.getGraphicTextGap()* 2);
+            textField.focusedProperty().addListener(
+                (ObservableValue<? extends Boolean> arg0, 
+                Boolean arg1, Boolean arg2) -> {
+                    if (!arg2) {
+                        commitEdit(textField.getText());
+                    }
+            });
+        }
+ 
+        private String getString() {
+            return getItem() == null ? "" : getItem().toString();
+        }
+    }
 	private class UIConstraintException extends Exception
 	{
 		private String title;
