@@ -1,4 +1,4 @@
-!define MUI_VERSION "1.00"
+!define MUI_VERSION "1.01"
 ;;NOTE: the FIRST LINE of the file must be the !define MUI_VERSION, as above, as the release script automatically changes it.
 ;; The NETLOGO_VERSION below must be changed manually... it just affects the default installation folder
 !define NETLOGO_VERSION "NetLogo 5.0.3"

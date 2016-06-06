@@ -26,6 +26,7 @@ import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.nlogolink.Utils;
 import bsearch.representations.ChromosomeFactory;
 import bsearch.representations.ChromosomeTypeLoader;
+import bsearch.space.ParameterSpec;
 import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
 
@@ -176,6 +177,10 @@ public strictfp class BehaviorSearch {
 
 		@Option(name="-v", aliases={"--version"},usage="print version number and exit")
 		boolean printVersion = false;
+
+		@Option(name="--override-parameter-spec",usage="override the parameter spec/range given in the .bsearch file, using usual syntax (e.g. [\"population\" 100 200 400] (NOTE: you may need to \\ escape the quotes in your shell)", multiValued=true)
+		List<String> overrideParameters = new java.util.LinkedList<String>();
+
 		//@Argument(usage="any number of arguments...")
 		//List<String> arguments;
 		
@@ -263,6 +268,25 @@ public strictfp class BehaviorSearch {
 		}
 		GeneralUtils.updateProtocolFolder(runOptions.protocolFilename);
         
+		// allow users to override parameter spec ranges from the command line...
+		for (String override : runOptions.overrideParameters)
+		{
+			ParameterSpec newSpec = ParameterSpec.fromString(override);
+			boolean foundReplacement = false;
+			
+			for (int i = 0; i < protocol.paramSpecStrings.size(); i++) {
+				ParameterSpec spec = ParameterSpec.fromString(protocol.paramSpecStrings.get(i));
+				if (spec.getParameterName().equals(newSpec.getParameterName())) {
+					protocol.paramSpecStrings.remove(i);
+					protocol.paramSpecStrings.add(i, override);
+					foundReplacement= true;
+				}
+			}
+			if (!foundReplacement) {
+				protocol.paramSpecStrings.add(override);
+			}
+		}
+	
     	if (runOptions.briefOutput)
     	{
     		runOptions.suppressModelRunHistory = true;
