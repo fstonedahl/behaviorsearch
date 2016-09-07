@@ -63,6 +63,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 
 public class MainController extends Application implements Initializable {
 	// component outside of tab will have normal name
@@ -682,24 +683,29 @@ public class MainController extends Application implements Initializable {
 			}
 		};
 		SAParamCol.setCellFactory(stringCellFactory);*/
-		Callback<TableColumn<SearchMethodParamTableRow, String>, 
+		//TODO:  CHANGE TO TABLE CELL THAT WORK
+		/*Callback<TableColumn<SearchMethodParamTableRow, String>, 
         TableCell<SearchMethodParamTableRow, String>> cellFactory
-            = (TableColumn<SearchMethodParamTableRow, String> p) -> new EditingCell();
+            = (TableColumn<SearchMethodParamTableRow, String> p) -> new AcceptOnExitTableCell<SearchMethodParamTableRow, String>();
+		SAValCol.setCellFactory(cellFactory);*/
+		SAValCol.setCellFactory(AcceptOnExitTableCell.forTableColumn());
 		
-        SAValCol.setCellFactory(cellFactory);
-		SAValCol.setOnEditCommit( 
-				(CellEditEvent<SearchMethodParamTableRow, String> evt) -> {
-					((SearchMethodParamTableRow) evt.getTableView().getItems().get(
-							evt.getTablePosition().getRow())
-							).setValue(evt.getNewValue());
-				}
-				);
-
+        //this is the code that work, however, textField need to be commit with enter
+		//SAValCol.setCellFactory(TextFieldTableCell.forTableColumn());
+        
 		// set up table data
 		SAParamCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("param"));
 		SAValCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("value"));
 		this.SASearchMethodTable.setItems(FXCollections.observableArrayList(paramTable));
-
+		SAValCol.setOnEditCommit(
+			    new EventHandler<CellEditEvent<SearchMethodParamTableRow, String>>() {
+			        @Override
+			        public void handle(CellEditEvent<SearchMethodParamTableRow, String> t) {
+			            ((SearchMethodParamTableRow) t.getTableView().getItems().get(
+			                t.getTablePosition().getRow())
+			                ).setValue(t.getNewValue());
+			        }
+			    });
 	}
 
 	public class SearchMethodParamTableRow {
@@ -750,7 +756,7 @@ public class MainController extends Application implements Initializable {
 			return getItem() == null ? "" : getItem().toString();
 		}
 	}
-	public class EditingCell extends TableCell<SearchMethodParamTableRow, String> {
+	/*public class EditingCell extends TableCell<SearchMethodParamTableRow, String> {
 		 
         private TextField textField;
  
@@ -770,15 +776,25 @@ public class MainController extends Application implements Initializable {
  
         @Override
         public void cancelEdit() {
+        	System.out.println("cancel edit");
+        	//commitEdit(textField.getText());
             super.cancelEdit();
  
+            System.out.println(textField.getText());
             setText((String) getItem());
             setGraphic(null);
+        	//updateItem(getItem(),isEmpty());
+        	String newText=textField.getText(); // get the new text from the view
+            
+        
+            setGraphic(null); // stop editing with TextField
+
         }
  
         @Override
         public void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);
+            System.out.println("update item: " + item);
  
             if (empty) {
                 setText(null);
@@ -787,6 +803,7 @@ public class MainController extends Application implements Initializable {
                 if (isEditing()) {
                     if (textField != null) {
                         textField.setText(getString());
+                        System.out.println("is editing");
                     }
                     setText(null);
                     setGraphic(textField);
@@ -800,6 +817,7 @@ public class MainController extends Application implements Initializable {
         private void createTextField() {
             textField = new TextField(getString());
             textField.setMinWidth(this.getWidth() - this.getGraphicTextGap()* 2);
+            
             textField.focusedProperty().addListener(
                 (ObservableValue<? extends Boolean> arg0, 
                 Boolean arg1, Boolean arg2) -> {
@@ -812,7 +830,7 @@ public class MainController extends Application implements Initializable {
         private String getString() {
             return getItem() == null ? "" : getItem().toString();
         }
-    }
+    }*/
 	private class UIConstraintException extends Exception
 	{
 		private String title;
