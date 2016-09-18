@@ -1394,7 +1394,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	}
 
 	
-	private class UIConstraintException extends Exception
+	public class UIConstraintException extends Exception
 	{
 		private String title;
 		

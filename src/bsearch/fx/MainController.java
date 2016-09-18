@@ -8,19 +8,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-
 import org.xml.sax.SAXException;
+
 
 import bsearch.algorithms.SearchMethod;
 import bsearch.algorithms.SearchMethodLoader;
+import bsearch.app.BehaviorSearch.RunOptions;
+import bsearch.app.BehaviorSearchGUI.UIConstraintException;
+import bsearch.app.BehaviorSearch;
 import bsearch.app.BehaviorSearchException;
+import bsearch.app.GUIProgressDialog;
+import bsearch.app.RunOptionsDialog;
 import bsearch.app.SearchProtocol;
-import bsearch.fx.MainController.SearchMethodParamTableRow;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.ChromosomeTypeLoader;
 import bsearch.space.ParameterSpec;
@@ -29,13 +29,11 @@ import bsearch.util.GeneralUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -44,36 +42,32 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.util.Callback;
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 
 public class MainController extends Application implements Initializable {
 	// component outside of tab will have normal name
-	
+
 	@FXML
 	public AnchorPane anchorPane;
 	@FXML
 	public Button browseButton;
 	@FXML
 	public TextField browseField;
+	@FXML
+	public Button runButton;
 
 	// component in Model tab will start with M
 	@FXML
@@ -131,9 +125,9 @@ public class MainController extends Application implements Initializable {
 	@FXML
 	public TableView<SearchMethodParamTableRow> SASearchMethodTable;
 	@FXML
-	public TableColumn<SearchMethodParamTableRow,String> SAParamCol;
+	public TableColumn<SearchMethodParamTableRow, String> SAParamCol;
 	@FXML
-	public TableColumn<SearchMethodParamTableRow,String> SAValCol;
+	public TableColumn<SearchMethodParamTableRow, String> SAValCol;
 
 	// other component that not in GUI
 	private File defaultUserDocumentsFolder = new FileChooser().getInitialDirectory();
@@ -143,15 +137,13 @@ public class MainController extends Application implements Initializable {
 	private File currentFile;
 	private String lastSavedText;
 	private Window mainWindow;
-	//private Stage mainStage;
+	protected RunOptions runOptions;
 	
-	
-	
+	// private Stage mainStage;
+
 	public static void main(String[] args) {
 		launch(args);
 	}
-
-
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -174,7 +166,7 @@ public class MainController extends Application implements Initializable {
 
 		SOWrtBox.setItems(FXCollections.observableArrayList("---"));
 
-		//// set up ChoiceBox in SA tab
+		// set up ChoiceBox in SA tab
 		try {
 			SASearchMethodBox.setItems(FXCollections.observableArrayList(SearchMethodLoader.getAllSearchMethodNames()));
 		} catch (BehaviorSearchException e) {
@@ -231,21 +223,18 @@ public class MainController extends Application implements Initializable {
 			primaryStage.setScene(scene);
 			primaryStage.setTitle("Untitled" + getWindowTitleSuffix());
 			primaryStage.show();
-			//mainStage = (Stage) anchorPane.getScene().getWindow();
+			// mainStage = (Stage) anchorPane.getScene().getWindow();
 			Image icon = new Image(GeneralUtils.getResource("icon_behaviorsearch.png").toURI().toString());
 			primaryStage.getIcons().add(icon);
-			
-
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 	}
-	
-	
-	private Window getMainWindow(){
-		if (anchorPane != null && anchorPane.getScene()!= null){
+
+	private Window getMainWindow() {
+		if (anchorPane != null && anchorPane.getScene() != null) {
 			return anchorPane.getScene().getWindow();
 		} else {
 			return null;
@@ -256,26 +245,25 @@ public class MainController extends Application implements Initializable {
 	public void browseFile(ActionEvent event) {
 		FileChooser fileChooser = new FileChooser();
 		File parentFolder = new File(browseField.getText()).getParentFile();
-		if (parentFolder!=null && parentFolder.exists()){
+		if (parentFolder != null && parentFolder.exists()) {
 			fileChooser.setInitialDirectory(parentFolder);
 		}
-		
+
 		File selectedFile = fileChooser.showOpenDialog(getMainWindow());
 		if (selectedFile != null) {
 			browseField.setText(selectedFile.getPath());
 		}
-		
 
 	}
-	
-	private void updateWindowTitle(String fileName){
+
+	private void updateWindowTitle(String fileName) {
 		Window mainWindow = getMainWindow();
 		if (mainWindow != null) {
-			((Stage)mainWindow).setTitle(fileName + getWindowTitleSuffix());
+			((Stage) mainWindow).setTitle(fileName + getWindowTitleSuffix());
 		}
 	}
-	private static String getWindowTitleSuffix()
-	{
+
+	private static String getWindowTitleSuffix() {
 		return " - BehaviorSearch " + GeneralUtils.getVersionString();
 	}
 
@@ -298,45 +286,35 @@ public class MainController extends Application implements Initializable {
 			e.printStackTrace();
 			throw new IllegalStateException("Error loading default XML protocol to initialize UI!");
 		}
-		
+
 		updateWindowTitle("Untitled");
-		
-		
-		
+
 	}
-	
-	public void actionOpen()
-	{
-		if (!checkDiscardOkay())
-		{
+
+	public void actionOpen() {
+		if (!checkDiscardOkay()) {
 			return;
 		}
 		FileChooser chooser = new FileChooser();
-		
-		
-	    //JFileChooser chooser = new JFileChooser(); 
-	    if (currentFile != null)
-	    {
-	    	//System.out.println(currentFile.getParentFile());
-	    	chooser.setInitialDirectory(currentFile.getParentFile());;
-	    	
-	    }
-	    /*chooser.addChoosableFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-		        "Completed search configurations (*.xml)", "xml"));
-	    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-		        "Search protocols (*.bsearch)", "bsearch"));*/
-	    chooser.getExtensionFilters().addAll(
-	    		new ExtensionFilter("bsearch File", "*.bsearch"), new ExtensionFilter("XML File", "*.xml"));
 
-	    File selectedFile = chooser.showOpenDialog(null);
-	    if (selectedFile != null){
-	    	openFile(selectedFile);
-	    }
+		if (currentFile != null) {
+			// System.out.println(currentFile.getParentFile());
+			chooser.setInitialDirectory(currentFile.getParentFile());
+			;
+
+		}
+		
+		chooser.getExtensionFilters().addAll(new ExtensionFilter("bsearch File", "*.bsearch"),
+				new ExtensionFilter("XML File", "*.xml"));
+
+		File selectedFile = chooser.showOpenDialog(null);
+		if (selectedFile != null) {
+			openFile(selectedFile);
+		}
 	}
-	
-	private void openFile(File fProtocol)
-	{
-    	try {
+
+	private void openFile(File fProtocol) {
+		try {
 			SearchProtocol protocol = SearchProtocol.loadFile(fProtocol.getPath());
 
 			currentFile = fProtocol;
@@ -383,218 +361,190 @@ public class MainController extends Application implements Initializable {
 		SACachingCheckBox.setSelected(protocol.caching);
 		SABestCheckingField.setText(Integer.toString(protocol.bestCheckingNumReplications));
 		SAEvaluationLimitField.setText(Integer.toString(protocol.evaluationLimit));
+		
 
 		// TODO: check these two fields
-		/*
-		 * lastSavedText = protocol.toXMLString(); runOptions = null; // reset
-		 * the runOptions to defaults, when a different Protocol is loaded
-		 */
+		
+		 lastSavedText = protocol.toXMLString(); 
+		 runOptions = null; 
+		 //the runOptions to defaults, when a different Protocol is loaded
+		 
 	}
 
-	private SearchProtocol createProtocolFromFormData() throws UIConstraintException
-	{
+	private SearchProtocol createProtocolFromFormData() throws UIConstraintException {
 		HashMap<String, String> searchMethodParams = new java.util.LinkedHashMap<String, String>();
 		List<SearchMethodParamTableRow> currentTable = this.SASearchMethodTable.getItems();
-		
-		for (SearchMethodParamTableRow row : currentTable){
+
+		for (SearchMethodParamTableRow row : currentTable) {
 			searchMethodParams.put(row.getParam().trim(), row.getValue().trim());
 		}
 		int modelStepLimit = 0;
 		try {
 			modelStepLimit = Integer.valueOf(MModelStepLimitField.getText());
-			//System.out.println(modelStepLimit);
-			if (modelStepLimit < 0) 
-			{
+			// System.out.println(modelStepLimit);
+			if (modelStepLimit < 0) {
 				throw new NumberFormatException();
 			}
-		} catch (NumberFormatException ex)
-		{
-			throw new UIConstraintException("STEP LIMIT should be a non-negative integer.", "Error: can't create search protocol");
+		} catch (NumberFormatException ex) {
+			throw new UIConstraintException("STEP LIMIT should be a non-negative integer.",
+					"Error: can't create search protocol");
 		}
 		int fitnessSamplingRepetitions = 0;
-		if (SOFixedSamplingBox.getValue().toString().equals("Fixed Sampling"))
-		{
+		if (SOFixedSamplingBox.getValue().toString().equals("Fixed Sampling")) {
 			try {
 				fitnessSamplingRepetitions = Integer.valueOf(SOFitnessSamplingRepetitionsField.getText());
-				if (fitnessSamplingRepetitions < 0) 
-				{
+				if (fitnessSamplingRepetitions < 0) {
 					throw new NumberFormatException();
 				}
-			} catch (NumberFormatException ex)
-			{
-				throw new UIConstraintException("SAMPLING REPETITIONS should be a positive integer, or 0 if using adaptive sampling.", "Error: can't create protocol");
+			} catch (NumberFormatException ex) {
+				throw new UIConstraintException(
+						"SAMPLING REPETITIONS should be a positive integer, or 0 if using adaptive sampling.",
+						"Error: can't create protocol");
 			}
 		}
-	
+
 		boolean caching = SACachingCheckBox.isSelected();
-		
+
 		int evaluationLimit = 0;
 		try {
 			evaluationLimit = Integer.valueOf(SAEvaluationLimitField.getText());
-			if (evaluationLimit <= 0) 
-			{
+			if (evaluationLimit <= 0) {
 				throw new NumberFormatException();
 			}
-		} catch (NumberFormatException ex)
-		{
-			throw new UIConstraintException("EVALUATION LIMIT should be a positive integer.", "Error: can't create search protocol");
+		} catch (NumberFormatException ex) {
+			throw new UIConstraintException("EVALUATION LIMIT should be a positive integer.",
+					"Error: can't create search protocol");
 		}
-		
-		
-		
+
 		int bestCheckingNumReplications = 0;
 		try {
 			bestCheckingNumReplications = Integer.valueOf(SABestCheckingField.getText());
-			if (bestCheckingNumReplications < 0) 
-			{
+			if (bestCheckingNumReplications < 0) {
 				throw new NumberFormatException();
 			}
-		} catch (NumberFormatException ex)
-		{
-			throw new UIConstraintException("The number of 'BEST CHECKING' replicates should be a non-negative integer.", "Error: can't create search protocol");
+		} catch (NumberFormatException ex) {
+			throw new UIConstraintException(
+					"The number of 'BEST CHECKING' replicates should be a non-negative integer.",
+					"Error: can't create search protocol");
 		}
 		double fitnessDerivDelta = 0.0;
-		if (SOTakeDerivativeCheckBox.isSelected())
-		{
+		if (SOTakeDerivativeCheckBox.isSelected()) {
 			try {
 				fitnessDerivDelta = Double.valueOf(SODeltaField.getText());
-			} catch (NumberFormatException ex)
-			{
-				throw new UIConstraintException("The DELTA value (for taking the derivative of the objective fucntion with respect to a parameter) needs to be a number", "Error: can't create search protocol");
+			} catch (NumberFormatException ex) {
+				throw new UIConstraintException(
+						"The DELTA value (for taking the derivative of the objective fucntion with respect to a parameter) needs to be a number",
+						"Error: can't create search protocol");
 			}
 		}
-		SearchProtocol protocol = new SearchProtocol(browseField.getText(), 
-				java.util.Arrays.asList(MParamSpecsArea.getText().split("\n")),
-				MModelStepField.getText(), MModelSetupField.getText(), MModelStopConditionField.getText(),
-				modelStepLimit,
-				MMeasureField.getText(),
-				MMeasureIfField.getText(),
-				SOGoalBox.getValue().toString().equals("Minimize Fitness"),
+		SearchProtocol protocol = new SearchProtocol(browseField.getText(),
+				java.util.Arrays.asList(MParamSpecsArea.getText().split("\n")), MModelStepField.getText(),
+				MModelSetupField.getText(), MModelStopConditionField.getText(), modelStepLimit, MMeasureField.getText(),
+				MMeasureIfField.getText(), SOGoalBox.getValue().toString().equals("Minimize Fitness"),
 				fitnessSamplingRepetitions,
 				SearchProtocol.FITNESS_COLLECTING.valueOf(SOFitnessCollectingBox.getValue().toString()),
 				SearchProtocol.FITNESS_COMBINE_REPLICATIONS.valueOf(SOCombineReplicatesBox.getValue().toString()),
-				SOTakeDerivativeCheckBox.isSelected()?SOWrtBox.getValue().toString():"",
-				fitnessDerivDelta,
-				SOFitnessDerivativeUseAbsCheckBox.isSelected(),
-				SASearchMethodBox.getValue().toString(),
-				searchMethodParams,
-				SAChromosomeTypeBox.getValue().toString(),
-				caching,
-				evaluationLimit,
-				bestCheckingNumReplications
-				);
-		
-		
+				SOTakeDerivativeCheckBox.isSelected() ? SOWrtBox.getValue().toString() : "", fitnessDerivDelta,
+				SOFitnessDerivativeUseAbsCheckBox.isSelected(), SASearchMethodBox.getValue().toString(),
+				searchMethodParams, SAChromosomeTypeBox.getValue().toString(), caching, evaluationLimit,
+				bestCheckingNumReplications);
+
 		return protocol;
 	}
-	
-	public void actionSave()
-	{
-		if (currentFile == null)
-		{
+
+	public void actionSave() {
+		if (currentFile == null) {
 			actionSaveAs();
-		}
-		else
-		{
-		    doSave();			
+		} else {
+			doSave();
 		}
 	}
-	public void actionSaveAs()
-	{
+
+	public void actionSaveAs() {
 		FileChooser chooser = new FileChooser();
-		chooser.getExtensionFilters().addAll(
-				new ExtensionFilter("bsearch File", "*.bsearch"));
-		
+		chooser.getExtensionFilters().addAll(new ExtensionFilter("bsearch File", "*.bsearch"));
 
 		
-		//File chooser = fileChooser.showOpenDialog(null);
-		
-		/*if (selectedFile != null) {
-			browseField.setText(selectedFile.getPath());
-		}*/
-		//JFileChooser chooser = new JFileChooser("./experiments/");
-	    File parentFolder = null;
+		File parentFolder = null;
 		if (currentFile != null) {
-			parentFolder  = currentFile.getParentFile();
-		    chooser.setInitialFileName(currentFile.getName());
-	    }
-	    else {
-	    	parentFolder = new File(browseField.getText()).getParentFile();
-	    	chooser.setInitialFileName("Untitled.bsearch");
-	    }
+			parentFolder = currentFile.getParentFile();
+			chooser.setInitialFileName(currentFile.getName());
+		} else {
+			parentFolder = new File(browseField.getText()).getParentFile();
+			chooser.setInitialFileName("Untitled.bsearch");
+		}
 		if (parentFolder != null && parentFolder.exists()) {
 			chooser.setInitialDirectory(parentFolder);
 		}
 
-		/*chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-		        "Search protocols (*.bsearch)", "bsearch"));*/
-	    File tempFile = chooser.showSaveDialog(null);
-	    if (tempFile != null){
-	    	currentFile = tempFile;
-	    	doSave();
-	    }
-	    
-	    updateWindowTitle(currentFile.getName());
-	    	    
+		
+		File tempFile = chooser.showSaveDialog(null);
+		if (tempFile != null) {
+			currentFile = tempFile;
+			doSave();
+		}
+
+		updateWindowTitle(currentFile.getName());
+
 	}
-	
-	private void doSave()
-	{
-			java.io.FileWriter fout;
-			try {
-				fout = new java.io.FileWriter(currentFile);
-				SearchProtocol protocol = createProtocolFromFormData(); 
-				protocol.save(fout);
-				fout.close();
-				lastSavedText = protocol.toXMLString();
-				//javax.swing.JOptionPane.showMessageDialog(this, "Saved successfully.", "Saved.", JOptionPane.PLAIN_MESSAGE);
-			} catch (IOException ex) {
-				ex.printStackTrace();
-				handleError("IO Error occurred attempting to save file: " + currentFile.getPath());
-			} catch (UIConstraintException ex) {
-				System.out.println(ex.getMessage());
-				//JOptionPane.showMessageDialog(this, ex.getMessage(), ex.getTitle(), JOptionPane.WARNING_MESSAGE);
-			}
+
+	private void doSave() {
+		java.io.FileWriter fout;
+		try {
+			fout = new java.io.FileWriter(currentFile);
+			SearchProtocol protocol = createProtocolFromFormData();
+			protocol.save(fout);
+			fout.close();
+			lastSavedText = protocol.toXMLString();
+			//TODO: adding Option pane appropriate to this
+			// javax.swing.JOptionPane.showMessageDialog(this, "Saved
+			// successfully.", "Saved.", JOptionPane.PLAIN_MESSAGE);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			handleError("IO Error occurred attempting to save file: " + currentFile.getPath());
+		} catch (UIConstraintException ex) {
+			System.out.println(ex.getMessage());
+			
+		}
 	}
-	public void actionExit()
-	{
-		if (!checkDiscardOkay())
-		{
+
+	public void actionExit() {
+		if (!checkDiscardOkay()) {
 			return;
 		}
 		System.exit(0);
 	}
-	
-	private boolean protocolChangedSinceLastSave()
-	{
+
+	private boolean protocolChangedSinceLastSave() {
 		String xmlStr = "";
 		try {
 			xmlStr = createProtocolFromFormData().toXMLString();
-		} catch (UIConstraintException ex) 
-		{
-			// if we can't create a valid protocol object from the form data, assume the user has changed something...
-			return true;    
+		} catch (UIConstraintException ex) {
+			// if we can't create a valid protocol object from the form data,
+			// assume the user has changed something...
+			return true;
 		}
-		//System.out.println(xmlStr);
-		//System.out.println("--");
-		//System.out.println(lastSavedText);
-		
-		// Note: lastSavedText == null ONLY when the GUI is being loaded for the first time.
+		// System.out.println(xmlStr);
+		// System.out.println("--");
+		// System.out.println(lastSavedText);
+
+		// Note: lastSavedText == null ONLY when the GUI is being loaded for the
+		// first time.
 		return (lastSavedText != null && !lastSavedText.equals(xmlStr));
 	}
-	private boolean checkDiscardOkay()
-	{
-		/*if (protocolChangedSinceLastSave())
-		{
-			if (JOptionPane.showConfirmDialog(this, "Discard changes you've made to this search experiment?", "Discard changes?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)
-					== JOptionPane.NO_OPTION)
-			{
-				return false;
-			}			
-		}*/
+
+	private boolean checkDiscardOkay() {
+		/*
+		 * if (protocolChangedSinceLastSave()) { if
+		 * (JOptionPane.showConfirmDialog(this,
+		 * "Discard changes you've made to this search experiment?",
+		 * "Discard changes?", JOptionPane.YES_NO_OPTION,
+		 * JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) { return
+		 * false; } }
+		 */
 		return true;
 	}
-	
+
 	//
 	public void takeDerivativeAction(ActionEvent event) {
 		if (SOTakeDerivativeCheckBox.isSelected()) {
@@ -629,6 +579,68 @@ public class MainController extends Application implements Initializable {
 		}
 	}
 
+	public void actionRunNow(ActionEvent event) {
+		
+		SearchProtocol protocol;
+		//TODO: check all HandleError
+		try {
+			protocol = createProtocolFromFormData();
+		} catch (UIConstraintException e) {
+			handleError("Error creating SearchProtocol: " + e.getMessage());			
+			return;
+		}
+		
+		if (runOptions == null)
+		{
+			
+			runOptions = new BehaviorSearch.RunOptions();
+			//suggest a filename stem for output files, which users can change.
+			if (currentFile != null)
+			{
+				String fnameStem = currentFile.getPath();
+				fnameStem = fnameStem.substring(0, fnameStem.lastIndexOf('.'));
+				fnameStem = GeneralUtils.attemptResolvePathFromStartupFolder(fnameStem);
+				runOptions.outputStem = fnameStem;
+			}
+			else
+			{
+				//TODO: Use folder where the NetLogo model is located instead?
+				runOptions.outputStem =  new File(defaultUserDocumentsFolder, "mySearchOutput").getPath();	
+			}
+		}
+		if (currentFile != null)
+		{
+			runOptions.protocolFilename = this.currentFile.getAbsolutePath();
+		}
+		
+		//TODO: ask about this, not sure why need to have if statement here
+		/*if (RunOptionsDialog.showDialog(this, runOptions))
+		{
+			GUIProgressDialog dialog = new GUIProgressDialog(this);
+	        dialog.setLocationRelativeTo(null);
+			dialog.startSearchTask(protocol, runOptions);
+			dialog.setVisible(true);
+		}*/
+		Stage stage = new Stage();
+		Parent root;
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("RunOptionDialog.fxml"));
+	        //this happen first, which cause null pointer exception
+			root = loader.load();
+			stage.setScene(new Scene(root));
+			stage.setTitle("Run Options Dialog");
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.initOwner(runButton.getScene().getWindow());
+			//TODO: Understand why it return null ???? or try alternative
+			RunOptionDialogController runController = loader.getController();
+			runController.ini(runOptions);
+			stage.showAndWait();
+			//System.out.println(runOptions.numSearches);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}		
 	// TODO: change to JavaFx dialog
 	public static void handleError(String msg, java.awt.Container parentContainer) {
 		JOptionPane wrappingTextOptionPane = new JOptionPane(msg, JOptionPane.ERROR_MESSAGE) {
@@ -667,45 +679,50 @@ public class MainController extends Application implements Initializable {
 			paramTable.add(new SearchMethodParamTableRow(s, searchMethodParams.get(s)));
 		}
 		// this used to test if paramTable take right value, checked
-		/*
-		 * for (SearchMethodParamTable i: paramTable){ System.out.println(i); }
-		 */
+
+		// for (SearchMethodParamTableRow i: paramTable){ System.out.println(i);
+		// }
 
 		// http://java-buddy.blogspot.com/2013/05/detect-mouse-click-on-javafx-tableview.html
-		/*Callback<TableColumn<SearchMethodParamTableRow, String>, TableCell<SearchMethodParamTableRow, String>> stringCellFactory = new Callback<TableColumn<SearchMethodParamTableRow, String>, TableCell() {
-			@Override
-			public TableCell call(TableColumn p) {
-				MyStringTableCell cell = new MyStringTableCell();
-				// cell.setFont(new Font("Arial", 12));
-				// cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new
-				// MyEventHandler());
-				return cell;
-			}
-		};
-		SAParamCol.setCellFactory(stringCellFactory);*/
-		//TODO:  CHANGE TO TABLE CELL THAT WORK
-		/*Callback<TableColumn<SearchMethodParamTableRow, String>, 
-        TableCell<SearchMethodParamTableRow, String>> cellFactory
-            = (TableColumn<SearchMethodParamTableRow, String> p) -> new AcceptOnExitTableCell<SearchMethodParamTableRow, String>();
-		SAValCol.setCellFactory(cellFactory);*/
+		/*
+		 * Callback<TableColumn<SearchMethodParamTableRow, String>,
+		 * TableCell<SearchMethodParamTableRow, String>> stringCellFactory = new
+		 * Callback<TableColumn<SearchMethodParamTableRow, String>, TableCell()
+		 * {
+		 * 
+		 * @Override public TableCell call(TableColumn p) { MyStringTableCell
+		 * cell = new MyStringTableCell(); // cell.setFont(new Font("Arial",
+		 * 12)); // cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new //
+		 * MyEventHandler()); return cell; } };
+		 * SAParamCol.setCellFactory(stringCellFactory);
+		 */
+		// TODO: CHANGE TO TABLE CELL THAT WORK
+		/*
+		 * Callback<TableColumn<SearchMethodParamTableRow, String>,
+		 * TableCell<SearchMethodParamTableRow, String>> cellFactory =
+		 * (TableColumn<SearchMethodParamTableRow, String> p) -> new
+		 * AcceptOnExitTableCell<SearchMethodParamTableRow, String>();
+		 * SAValCol.setCellFactory(cellFactory);
+		 */
 		SAValCol.setCellFactory(AcceptOnExitTableCell.forTableColumn());
-		
-        //this is the code that work, however, textField need to be commit with enter
-		//SAValCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        
+
+		// this is the code that work, however, textField need to be commit with
+		// enter
+		// SAValCol.setCellFactory(TextFieldTableCell.forTableColumn());
+
 		// set up table data
 		SAParamCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("param"));
 		SAValCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("value"));
 		this.SASearchMethodTable.setItems(FXCollections.observableArrayList(paramTable));
-		SAValCol.setOnEditCommit(
-			    new EventHandler<CellEditEvent<SearchMethodParamTableRow, String>>() {
-			        @Override
-			        public void handle(CellEditEvent<SearchMethodParamTableRow, String> t) {
-			            ((SearchMethodParamTableRow) t.getTableView().getItems().get(
-			                t.getTablePosition().getRow())
-			                ).setValue(t.getNewValue());
-			        }
-			    });
+		SAValCol.setOnEditCommit(new EventHandler<CellEditEvent<SearchMethodParamTableRow, String>>() {
+			@Override
+			public void handle(CellEditEvent<SearchMethodParamTableRow, String> t) {
+				t.getTableView().getItems().get(t.getTablePosition().getRow()).setValue(t.getNewValue());
+				// this code is to test if value actually come back to data
+				// for (SearchMethodParamTableRow i: paramTable){
+				// System.out.println(i); }
+			}
+		});
 	}
 
 	public class SearchMethodParamTableRow {
@@ -730,6 +747,7 @@ public class MainController extends Application implements Initializable {
 		}
 
 		// TODO: use this method to test
+		@Override
 		public String toString() {
 			return param + " " + value;
 
@@ -756,93 +774,20 @@ public class MainController extends Application implements Initializable {
 			return getItem() == null ? "" : getItem().toString();
 		}
 	}
-	/*public class EditingCell extends TableCell<SearchMethodParamTableRow, String> {
-		 
-        private TextField textField;
- 
-        public EditingCell() {
-        }
- 
-        @Override
-        public void startEdit() {
-            if (!isEmpty()) {
-                super.startEdit();
-                createTextField();
-                setText(null);
-                setGraphic(textField);
-                textField.selectAll();
-            }
-        }
- 
-        @Override
-        public void cancelEdit() {
-        	System.out.println("cancel edit");
-        	//commitEdit(textField.getText());
-            super.cancelEdit();
- 
-            System.out.println(textField.getText());
-            setText((String) getItem());
-            setGraphic(null);
-        	//updateItem(getItem(),isEmpty());
-        	String newText=textField.getText(); // get the new text from the view
-            
-        
-            setGraphic(null); // stop editing with TextField
 
-        }
- 
-        @Override
-        public void updateItem(String item, boolean empty) {
-            super.updateItem(item, empty);
-            System.out.println("update item: " + item);
- 
-            if (empty) {
-                setText(null);
-                setGraphic(null);
-            } else {
-                if (isEditing()) {
-                    if (textField != null) {
-                        textField.setText(getString());
-                        System.out.println("is editing");
-                    }
-                    setText(null);
-                    setGraphic(textField);
-                } else {
-                    setText(getString());
-                    setGraphic(null);
-                }
-            }
-        }
- 
-        private void createTextField() {
-            textField = new TextField(getString());
-            textField.setMinWidth(this.getWidth() - this.getGraphicTextGap()* 2);
-            
-            textField.focusedProperty().addListener(
-                (ObservableValue<? extends Boolean> arg0, 
-                Boolean arg1, Boolean arg2) -> {
-                    if (!arg2) {
-                        commitEdit(textField.getText());
-                    }
-            });
-        }
- 
-        private String getString() {
-            return getItem() == null ? "" : getItem().toString();
-        }
-    }*/
-	private class UIConstraintException extends Exception
-	{
+	
+	private class UIConstraintException extends Exception {
 		private String title;
-		
+
 		public UIConstraintException(String msg, String title) {
 			super(msg);
 			this.title = title;
 		}
-		public String getTitle()
-		{
+
+		public String getTitle() {
 			return title;
 		}
-		private static final long serialVersionUID = 1L;		
+
+		private static final long serialVersionUID = 1L;
 	}
 }

@@ -243,6 +243,7 @@ public class RunOptionsDialog extends javax.swing.JDialog {
 		runOptions.numThreads = (Integer) jSpinnerThreads.getValue();
 		runOptions.randomSeed = (Integer) jSpinnerRandomSeed.getValue();
 		runOptions.briefOutput = jCheckBoxBriefOutput.isSelected();
+		
 	}
 	
 	/**

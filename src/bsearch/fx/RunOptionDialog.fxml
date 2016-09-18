@@ -1,39 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import java.lang.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="326.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane fx:id="anchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="326.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="bsearch.fx.RunOptionDialogController">
    <children>
-      <Label layoutX="30.0" layoutY="25.0" text="Output file stem: " />
+      <Label layoutX="24.0" layoutY="25.0" text="Output file stem: " />
       <Label layoutX="116.0" layoutY="82.0" text="Number of searches: " />
       <Label layoutX="116.0" layoutY="120.0" text="Starting at search ID: " />
       <Label layoutX="122.0" layoutY="156.0" text="Initial random seed: " />
       <Label layoutX="123.0" layoutY="190.0" text="Number of threads: " />
-      <TextField layoutX="116.0" layoutY="21.0" prefHeight="22.0" prefWidth="379.0" />
-      <Button layoutX="495.0" layoutY="21.0" mnemonicParsing="false" text="Browse" />
-      <CheckBox layoutX="116.0" layoutY="226.0" mnemonicParsing="false" text="Brief Output?" />
-      <Button layoutX="386.0" layoutY="151.0" mnemonicParsing="false" text="New" />
-      <Button layoutX="306.0" layoutY="269.0" mnemonicParsing="false" text="Start Search" />
-      <Button layoutX="471.0" layoutY="269.0" mnemonicParsing="false" text="Cancel" />
+      <TextField fx:id="outputPathTextField" layoutX="116.0" layoutY="21.0" prefHeight="22.0" prefWidth="379.0" />
+      <Button fx:id="browseButton" layoutX="495.0" layoutY="21.0" mnemonicParsing="false" onAction="#browseFile" text="Browse" />
+      <CheckBox fx:id="briefOutputCheckBox" layoutX="116.0" layoutY="226.0" mnemonicParsing="false" text="Brief Output?" />
+      <Button fx:id="newRanSeedButton" layoutX="386.0" layoutY="151.0" mnemonicParsing="false" onAction="#newRanSeed" text="New" />
+      <Button fx:id="starSearchButton" layoutX="306.0" layoutY="269.0" mnemonicParsing="false" onAction="#updateOptions" text="Start Search" />
+      <Button fx:id="cancelButton" layoutX="471.0" layoutY="269.0" mnemonicParsing="false" onAction="#cancel" text="Cancel" />
       
-      <Spinner fx:id="spinner1" layoutX="232.0" layoutY="78.0">
+      <Spinner fx:id="searchesNumSpinner" layoutX="232.0" layoutY="78.0">
       <valueFactory>
         <SpinnerValueFactory.IntegerSpinnerValueFactory max="10" min="0" />
       </valueFactory>
       </Spinner>
-      <Spinner fx:id="spinner2" layoutX="232.0" layoutY="116.0">
+      <Spinner fx:id="startingSearchIDSipnner" layoutX="232.0" layoutY="116.0">
       <valueFactory>
         <SpinnerValueFactory.IntegerSpinnerValueFactory max="10" min="0" />
       </valueFactory>
       </Spinner>
-      <Spinner fx:id="spinner3" layoutX="232.0" layoutY="152.0">
+      <Spinner fx:id="iniRanSeedSpinner" layoutX="232.0" layoutY="152.0">
       <valueFactory>
         <SpinnerValueFactory.IntegerSpinnerValueFactory max="10" min="0" />
       </valueFactory>
       </Spinner>
-      <Spinner fx:id="spinner4" layoutX="232.0" layoutY="186.0" editable="true">
+      <Spinner fx:id="threadNumSpinner" editable="true" layoutX="232.0" layoutY="186.0">
       <valueFactory>
         <SpinnerValueFactory.IntegerSpinnerValueFactory max="10" min="0" />
       </valueFactory>
