@@ -50,9 +50,9 @@ public class RunOptionDialogController  {
 			startingSearchIDSipnner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
 			        0, 10000, runOptions.firstSearchNumber));
 			threadNumSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
-			        0, 10000, runOptions.numThreads));
+			        0, 1024, runOptions.numThreads));
 			iniRanSeedSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
-			        0, 10000, runOptions.randomSeed.intValue()));
+			        Integer.MIN_VALUE, Integer.MAX_VALUE, runOptions.randomSeed.intValue()));
 			briefOutputCheckBox.setSelected(runOptions.briefOutput);
 			
 			
@@ -83,8 +83,8 @@ public class RunOptionDialogController  {
 		}
 		
 		public void newRanSeed(ActionEvent event){
-			iniRanSeedSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
-			        0, 10000, new MersenneTwisterFast().nextInt()));
+			iniRanSeedSpinner.getValueFactory().setValue( new MersenneTwisterFast().nextInt());
+			
 		}
 
 		

@@ -1,0 +1,6 @@
+MainGUI call startSearchTask in ProgressGUI
+startSearchTask instantiate a new SearchTask and execute it
+doInBackGround of SearchTask got execute => runWithOption in BehaviorSearch
+........ calling runMultipleSearches that call several (numSearches) of runProtocol that return a SearchManager, this also call ResultListener.searchStarting which in the searchTask. 
+Still have no clue how many or the method was called.
+But i Guess it still work of i call sratSearchTask
