@@ -308,9 +308,16 @@ public class MainController extends Application implements Initializable {
 				new ExtensionFilter("XML File", "*.xml"));
 
 		File selectedFile = chooser.showOpenDialog(null);
+		System.out.println(selectedFile.getAbsolutePath());
 		if (selectedFile != null) {
 			openFile(selectedFile);
 		}
+	}
+	//TODO: change back to normal open when done testing
+	public void actionOpenTest() {
+		File selectedFile = new File("C:/Users/AnNguyen/Google Drive/behaviorsearch/behaviorsearch/examples/TestForFX.bsearch"
+);
+		openFile(selectedFile);
 	}
 
 	private void openFile(File fProtocol) {
@@ -581,14 +588,7 @@ public class MainController extends Application implements Initializable {
 
 	public void actionRunNow(ActionEvent event) {
 		
-		SearchProtocol protocol;
-		//TODO: check all HandleError
-		try {
-			protocol = createProtocolFromFormData();
-		} catch (UIConstraintException e) {
-			handleError("Error creating SearchProtocol: " + e.getMessage());			
-			return;
-		}
+		
 		
 		if (runOptions == null)
 		{
@@ -633,7 +633,7 @@ public class MainController extends Application implements Initializable {
 			stage.initOwner(runButton.getScene().getWindow());
 			//TODO: Understand why it return null ???? or try alternative
 			RunOptionDialogController runController = loader.getController();
-			runController.ini(runOptions);
+			runController.ini(runOptions, this);
 			stage.showAndWait();
 			//System.out.println(runOptions.numSearches);
 		} catch (IOException e) {
@@ -656,6 +656,37 @@ public class MainController extends Application implements Initializable {
 		// javax.swing.JOptionPane.showMessageDialog(this, msg, "ERROR!",
 		// JOptionPane.ERROR_MESSAGE);
 
+	}
+	public void displayProgressDialog(){
+		SearchProtocol protocol;
+		//TODO: check all HandleError
+		try {
+			protocol = createProtocolFromFormData();
+		} catch (UIConstraintException e) {
+			handleError("Error creating SearchProtocol: " + e.getMessage());			
+			return;
+		}
+		Stage stage = new Stage();
+		Parent root;
+		try {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("ProgressDialog.fxml"));
+	        //this happen first, which cause null pointer exception
+			root = loader.load();
+			stage.setScene(new Scene(root));
+			stage.setTitle("Progress Dialog");
+			//stage.initModality(Modality.APPLICATION_MODAL);
+			//TODO: figure out how to do owner of this back in main
+			//stage.initOwner(runButton.getScene().getWindow());
+			
+			ProgressController progressController = loader.getController();
+			progressController.startSearchTask(protocol, runOptions);
+			stage.show();
+			//System.out.println(runOptions.numSearches);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	private void handleError(String msg) {

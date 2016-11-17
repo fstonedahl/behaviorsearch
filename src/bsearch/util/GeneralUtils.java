@@ -57,22 +57,38 @@ public class GeneralUtils {
 		}
 	}
 
+	private static String numberToFormattedString(Double d){
+		String s = d.toString();
+		if (s.endsWith(".0")){
+			return s.substring(0, s.length()-2);
+		}else if (s.length()>7){
+			return String.format("%.6g", d);
+		} else {
+			return s;
+		}
+	}
+	
 	/** returns html text for the parameter settings given, separated by newlines */
-	public static String getParamSettingsTextHTML( LinkedHashMap<String, Object> paramSettings)
-	{
+	public static String getParamSettingsTextHTML( LinkedHashMap<String, Object> paramSettings) {
+		int longestParamLength = 0;
+		for (String param : paramSettings.keySet()) {
+			longestParamLength = Math.max(longestParamLength, param.length());
+		}
+
 		StringBuilder sb = new StringBuilder();
-		for (String param : paramSettings.keySet())
-		{
-			sb.append(param);
+		sb.append("<pre>");
+		for (String param : paramSettings.keySet()) {
+			sb.append(String.format("%-"+longestParamLength+"s", param));
 			sb.append("=");
 			Object obj = paramSettings.get(param);
 			if (obj instanceof Double)
 			{
-				obj = String.format("%.6g", obj);
+				obj = numberToFormattedString((Double) obj);
 			}
-			sb.append(obj);
+			sb.append(String.format("%7s", obj));
 			sb.append("<BR>");
 		}
+		sb.append("</pre>");
 		return sb.toString();
 	}
 	

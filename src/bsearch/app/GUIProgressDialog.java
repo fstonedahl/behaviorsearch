@@ -360,6 +360,7 @@ public class GUIProgressDialog extends JDialog implements PropertyChangeListener
 					overallBestFitnessChecked = manager.getCurrentBestFitnessCheckedEstimate();
 				}
 			}
+			
 		}
 		public void allSearchesFinished() {
 			updateInfoText("From all searches:", overallBest, overallBestFitness, overallBestFitnessChecked);

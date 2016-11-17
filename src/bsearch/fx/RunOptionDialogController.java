@@ -1,6 +1,7 @@
 package bsearch.fx;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -23,6 +24,7 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
@@ -39,9 +41,11 @@ public class RunOptionDialogController  {
 		@FXML Button startSearchButton;
 		@FXML Button cancelButton;
 		
+		private MainController main;
+		
 		private RunOptions runOptions;
 	
-		public void ini(RunOptions runOptions) {
+		public void ini(RunOptions runOptions, MainController main) {
 			this.runOptions = runOptions;
 			outputPathTextField.setText(runOptions.outputStem);
 		
@@ -54,6 +58,7 @@ public class RunOptionDialogController  {
 			iniRanSeedSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
 			        Integer.MIN_VALUE, Integer.MAX_VALUE, runOptions.randomSeed.intValue()));
 			briefOutputCheckBox.setSelected(runOptions.briefOutput);
+			this.main = main;
 			
 			
 		}
@@ -97,15 +102,22 @@ public class RunOptionDialogController  {
 			runOptions.numThreads = (Integer) threadNumSpinner.getValue();
 			runOptions.randomSeed = (Integer) iniRanSeedSpinner.getValue();
 			runOptions.briefOutput = briefOutputCheckBox.isSelected();
+			
+			//trying to open progress from here
+			
+				
 			Node source = (Node) event.getSource();
-			Stage stage = (Stage) source.getScene().getWindow();
-			stage.close();
+			Stage thisStage = (Stage) source.getScene().getWindow();
+			
+			thisStage.close();
+			main.displayProgressDialog();
 		}
 		public void cancel(ActionEvent event){
 			Node source = (Node) event.getSource();
 			Stage stage = (Stage) source.getScene().getWindow();
 			stage.close();
 		}
+		
 	}
 
 

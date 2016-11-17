@@ -3,7 +3,7 @@
 <search>
 <bsearchVersionNumber>1.00</bsearchVersionNumber>
 <modelInfo>
-<modelFile>C:\Users\AnNguyen\git\behaviorsearch\test\Tester.nlogo</modelFile>
+<modelFile>C:\Users\AnNguyen\Google Drive\behaviorsearch\behaviorsearch\test\Tester.nlogo</modelFile>
 <modelSetupCommands>setup</modelSetupCommands>
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
