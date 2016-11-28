@@ -5,7 +5,7 @@ package bsearch.space;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 
 /** For any parameter that is fixed for the search.
  */

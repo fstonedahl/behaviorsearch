@@ -9,7 +9,7 @@ import java.util.List;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 import org.xml.sax.SAXException;
 
 import bsearch.algorithms.SearchMethod;

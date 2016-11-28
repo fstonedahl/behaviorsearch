@@ -1,7 +1,7 @@
 package bsearch.space;
 
-import org.nlogo.api.LogoList;
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.core.LogoList;
+import org.nlogo.api.MersenneTwisterFast;
 
 /**
  *  Note: the Objects need to be types that NetLogo understands

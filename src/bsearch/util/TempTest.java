@@ -3,11 +3,11 @@ package bsearch.util;
 import java.io.FileNotFoundException;
 
 import org.nlogo.agent.Observer;
-import org.nlogo.api.CompilerException;
+import org.nlogo.core.CompilerException;
 import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.Procedure;
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 
 
 //TODO: Remove this class sometime.  It is just for some quick code testing.
@@ -34,7 +34,7 @@ public class TempTest {
 		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
 		try {
 			Procedure p = workspace.compileReporter("ticks"); // error because reset-ticks hasn't been called yet.
-			SimpleJobOwner owner = new SimpleJobOwner("", new MersenneTwisterFast(), Observer.class);
+			SimpleJobOwner owner = new SimpleJobOwner("", new MersenneTwisterFast(), org.nlogo.core.AgentKindJ.Observer());
 			System.out.println("before running commands");
 			Object obj = workspace.runCompiledReporter(owner, p);
 			System.out.println("LLE: " + workspace.lastLogoException());

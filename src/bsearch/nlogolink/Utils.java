@@ -70,10 +70,10 @@ public strictfp class Utils {
 		int numVars = workspace.world().observer().getVariableCount();
 	    for (int i = 0; i < numVars; i++)
 	    {
-	    	ValueConstraint con = workspace.world().observer().variableConstraint(i); 
+	    	ValueConstraint con = workspace.world().observer().variableConstraint(i);
 	    	if ( con != null)
 	    	{
-	    		String name = workspace.world.observerOwnsNameAt(i);
+	    		String name = workspace.world().observerOwnsNameAt(i);
 	    		sb.append("[\"");
 	    		sb.append(name.toLowerCase());
 	    		sb.append("\" ");
@@ -81,11 +81,11 @@ public strictfp class Utils {
 	    		if (con instanceof SliderConstraint)
 	    		{
 	    			SliderConstraint scon = (SliderConstraint) con;
-    				double min = scon.minimum();
-    				double incr = scon.increment();
-    				double max = scon.maximum();
+    				double min = ((Double) scon.minimum().get()).doubleValue();
+    				double incr = ((Double) scon.increment().get()).doubleValue();
+    				double max = ((Double) scon.maximum().get()).doubleValue();
     				String strIncr = org.nlogo.api.Dump.logoObject(incr, true, false);
-    				
+
     				// if it's a non-integer slider with more than 100 factor levels, let's suggest continuous "C"
     				if (min != StrictMath.floor(min) && incr != StrictMath.floor(incr) &&
     						StrictMath.abs((max - min) / incr) > 100)
@@ -103,7 +103,7 @@ public strictfp class Utils {
 	    		else if (con instanceof ChooserConstraint)
 	    		{
 	    			ChooserConstraint ccon = (ChooserConstraint) con;
-	    			for (Object obj: ccon.acceptedValues())
+	    			for (Object obj: ccon.acceptedValues().javaIterable())
 	    			{
 		    			sb2.append(org.nlogo.api.Dump.logoObject(obj, true, false));
 	    				sb2.append(" "); 
