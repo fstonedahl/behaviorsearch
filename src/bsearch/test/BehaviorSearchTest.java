@@ -10,12 +10,14 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import junit.framework.Assert;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
+import org.nlogo.api.Version$;
 import org.xml.sax.SAXException;
 
 import bsearch.algorithms.SearchMethod;
@@ -35,39 +37,53 @@ import bsearch.representations.StandardBinaryChromosome;
 import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
 
-public strictfp class TestBehaviorSearch
+public strictfp class BehaviorSearchTest
 {
-	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo/models/Sample Models/";
-	
+  public static final String DEFAULT_MODEL_PATH = "/home/forrest/apps/netlogo/models/Sample Models/";
+
+/*
 	// a main method to run it -- for convenience.
 	public static void main( String... args )
 	{
 		org.junit.runner.JUnitCore.main
 				( TestBehaviorSearch.class.getName() ) ;
 	}
-	
+  */
+
+  public String sampleModelsPath() {
+    String osName = System.getProperty("os.name");
+    String netLogoVersion = Version$.MODULE$.version();
+    if (osName.contains("Mac")) {
+      return "/Applications/" + netLogoVersion + "/models/Sample Models/";
+    } else if (osName.contains("Win")) {
+      return "C:\\Program Files\\" + netLogoVersion + "/app/models/Sample Models/";
+    } else {
+      return DEFAULT_MODEL_PATH;
+    }
+  }
+
 
 	@Test
 	public void testModelRunner1() throws Exception
 	{
 		ModelRunner runner;
-		LinkedHashMap<String,Object> params; 
-    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(PATH_TO_NETLOGO_MODELS + "Earth Science/Fire.nlogo", true, 100);
+		LinkedHashMap<String,Object> params;
+    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(sampleModelsPath() + "Earth Science/Fire.nlogo", true, 100);
     	runner.setSetupCommands( "setup" );
     	runner.setStepCommands( "go" );
     	runner.setStopConditionReporter( "burned-trees > 3000" );
-    	runner.setMeasureIfReporter("ticks mod 10 = 0 or ticks = 37");	
+    	runner.setMeasureIfReporter("ticks mod 10 = 0 or ticks = 37");
     	runner.addResultReporter( "burned-trees" );
 
         params = new LinkedHashMap<String, Object>();
         params.put("density", 61.0);
-        
-        ModelRunner.RunSetup runSetup = new ModelRunner.RunSetup(0, params); 
-    	
+
+        ModelRunner.RunSetup runSetup = new ModelRunner.RunSetup(0, params);
+
         List<Double> results = runner.doFullRun( runSetup ).getTimeSeriesForMeasure("burned-trees");
         Assert.assertEquals(5, results.size()); // 5 because we only get to tick 37, due to the stop condition.
-        
-        Assert.assertEquals(3002.0, results.get(results.size() - 1));
+
+        Assert.assertEquals(3002.0, results.get(results.size() - 1).doubleValue(), 0.001);
         Assert.assertEquals(37.0, runner.report( "ticks" ));
         runner.command("go");
         Assert.assertEquals(3068.0, runner.measureResults().get("burned-trees"));
@@ -79,8 +95,8 @@ public strictfp class TestBehaviorSearch
 	public void testModelRunner2() throws Exception
     {
 		ModelRunner runner;
-		LinkedHashMap<String,Object> params; 
-    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(PATH_TO_NETLOGO_MODELS + "Earth Science/Fire.nlogo", false, 100);
+		LinkedHashMap<String,Object> params;
+    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(sampleModelsPath() + "Earth Science/Fire.nlogo", false, 100);
     	runner.setSetupCommands( "setup" );
     	runner.setStepCommands( "go" );
     	runner.setStopConditionReporter( "burned-trees > 3000" );
@@ -105,7 +121,7 @@ public strictfp class TestBehaviorSearch
 	@Test
 	public void testConstraintsTextGeneration() throws BehaviorSearchException, NetLogoLinkException
     {
-		Assert.assertEquals(bsearch.nlogolink.Utils.getDefaultConstraintsText(PATH_TO_NETLOGO_MODELS + "/Social Science/Ethnocentrism.nlogo").trim(),
+		Assert.assertEquals(bsearch.nlogolink.Utils.getDefaultConstraintsText(sampleModelsPath() + "/Social Science/Ethnocentrism.nlogo").trim(),
 		"[\"mutation-rate\" [0 0.001 1]]\n[\"death-rate\" [0 0.05 1]]\n[\"immigrants-per-day\" [0 1 100]]\n[\"initial-ptr\" [0 0.01 1]]\n[\"cost-of-giving\" [0 0.01 1]]\n[\"gain-of-receiving\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-same\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-different\" [0 0.01 1]]");
     }
 	
@@ -146,21 +162,24 @@ public strictfp class TestBehaviorSearch
 														"[\"const\" 25]",
 														"[\"discretedecimal\" [-1 0.17 2]]"));
 		MersenneTwisterFast rng = new MersenneTwisterFast();
-		
+
     	for (String chromoType: ChromosomeTypeLoader.getAllChromosomeTypes())
     	{
-    		ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(chromoType);    		
+    		ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(chromoType);
     		Chromosome cs[] = new Chromosome[] {factory.createChromosome(ss, rng), factory.createChromosome(ss, rng)};
 			for (int i = 0; i < 1000; i++)
 			{
 				cs[0] = cs[0].mutate(0.20, rng);
 				cs[1] = cs[1].crossoverWith(cs[0], rng)[0];
-				
+
 				for (Chromosome c: cs )
 				{
-					LinkedHashMap<String, Object> params = c.getParamSettings(); 
+					LinkedHashMap<String, Object> params = c.getParamSettings();
 					double val1 = (Double)params.get("discrete1to4");
 					double val2 = (Double)params.get("continuous0to1.5");
+          System.err.println(params.get("categorical"));
+          // legitimate bug here - we have a logolist of strings when we're expecting a
+          // single string, unclear what broke
 					String val3 = (String) params.get("categorical");
 					Object val4 = params.get("const");
 					double val5 = (Double)params.get("discretedecimal");
