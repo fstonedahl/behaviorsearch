@@ -6,7 +6,7 @@ scalaVersion := "2.12.0"
 
 val netLogoVersion = settingKey[String]("active version of NetLogo")
 
-netLogoVersion := "6.0.0-BETA2"
+netLogoVersion := "6.0.0-SNAPSHOT"
 
 resolvers += Resolver.bintrayRepo("content/netlogo", "NetLogo-JVM")
 

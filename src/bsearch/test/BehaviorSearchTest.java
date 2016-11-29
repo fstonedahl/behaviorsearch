@@ -5,6 +5,9 @@ package bsearch.test;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -41,14 +44,11 @@ public strictfp class BehaviorSearchTest
 {
   public static final String DEFAULT_MODEL_PATH = "/home/forrest/apps/netlogo/models/Sample Models/";
 
-/*
 	// a main method to run it -- for convenience.
 	public static void main( String... args )
 	{
-		org.junit.runner.JUnitCore.main
-				( TestBehaviorSearch.class.getName() ) ;
+		org.junit.runner.JUnitCore.main( BehaviorSearchTest.class.getName() ) ;
 	}
-  */
 
   public String sampleModelsPath() {
     String osName = System.getProperty("os.name");
@@ -106,7 +106,7 @@ public strictfp class BehaviorSearchTest
         params = new LinkedHashMap<String, Object>();
         params.put("density", 61.0);
 
-        // now do it manually, without using doFullRun() 
+        // now do it manually, without using doFullRun()
         runner.setup(0, params);
         int i;
         for (i = 0; i < 100; i++)
@@ -116,7 +116,7 @@ public strictfp class BehaviorSearchTest
         }
         Assert.assertEquals(3002.0, runner.measureResults().get("burned-trees"));
         Assert.assertEquals(37.0, runner.report("ticks"));
-        runner.dispose();        
+        runner.dispose();
 	}
 	@Test
 	public void testConstraintsTextGeneration() throws BehaviorSearchException, NetLogoLinkException
@@ -124,7 +124,7 @@ public strictfp class BehaviorSearchTest
 		Assert.assertEquals(bsearch.nlogolink.Utils.getDefaultConstraintsText(sampleModelsPath() + "/Social Science/Ethnocentrism.nlogo").trim(),
 		"[\"mutation-rate\" [0 0.001 1]]\n[\"death-rate\" [0 0.05 1]]\n[\"immigrants-per-day\" [0 1 100]]\n[\"initial-ptr\" [0 0.01 1]]\n[\"cost-of-giving\" [0 0.01 1]]\n[\"gain-of-receiving\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-same\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-different\" [0 0.01 1]]");
     }
-	
+
 
 	@Test
 	public void testSearchProtocol() throws IOException , SAXException
@@ -141,7 +141,7 @@ public strictfp class BehaviorSearchTest
 		//System.out.println( result.equals( original ) ) ;
 		Assert.assertEquals(result, original);
 	}
-	
+
 	@Test
 	public void testSearchMethodLoader() throws BehaviorSearchException
 	{
@@ -150,13 +150,13 @@ public strictfp class BehaviorSearchTest
     	{
     		SearchMethod searcher = SearchMethodLoader.createFromName(s);
     		searcher.getSearchParams().toString();
-    	}		
+    	}
 	}
 
 	@Test
 	public void testChromosomes() throws BehaviorSearchException
 	{
-		SearchSpace ss = new SearchSpace(Arrays.asList("[\"discrete1to4\" [1 1 4]]", 
+		SearchSpace ss = new SearchSpace(Arrays.asList("[\"discrete1to4\" [1 1 4]]",
 														"[\"continuous0to1.5\" [0.0 \"C\" 1.5]]",
 														"[\"categorical\" \"apple\" \"banana\" \"cherry\"]",
 														"[\"const\" 25]",
@@ -200,7 +200,7 @@ public strictfp class BehaviorSearchTest
 				Chromosome c2 = factory.createChromosome(ss, c.getParamSettings());
 				Assert.assertEquals(chromoType + " check recreate Chromosomes from values:", c.getParamSettings(), c2.getParamSettings());
 			}
-    	}		
+    	}
 	}
 
 	@Test
@@ -208,7 +208,7 @@ public strictfp class BehaviorSearchTest
 	{
 		int numBits = 8;
 		boolean[] bits = new boolean[numBits + 12];
-		
+
 		SearchSpace ss = new SearchSpace(Arrays.asList("[\"moo\" [1 1 4]]"));
 		GrayBinaryChromosome bcgray = new GrayBinaryChromosome(ss, new MersenneTwisterFast() );
 		StandardBinaryChromosome bcstd = new StandardBinaryChromosome(ss, new MersenneTwisterFast() );
@@ -216,10 +216,10 @@ public strictfp class BehaviorSearchTest
 		for (long i = 0; i < (1L << numBits); i ++)
 		{
 			bcgray.binaryEncode(i, bits, 5, numBits);
-			long dec = bcgray.binaryDecode(bits, 5, numBits);  
+			long dec = bcgray.binaryDecode(bits, 5, numBits);
 			Assert.assertEquals(i, dec);
 			bcstd.binaryEncode(i, bits, 5, numBits);
-			dec = bcstd.binaryDecode(bits, 5, numBits);  
+			dec = bcstd.binaryDecode(bits, 5, numBits);
 //			if (i != dec)
 //			{
 //				System.out.println("i = " + i + ":  " + BinaryChromosome.toBinaryString(bits) + "   decode=" + dec);
@@ -231,12 +231,12 @@ public strictfp class BehaviorSearchTest
 		for (long i = 0; i < (1L << numBits); i += 15037093017331L)
 		{
 			bcgray.binaryEncode(i, bits, 2, numBits);
-			long dec = bcgray.binaryDecode(bits, 2, numBits);  
+			long dec = bcgray.binaryDecode(bits, 2, numBits);
 			Assert.assertEquals(i, dec);
 			bcstd.binaryEncode(i, bits, 2, numBits);
-			dec = bcstd.binaryDecode(bits, 2, numBits);  
+			dec = bcstd.binaryDecode(bits, 2, numBits);
 			Assert.assertEquals(i, dec);
-		}		
+		}
 	}
 
 
@@ -253,6 +253,8 @@ public strictfp class BehaviorSearchTest
 	@Test
 	public void testConsistentOutputResults() throws IOException , SAXException, SearchParameterException, BehaviorSearchException, InterruptedException, CmdLineException
 	{
+    Path tmpDirectory = Paths.get("test/tmp");
+    Files.createDirectories(tmpDirectory);
 		LinkedHashMap<String,String> scenarios = new LinkedHashMap<String,String>();
 		scenarios.put("TesterSuperRandom","-p test/TesterSuperRandom.bsearch -o test/tmp/TesterSuperRandom -t 7 -n 2 --randomseed 123 --quiet");
 		scenarios.put("Tester1","-p test/Tester.bsearch -o test/tmp/Tester1 -t 1 -n 2 -f 3 --randomseed 1234 --quiet");
