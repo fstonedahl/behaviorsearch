@@ -177,7 +177,6 @@ public strictfp class BehaviorSearchTest
 					LinkedHashMap<String, Object> params = c.getParamSettings();
 					double val1 = (Double)params.get("discrete1to4");
 					double val2 = (Double)params.get("continuous0to1.5");
-          System.err.println(params.get("categorical"));
           // legitimate bug here - we have a logolist of strings when we're expecting a
           // single string, unclear what broke
 					String val3 = (String) params.get("categorical");

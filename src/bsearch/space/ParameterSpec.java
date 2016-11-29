@@ -76,7 +76,7 @@ public strictfp abstract class ParameterSpec {
 				{
 					if (lst.size() > 2)
 					{
-						return new CategoricalSpec(name, lst.butFirst());
+						return new CategoricalSpec(name, lst.butFirst().toJava());
 					}
 					else
 					{

@@ -126,7 +126,7 @@ public abstract strictfp class BinaryChromosome implements Chromosome
 				paramSettings.put(p.getParameterName(), p.getValueFromChoice(0,0));
 			}
 		}
-		
+
 		return paramSettings;
 	}
 	
