@@ -100,12 +100,12 @@ public class GeneralUtils {
 		{
 			return pathStr;
 		}
-		
+
 		File startupFolder = new File(startupFolderStr);
-		
+
 		return new File(startupFolder,pathStr).getAbsolutePath();
 	}
-	
+
 	private static File protocolFolder = null;
 	public static void updateProtocolFolder(String protocolFilename)
 	{
@@ -128,8 +128,8 @@ public class GeneralUtils {
 		{
 			return pathStr;
 		}
-		
-		return new File(protocolFolder,pathStr).getAbsolutePath();		
+
+		return new File(protocolFolder,pathStr).getAbsolutePath();
 	}
 
 	public static String attemptResolvePathFromBSearchRoot(String pathStr)

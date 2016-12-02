@@ -1280,7 +1280,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	}
 	protected void actionBrowseModel()
 	{
-		JFileChooser chooser = new JFileChooser(".");
+		JFileChooser chooser = new JFileChooser(System.getProperty("bsearch.startupfolder", "."));
 		chooser.setSelectedFile(new File(jTextFieldModelFile.getText()));
 		chooser.setFileFilter(new FileNameExtensionFilter("NetLogo Models", "nlogo"));
 		int returnVal = chooser.showOpenDialog(this);
