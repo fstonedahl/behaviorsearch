@@ -177,12 +177,18 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private JTextField jTextFieldModelSetupCommands;
 	private JButton jButtonRunNow;
 
-	public static void main(final String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
+  public static void main(final String[] args) {
+    mainWithAppHandler(args, null);
+  }
+
+	public static void mainWithAppHandler(final String[] args, Object appHandler) {
+    initAppHandler(appHandler);
+    SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				BehaviorSearchGUI bgui = new BehaviorSearchGUI();
 				bgui.setLocationRelativeTo(null);
-				bgui.setVisible(true);
+        bgui.setVisible(true);
+        readyAppHandler(appHandler, bgui);
 				if (args.length > 0)
 				{
 					File f = new File(args[0]);
@@ -194,7 +200,29 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 		});
 	}
-	
+
+  public static void initAppHandler(Object appHandler) {
+    try {
+      if (appHandler != null) {
+        appHandler.getClass().getDeclaredMethod("init").invoke(appHandler);
+      }
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      System.err.println("failed to init appHandler, continuing...");
+    }
+  }
+
+  public static void readyAppHandler(Object appHandler, Object bgui) {
+    try {
+      if (appHandler != null) {
+        appHandler.getClass().getDeclaredMethod("ready", Object.class).invoke(appHandler, bgui);
+      }
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      System.err.println("failed to ready appHandler, continuing...");
+    }
+  }
+
 	public BehaviorSearchGUI() {
 		super();
 		initGUI(); // mainly Jigloo-generated UI code 
@@ -994,6 +1022,36 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	    	openFile(chooser.getSelectedFile());
 	    }	    
 	}
+
+  // the following three "handle" methods are called reflectively by the
+  // NetLogo mac application wrapper.
+  // handleOpenPaht enables opening associated bsearch files on Mac OS X.
+  public void handleOpenPath(String path) {
+		File f = new File(path);
+		if (f.exists())
+		{
+			openFile(f);
+		}
+  }
+
+  // handleShowAbout enables the nice Mac OS X "About BehaviorSearch..." Item in
+  // the mac "Behaviorsearch" menu.
+	public void handleShowAbout() {
+    actionHelpAbout();
+  }
+
+  // handleQuit picks up on quit called from the mac "Behaviorsearch" menu.
+  public void handleQuit() throws org.nlogo.awt.UserCancelException {
+		if (checkDiscardOkay())
+    {
+      System.exit(0);
+    }
+    else
+    {
+      throw new org.nlogo.awt.UserCancelException();
+    }
+  }
+
 	private void openFile(File fProtocol)
 	{
     	try {
@@ -1388,15 +1446,16 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private void actionHelpTutorial() {
 		org.nlogo.swing.BrowserLauncher.openURL(this, GeneralUtils.attemptResolvePathFromBSearchRoot("documentation/tutorial.html"), true);
 	}
+
 	private void actionHelpAbout() {
 		HelpAboutDialog.showAboutDialog(this);
 	}
 
-	
+
 	private class UIConstraintException extends Exception
 	{
 		private String title;
-		
+
 		public UIConstraintException(String msg, String title) {
 			super(msg);
 			this.title = title;
@@ -1407,7 +1466,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		}
 		private static final long serialVersionUID = 1L;		
 	}
-		
-	
+
+
 	//$hide<<$
 }
