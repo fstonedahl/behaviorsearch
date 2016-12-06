@@ -8,7 +8,7 @@ BSEARCH_DIR="`dirname "$0"`" # the copious quoting is for handling paths with sp
 cd "$BSEARCH_DIR"
 BSEARCH_DIR="`pwd`"  #in case it's a relative path, like "."
 cd ..
-LIBRARY_DIR="`pwd`"  #in case it's a relative path, like "."
+LIBRARY_DIR="`pwd`/Java"  #in case it's a relative path, like "."
 JARS=""
 for f in `ls -1 "$LIBRARY_DIR" | grep "jar"`; do
   JARS="$LIBRARY_DIR/$f:$JARS"
