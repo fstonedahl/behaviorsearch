@@ -30,5 +30,5 @@
 <chromosomeRepresentation type="GrayBinaryChromosome"/>
 <caching>true</caching>
 <evaluationLimit>200</evaluationLimit>
-<bestCheckingNumReplications>10</bestCheckingNumReplications>
+<bestCheckingNumReplications>11</bestCheckingNumReplications>
 </search>

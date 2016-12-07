@@ -29,6 +29,6 @@
 </searchMethod>
 <chromosomeRepresentation type="GrayBinaryChromosome"/>
 <caching>true</caching>
-<evaluationLimit>200</evaluationLimit>
-<bestCheckingNumReplications>10</bestCheckingNumReplications>
+<evaluationLimit>40</evaluationLimit>
+<bestCheckingNumReplications>2</bestCheckingNumReplications>
 </search>

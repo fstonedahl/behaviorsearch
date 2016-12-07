@@ -2,10 +2,13 @@ package bsearch.fx;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javax.swing.JOptionPane;
@@ -15,7 +18,7 @@ import org.xml.sax.SAXException;
 import bsearch.algorithms.SearchMethod;
 import bsearch.algorithms.SearchMethodLoader;
 import bsearch.app.BehaviorSearch.RunOptions;
-import bsearch.app.BehaviorSearchGUI.UIConstraintException;
+
 import bsearch.app.BehaviorSearch;
 import bsearch.app.BehaviorSearchException;
 import bsearch.app.GUIProgressDialog;
@@ -31,7 +34,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
@@ -44,12 +50,16 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -63,12 +73,12 @@ public class MainController extends Application implements Initializable {
 	@FXML
 	public AnchorPane anchorPane;
 	@FXML
-	public Button browseButton;
-	@FXML
 	public TextField browseField;
 	@FXML
 	public Button runButton;
 
+	@FXML
+	public Button browseButton;
 	// component in Model tab will start with M
 	@FXML
 	public TextArea MParamSpecsArea;
@@ -206,7 +216,7 @@ public class MainController extends Application implements Initializable {
 			defaultProtocolXMLForNewSearch = GeneralUtils
 					.stringContentsOfFile(GeneralUtils.getResource("defaultNewSearch.xml"));
 		} catch (java.io.FileNotFoundException ex) {
-			handleError(ex.getMessage());
+			handleError("Cannot find defaultNewSearch.xml",null);
 			System.exit(1);
 		}
 		actionNew();
@@ -222,6 +232,20 @@ public class MainController extends Application implements Initializable {
 			Scene scene = new Scene(root);
 			primaryStage.setScene(scene);
 			primaryStage.setTitle("Untitled" + getWindowTitleSuffix());
+			Platform.setImplicitExit(false);
+
+			primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			    @Override
+			    public void handle(WindowEvent event) {
+			    	if (!checkDiscardOkay()){
+			    		event.consume();
+			    	}
+			    	else {
+			    		Platform.exit();
+			    		System.exit(0);
+			    	}
+			    }
+			});
 			primaryStage.show();
 			// mainStage = (Stage) anchorPane.getScene().getWindow();
 			Image icon = new Image(GeneralUtils.getResource("icon_behaviorsearch.png").toURI().toString());
@@ -232,6 +256,8 @@ public class MainController extends Application implements Initializable {
 		}
 
 	}
+	
+	
 
 	private Window getMainWindow() {
 		if (anchorPane != null && anchorPane.getScene() != null) {
@@ -328,10 +354,10 @@ public class MainController extends Application implements Initializable {
 			loadProtocol(protocol);
 			updateWindowTitle(currentFile.getName());
 		} catch (IOException e) {
-			handleError("IO Error occurred attempting to load file: " + fProtocol.getPath());
+			handleError("IO Error occurred attempting to load file: " + fProtocol.getPath(),null);
 			e.printStackTrace();
 		} catch (SAXException e) {
-			handleError("XML Parsing error occurred attempting to load file: " + fProtocol.getPath());
+			handleError("XML Parsing error occurred attempting to load file: " + fProtocol.getPath(),null);
 			e.printStackTrace();
 		}
 	}
@@ -490,8 +516,10 @@ public class MainController extends Application implements Initializable {
 			currentFile = tempFile;
 			doSave();
 		}
+		if (currentFile!=null){
 
-		updateWindowTitle(currentFile.getName());
+			updateWindowTitle(currentFile.getName());
+		}
 
 	}
 
@@ -508,19 +536,15 @@ public class MainController extends Application implements Initializable {
 			// successfully.", "Saved.", JOptionPane.PLAIN_MESSAGE);
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			handleError("IO Error occurred attempting to save file: " + currentFile.getPath());
+			handleError("IO Error occurred attempting to save file: " + currentFile.getPath(),null);
 		} catch (UIConstraintException ex) {
 			System.out.println(ex.getMessage());
 			
 		}
 	}
+	
 
-	public void actionExit() {
-		if (!checkDiscardOkay()) {
-			return;
-		}
-		System.exit(0);
-	}
+	
 
 	private boolean protocolChangedSinceLastSave() {
 		String xmlStr = "";
@@ -541,6 +565,23 @@ public class MainController extends Application implements Initializable {
 	}
 
 	private boolean checkDiscardOkay() {
+		boolean check = false;
+		/*Platform.runLater(new Runnable() {
+			public void run() {*/
+				Alert alert = new Alert(AlertType.CONFIRMATION);
+				alert.setTitle("Discard changes?");
+				alert.setHeaderText("Discard changes you've made to this search experiment?");
+				
+
+				Optional<ButtonType> result = alert.showAndWait();
+				if (result.get() == ButtonType.OK){
+				    check = true;
+				} else {
+				    check = false;
+				}
+				
+		/*	}
+		});*/
 		/*
 		 * if (protocolChangedSinceLastSave()) { if
 		 * (JOptionPane.showConfirmDialog(this,
@@ -549,7 +590,7 @@ public class MainController extends Application implements Initializable {
 		 * JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) { return
 		 * false; } }
 		 */
-		return true;
+		return check;
 	}
 
 	//
@@ -642,20 +683,45 @@ public class MainController extends Application implements Initializable {
 		}
 	}		
 	// TODO: change to JavaFx dialog
-	public static void handleError(String msg, java.awt.Container parentContainer) {
-		JOptionPane wrappingTextOptionPane = new JOptionPane(msg, JOptionPane.ERROR_MESSAGE) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public int getMaxCharactersPerLineCount() {
-				return 58;
+	public static void handleError(String msg1, Throwable e) {
+		Platform.runLater(new Runnable() {
+			public void run() {
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Exception Dialog");
+				
+				alert.setContentText(msg1);
+		
+				
+		
+				if (e!=null) {
+					// Create expandable Exception.
+					StringWriter sw = new StringWriter();
+					PrintWriter pw = new PrintWriter(sw);
+					e.printStackTrace(pw);
+					String exceptionText = sw.toString();
+					Label label = new Label("The exception stacktrace was:");
+					TextArea textArea = new TextArea(exceptionText);
+					textArea.setEditable(false);
+					textArea.setWrapText(true);
+					textArea.setMaxWidth(Double.MAX_VALUE);
+					textArea.setMaxHeight(Double.MAX_VALUE);
+					GridPane.setVgrow(textArea, Priority.ALWAYS);
+					GridPane.setHgrow(textArea, Priority.ALWAYS);
+					GridPane expContent = new GridPane();
+					expContent.setMaxWidth(Double.MAX_VALUE);
+					expContent.add(label, 0, 0);
+					expContent.add(textArea, 0, 1);
+					// Set expandable Exception into the dialog pane.
+					alert.getDialogPane().setExpandableContent(expContent);
+				}
+				alert.showAndWait();
 			}
-		};
-		javax.swing.JDialog dialog = wrappingTextOptionPane.createDialog(parentContainer, "Error!");
-		dialog.setVisible(true);
-		// javax.swing.JOptionPane.showMessageDialog(this, msg, "ERROR!",
-		// JOptionPane.ERROR_MESSAGE);
+		});
 
+	}
+	
+	public static void handleError(String msg1) {
+		handleError(msg1, null);
 	}
 	public void displayProgressDialog(){
 		SearchProtocol protocol;
@@ -663,7 +729,7 @@ public class MainController extends Application implements Initializable {
 		try {
 			protocol = createProtocolFromFormData();
 		} catch (UIConstraintException e) {
-			handleError("Error creating SearchProtocol: " + e.getMessage());			
+			handleError("Error creating SearchProtocol: " + e.getMessage(),null);			
 			return;
 		}
 		Stage stage = new Stage();
@@ -689,10 +755,7 @@ public class MainController extends Application implements Initializable {
 		
 	}
 
-	private void handleError(String msg) {
-		handleError(msg, new java.awt.Container());
-	}
-
+	
 	private void updateSearchMethodParamTable(SearchMethod searchMethod, HashMap<String, String> searchMethodParams) {
 		// if the search method in the protocol is missing some parameters, fill
 		// them in with defaults

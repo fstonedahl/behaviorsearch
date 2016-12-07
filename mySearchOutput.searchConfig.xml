@@ -4,7 +4,7 @@
 <bsearchVersionNumber>1.00</bsearchVersionNumber>
 <modelInfo>
 <modelFile>Some Model.nlogo</modelFile>
-<modelSetupCommands>setup</modelSetupCommands>
+<modelSetupCommands>setup klj</modelSetupCommands>
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
 <modelStepLimit>100</modelStepLimit>

@@ -1,17 +1,23 @@
 package bsearch.fx;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 
+import javax.swing.JOptionPane;
+
+import bsearch.algorithms.SearchParameterException;
 import bsearch.app.BehaviorSearch;
+
 import bsearch.app.SearchProtocol;
 
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.ModelRunResult;
+import bsearch.nlogolink.ModelRunner.ModelRunnerException;
 import bsearch.representations.Chromosome;
 import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
@@ -26,11 +32,12 @@ import javafx.scene.chart.LineChart;
 
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Data;
-
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
@@ -81,8 +88,9 @@ public class ProgressController {
 		labelMessage.setText("Search 0 of " + runOptions.numSearches);
 
 		taskStartTime = System.currentTimeMillis();
+		TaskWorker insideTask = new TaskWorker(protocol, runOptions);
 
-		task = new FutureTask<Void>(new TaskWorker(protocol, runOptions), null);
+		task = new FutureTask<Void>(insideTask, null);
 		new Thread(new Runnable() {
 
 			@Override
@@ -95,18 +103,45 @@ public class ProgressController {
 					task.get();
 
 					// check fatal exception field and re-throw it, and handle
-					// that below
-
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (CancellationException e){
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					// that below 
+					
+						
+        			if (insideTask.fatalException != null)
+        			{
+       					throw insideTask.fatalException;
+        			}
+        		} catch (CancellationException e){
+        			Platform.runLater(new Runnable() {
+						public void run() {
+		        			Alert alert = new Alert(AlertType.WARNING);
+							alert.setTitle("Cancelled");
+							
+							alert.setContentText("You canceled the search.  \nPartial results may have been saved to output files.");
+							alert.showAndWait();
+						}
+        			});
 				}
+        		catch (ModelRunnerException e) {
+        			e.printStackTrace();
+        			MainController.handleError("Error running the model:\n" , e);			
+        		} catch (SearchParameterException e) {
+        			e.printStackTrace();
+        			MainController.handleError("Error setting search method parameters:\n" , e);						
+        		}
+        		catch (IOException e) {
+        			MainController.handleError("Error reading or writing files:\n" , e);						
+        			e.printStackTrace();
+        		} catch (Exception e) {
+        			e.printStackTrace();
+        			
+        			MainController.handleError(e.getMessage() , e);						
+        		} catch (Throwable e) {
+        			e.printStackTrace();
+        			MainController.handleError("Serious Error: " , e);						
+        		}
+
+				
+				
 				
 
 			}
@@ -136,18 +171,19 @@ public class ProgressController {
 
 		private SearchProtocol protocol;
 		private BehaviorSearch.RunOptions runOptions;
-		private Throwable fatalException = null;
+		protected Throwable fatalException = null;
 		private double evaluationLimit;
 
 		public TaskWorker(SearchProtocol protocol, BehaviorSearch.RunOptions runOptions) {
 			this.protocol = protocol;
 			this.runOptions = runOptions;
 			this.evaluationLimit = (double) protocol.evaluationLimit;
+			
 		}
 
 		@Override
 		public void initListener(SearchSpace space) {
-			// TODO Auto-generated method stub
+			// TODO check
 
 		}
 
@@ -166,9 +202,9 @@ public class ProgressController {
 			long remaining = (long) (elapsed / searchProgress - elapsed); // in
 																			// milliseconds
 			String remainingStr = GeneralUtils.formatTimeNicely(remaining);
-			// TODO: adding this???
+			
 			Platform.runLater(new Runnable() {
-				@SuppressWarnings("unchecked")
+				
 				public void run() {
 					labelTimeRemaining.setText(" (" + elapsedStr + " elapsed - " + remainingStr + " remaining)");
 				}
@@ -237,7 +273,7 @@ public class ProgressController {
 		}
 
 		private void updateGUIForNextSearch(int searchIDNumber) {
-			// TODO Auto-generated method stub
+			// TODO check this in original
 
 		}
 
@@ -275,7 +311,7 @@ public class ProgressController {
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
+			
 			try {
 				List<ResultListener> listeners = new ArrayList<ResultListener>();
 				listeners.add(this);
