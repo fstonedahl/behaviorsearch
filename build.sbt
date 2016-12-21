@@ -14,13 +14,20 @@ libraryDependencies ++= Seq(
   "jfree"     % "jfreechart" % "1.0.13",
   "jfree"     % "jcommon"    % "1.0.16",
   "args4j"    % "args4j"     % "2.0.12",
-  "org.nlogo" % "netlogo"    % netLogoVersion.value intransitive,
   "org.ow2.asm" % "asm-all" % "5.0.4" % "test",
   "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
   "org.parboiled" %% "parboiled" % "2.1.3" % "test",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4" % "test",
   "com.novocode" % "junit-interface" % "0.11" % "test"
 )
+
+libraryDependencies ++= {
+  val version = netLogoVersion.value
+  if (description.value.contains("subproject of NetLogo"))
+    Seq()
+  else
+    Seq("org.nlogo" % "netlogo" % version intransitive)
+}
 
 artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
     artifact.name + "." + artifact.extension
