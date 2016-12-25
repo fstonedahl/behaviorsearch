@@ -123,13 +123,13 @@ public class ProgressController {
 				}
         		catch (ModelRunnerException e) {
         			e.printStackTrace();
-        			MainController.handleError("Error running the model:\n" , e);			
+        			MainController.handleError("Error running the model:\n" +e.getMessage(), e);			
         		} catch (SearchParameterException e) {
         			e.printStackTrace();
-        			MainController.handleError("Error setting search method parameters:\n" , e);						
+        			MainController.handleError("Error setting search method parameters:\n" +e.getMessage(), e);						
         		}
         		catch (IOException e) {
-        			MainController.handleError("Error reading or writing files:\n" , e);						
+        			MainController.handleError("Error reading or writing files:\n" +e.getMessage(), e);						
         			e.printStackTrace();
         		} catch (Exception e) {
         			e.printStackTrace();
@@ -137,7 +137,7 @@ public class ProgressController {
         			MainController.handleError(e.getMessage() , e);						
         		} catch (Throwable e) {
         			e.printStackTrace();
-        			MainController.handleError("Serious Error: " , e);						
+        			MainController.handleError("Serious Error: " + e.getMessage(), e);						
         		}
 
 				

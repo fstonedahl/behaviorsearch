@@ -40,6 +40,7 @@
                      </accelerator>
                   </MenuItem>
                   <MenuItem mnemonicParsing="false" onAction="#actionSaveAs" text="Save as..." />
+                  <MenuItem mnemonicParsing="false" onAction="#actionOpenExample" text="Open Example" />
               <MenuItem mnemonicParsing="false" text="Exit" />
             </items>
           </Menu>
@@ -100,7 +101,7 @@
                         <TextField fx:id="MModelStepLimitField" layoutX="481.0" layoutY="228.0" prefHeight="25.0" prefWidth="60.0" />
                         <Label layoutX="550.0" layoutY="232.0" text="model steps" />
                         <TextArea fx:id="MParamSpecsArea" layoutX="22.0" layoutY="39.0" prefHeight="230.0" prefWidth="368.0" />
-                        <Button layoutX="339.0" layoutY="8.0" mnemonicParsing="false" text="?" />
+                        <Button fx:id="MHelpSearchSpaceButton" layoutX="339.0" layoutY="8.0" mnemonicParsing="false" onAction="#helpSearchSpaceAction" text="?" />
                         <Button fx:id="MSuggestParamButton" layoutX="79.0" layoutY="282.0" mnemonicParsing="false" onAction="#suggestParam" text="Load parameter ranges from model interface" />
                      </children>
                   </Pane>
@@ -115,7 +116,7 @@
                               <Font name="System Bold" size="14.0" />
                            </font>
                         </Label>
-                        <Button layoutX="464.0" layoutY="28.0" mnemonicParsing="false" text="?" />
+                        <Button fx:id="SOHelpEvaluationButton" layoutX="464.0" layoutY="28.0" mnemonicParsing="false" onAction="#helpEvaluationAction" text="?" />
                         <Label layoutX="222.0" layoutY="78.0" text="Goal: ">
                            <font>
                               <Font name="System Bold" size="12.0" />
@@ -171,7 +172,7 @@
                            </font>
                         </Label>
                         <ChoiceBox fx:id="SAChromosomeTypeBox" layoutX="25.0" layoutY="282.0" prefWidth="150.0" />
-                        <Button layoutX="211.0" layoutY="282.0" mnemonicParsing="false" text="?" />
+                        <Button fx:id="SAHelpSearchSpaceRepresentationButton" layoutX="211.0" layoutY="282.0" mnemonicParsing="false" onAction="#helpSearchSpaceRepresentationAction" text="?" />
                         <TextField fx:id="SABestCheckingField" layoutX="450.0" layoutY="255.0" />
                         <TextField fx:id="SAEvaluationLimitField" layoutX="451.0" layoutY="225.0" />
                         <Label layoutX="252.0" layoutY="18.0" text="Search Method Configuration">
@@ -180,7 +181,7 @@
                            </font>
                         </Label>
                         <ChoiceBox fx:id="SASearchMethodBox" layoutX="14.0" layoutY="38.0" prefWidth="150.0" />
-                        <Button layoutX="184.0" layoutY="38.0" mnemonicParsing="false" text="?" />
+                        <Button fx:id="SAHelpSearchMethodButton" layoutX="184.0" layoutY="38.0" mnemonicParsing="false" onAction="#helpSearchMethodAction" text="?" />
                         <TableView fx:id="SASearchMethodTable" layoutX="16.0" layoutY="77.0" prefHeight="140.0" prefWidth="667.0">
                           <columns>
                             <TableColumn fx:id="SAParamCol" prefWidth="397.0" text="Parameter" />

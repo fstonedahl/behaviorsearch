@@ -22,9 +22,11 @@ import bsearch.app.BehaviorSearch.RunOptions;
 import bsearch.app.BehaviorSearch;
 import bsearch.app.BehaviorSearchException;
 import bsearch.app.GUIProgressDialog;
+import bsearch.app.HelpInfoDialog;
 import bsearch.app.RunOptionsDialog;
 import bsearch.app.SearchProtocol;
 import bsearch.nlogolink.NetLogoLinkException;
+import bsearch.representations.ChromosomeFactory;
 import bsearch.representations.ChromosomeTypeLoader;
 import bsearch.space.ParameterSpec;
 import bsearch.space.SearchSpace;
@@ -47,11 +49,13 @@ import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.web.WebView;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -82,6 +86,8 @@ public class MainController extends Application implements Initializable {
 	// component in Model tab will start with M
 	@FXML
 	public TextArea MParamSpecsArea;
+	@FXML
+	public Button MHelpSearchSpaceButton;
 	@FXML
 	public Button MSuggestParamButton;
 	@FXML
@@ -120,6 +126,8 @@ public class MainController extends Application implements Initializable {
 	public Label SODeltaLabel;
 	@FXML
 	public CheckBox SOFitnessDerivativeUseAbsCheckBox;
+	@FXML
+	public Button SOHelpEvaluationButton;
 
 	// component in Search Algorithm tab will start with SA
 	@FXML
@@ -138,6 +146,10 @@ public class MainController extends Application implements Initializable {
 	public TableColumn<SearchMethodParamTableRow, String> SAParamCol;
 	@FXML
 	public TableColumn<SearchMethodParamTableRow, String> SAValCol;
+	@FXML
+	public Button SAHelpSearchSpaceRepresentationButton;
+	@FXML
+	public Button SAHelpSearchMethodButton;
 
 	// other component that not in GUI
 	private File defaultUserDocumentsFolder = new FileChooser().getInitialDirectory();
@@ -157,7 +169,24 @@ public class MainController extends Application implements Initializable {
 
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
-
+		
+		//set up tooltip
+		MHelpSearchSpaceButton.setTooltip(new Tooltip("Help about Search Space Specification"));
+		SAHelpSearchSpaceRepresentationButton.setTooltip(new Tooltip("Help about this Search Space Representation"));
+		SOHelpEvaluationButton.setTooltip(new Tooltip("Help about Evaluation"));
+		SAHelpSearchMethodButton.setTooltip(new Tooltip("Help about this Search Method"));
+		SOFitnessSamplingRepetitionsField.setTooltip(new Tooltip("How many times should the model be run, for a given setting of the parameters?"));
+		browseField.setTooltip(new Tooltip("Path to .nlogo file - may be specified relative to the folder containing the '.bsearch' file"));
+		MMeasureIfField.setTooltip(new Tooltip("e.g. \"(ticks mod 100) = 0\", or \"member? ticks [50 100 200]\""));
+		SAEvaluationLimitField.setTooltip(new Tooltip("Stop the search after this many model runs have occurred."));	
+		MSuggestParamButton.setTooltip(new Tooltip("Sets the search space specification based on sliders, choosers, etc., from model interface tab."));
+		SACachingCheckBox.setTooltip(new Tooltip("If fitness caching is turned on then the result of running the model with certain parameters gets saved so the model won't be re-run if a run with those same parameters are requested again."));
+		SABestCheckingField.setTooltip(new Tooltip("BestChecking: running another N independent model runs to get an unbiased estimate of the objective function for each \"best\" individual that's found."));
+		SOTakeDerivativeCheckBox.setTooltip(new Tooltip("Instead of using the measure you've specified, use the *change* in that measure (with respect to a certain parameter) for your objective function."));
+		SOFitnessDerivativeUseAbsCheckBox.setTooltip(new Tooltip("You might want to take the absolute value if you don't care about the direction of the measured change... e.g., for trying to find phase transitions"));
+		SOWrtBox.setTooltip(new Tooltip("Which parameter should be varied by a small amount to see how much change results?"));
+		SODeltaField.setTooltip(new Tooltip("How much should be subtracted from the parameter's value, to get the measured change?"));
+				
 		// set up ChoiceBox in SO tab
 		SOGoalBox.setItems(FXCollections.observableArrayList("Minimize Fitness", "Maximize Fitness"));
 		List<String> fitnessCollecting = new ArrayList<String>();
@@ -257,7 +286,53 @@ public class MainController extends Application implements Initializable {
 
 	}
 	
+	public void helpDialog(String title, String content){
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		WebView webView = new WebView();
+        webView.getEngine().loadContent(content);
+        webView.setPrefSize(500, 300);
+        alert.getDialogPane().setContent(webView);;
+
+		alert.showAndWait();
+	}
 	
+	public void helpSearchSpaceAction(ActionEvent event) {
+		helpDialog("Help about search space specification", "<HTML><BODY>" + 
+				"Specifying the range of parameters to be searched works much the same as the BehaviorSpace tool in NetLogo:" +
+				"<PRE> [ \"PARAM_NAME\" VALUE1 VALUE2 VALUE3 ... ] </PRE>" +
+				"or <PRE> [ \"PARAM_NAME\" [RANGE_START INCREMENT RANGE_END] ] </PRE>" +
+				"<P>One slight difference is that INCREMENT may be \"C\", which means to search the range continously " + 
+				"(or at least with fine resolution, if the chromosomal representation doesn't allow for continuous parameters)</P>" + 
+				"</BODY></HTML>");
+	}
+	
+	public void helpSearchSpaceRepresentationAction(ActionEvent event) {
+		
+		String chromosomeType = SAChromosomeTypeBox.getValue();
+		
+		try {
+			ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(chromosomeType);
+			
+			helpDialog("Help about " + chromosomeType, factory.getHTMLHelpText() + "<BR><BR>");
+		} catch (BehaviorSearchException ex)
+		{
+			handleError(ex.toString());
+		}
+	}
+	
+	public void helpEvaluationAction(ActionEvent event) {
+		helpDialog("Help about fitness evaluation", "<HTML><BODY>" +
+				"An objective function must condense the data collected from multiple model runs into a single number, " 
+				+ "which is what the search process will either attempt to minimize or maximize." +
+				"</BODY></HTML>");
+	}
+	
+	public void helpSearchMethodAction(ActionEvent event) {
+		SearchMethod sm = searchMethodChoices.get(SASearchMethodBox.getValue());
+		helpDialog("Help about " + sm.getName(), sm.getHTMLHelpText());
+	}
 
 	private Window getMainWindow() {
 		if (anchorPane != null && anchorPane.getScene() != null) {
@@ -339,6 +414,31 @@ public class MainController extends Application implements Initializable {
 			openFile(selectedFile);
 		}
 	}
+	public void actionOpenExample() {
+		if (!checkDiscardOkay()) {
+			return;
+		}
+		FileChooser chooser = new FileChooser();
+
+		
+		try {
+			chooser.setInitialDirectory(new File(GeneralUtils.attemptResolvePathFromBSearchRoot("examples")));
+		} catch (Exception e) {
+			
+			handleError("Error: cannot find Example folder", e);
+		}
+		
+		
+		chooser.getExtensionFilters().addAll(new ExtensionFilter("bsearch File", "*.bsearch"),
+				new ExtensionFilter("XML File", "*.xml"));
+
+		File selectedFile = chooser.showOpenDialog(null);
+		
+		if (selectedFile != null) {
+			openFile(selectedFile);
+			System.out.println(selectedFile.getAbsolutePath());
+		}
+	}
 	//TODO: change back to normal open when done testing
 	public void actionOpenTest() {
 		File selectedFile = new File("C:/Users/AnNguyen/Google Drive/behaviorsearch/behaviorsearch/examples/TestForFX.bsearch"
@@ -406,8 +506,8 @@ public class MainController extends Application implements Initializable {
 
 	private SearchProtocol createProtocolFromFormData() throws UIConstraintException {
 		HashMap<String, String> searchMethodParams = new java.util.LinkedHashMap<String, String>();
-		List<SearchMethodParamTableRow> currentTable = this.SASearchMethodTable.getItems();
-
+		List<SearchMethodParamTableRow> currentTable = SASearchMethodTable.getItems();
+		System.out.println(SASearchMethodTable);
 		for (SearchMethodParamTableRow row : currentTable) {
 			searchMethodParams.put(row.getParam().trim(), row.getValue().trim());
 		}
@@ -536,7 +636,7 @@ public class MainController extends Application implements Initializable {
 			// successfully.", "Saved.", JOptionPane.PLAIN_MESSAGE);
 		} catch (IOException ex) {
 			ex.printStackTrace();
-			handleError("IO Error occurred attempting to save file: " + currentFile.getPath(),null);
+			handleError("IO Error occurred attempting to save file: " + currentFile.getPath(),ex);
 		} catch (UIConstraintException ex) {
 			System.out.println(ex.getMessage());
 			
@@ -548,7 +648,9 @@ public class MainController extends Application implements Initializable {
 
 	private boolean protocolChangedSinceLastSave() {
 		String xmlStr = "";
-		try {
+		//TODO: ask about why this happen
+		/*try {
+			
 			xmlStr = createProtocolFromFormData().toXMLString();
 		} catch (UIConstraintException ex) {
 			// if we can't create a valid protocol object from the form data,
@@ -561,11 +663,13 @@ public class MainController extends Application implements Initializable {
 
 		// Note: lastSavedText == null ONLY when the GUI is being loaded for the
 		// first time.
-		return (lastSavedText != null && !lastSavedText.equals(xmlStr));
+		return (lastSavedText != null && !lastSavedText.equals(xmlStr));*/
+		return true;
 	}
 
 	private boolean checkDiscardOkay() {
-		boolean check = false;
+		boolean check = true;
+		if (protocolChangedSinceLastSave()) {
 		/*Platform.runLater(new Runnable() {
 			public void run() {*/
 				Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -579,6 +683,7 @@ public class MainController extends Application implements Initializable {
 				} else {
 				    check = false;
 				}
+		}
 				
 		/*	}
 		});*/
