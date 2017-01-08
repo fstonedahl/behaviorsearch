@@ -1,6 +1,7 @@
 package bsearch.fx;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,6 +23,7 @@ import bsearch.app.BehaviorSearch.RunOptions;
 import bsearch.app.BehaviorSearch;
 import bsearch.app.BehaviorSearchException;
 import bsearch.app.GUIProgressDialog;
+import bsearch.app.HelpAboutDialog;
 import bsearch.app.HelpInfoDialog;
 import bsearch.app.RunOptionsDialog;
 import bsearch.app.SearchProtocol;
@@ -39,6 +41,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
@@ -341,8 +344,50 @@ public class MainController extends Application implements Initializable {
 			return null;
 		}
 	}
+	
+	public void showTutorialAction(ActionEvent event) {
+		org.nlogo.swing.BrowserLauncher.openURL(null,GeneralUtils.attemptResolvePathFromBSearchRoot("documentation/tutorial.html"),true);
+	}
+	public void showAboutAction(ActionEvent event) {
+		
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle("About BehaviorSearch...");
+		alert.setHeaderText(null);
+		alert.setGraphic(null);
+		ButtonType browseWebsite = new ButtonType("Browse BehaviorSearch web site");
+		ButtonType close = new ButtonType("Close", ButtonData.CANCEL_CLOSE);
+		alert.getButtonTypes().setAll(browseWebsite, close);
+		
+		TextArea content = new TextArea();
+		File creditsFile = new File(GeneralUtils.attemptResolvePathFromBSearchRoot("CREDITS.TXT"));
+		File licFile = new File(GeneralUtils.attemptResolvePathFromBSearchRoot("LICENSE.TXT"));
+		String creditsText, licText;
+		try {
+			creditsText = GeneralUtils.stringContentsOfFile(creditsFile);
+			licText = GeneralUtils.stringContentsOfFile(licFile);
+		} catch (FileNotFoundException ex) 
+		{
+			creditsText = "ERROR: Either CREDITS.TXT or LICENSE.TXT file not found.";
+			licText = "";
+		}
+		
+		content.setText("BehaviorSearch v" + GeneralUtils.getVersionString() + "\n" +
+				creditsText + "\n*****\n\n"
+				+ licText);
+		content.setWrapText(true);
+		content.setMinHeight(400);
+        alert.getDialogPane().setContent(content);;
 
-	//
+        Optional<ButtonType> result = alert.showAndWait();
+		if (result.get() == browseWebsite){
+			org.nlogo.swing.BrowserLauncher.openURL(null, "http://www.behaviorsearch.org/", false);
+		} else {
+		    // ... user chose CANCEL or closed the dialog
+		}
+		
+	}
+
+	
 	public void browseFile(ActionEvent event) {
 		FileChooser fileChooser = new FileChooser();
 		File parentFolder = new File(browseField.getText()).getParentFile();
