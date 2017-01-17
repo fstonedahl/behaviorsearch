@@ -6,10 +6,13 @@ On Windows:  You should have already run the installer, which is why you're read
 
 RUNNING:
 
-Windows:  Run the shortcut on the Desktop, or Start Menu->NetLogo->BehaviorSearch
-Mac: Run the "behaviorsearch_gui.command" script in the "behaviorsearch" folder.
-Linux: Run the "behaviorsearch_gui.sh" script in the "behaviorsearch" folder.
+If you want to use Behaviorsearch through the GUI, you can simply run the application (it's installed alongside the NetLogo application in NetLogo 6.0 and later).
 
+If you want to run behaviorsearch headlessly, you must set the JAVA_HOME environment variable in your shell. Then run the behaviorsearch_headless script in the "behaviorsearch" directory. In Windows and linux, the behaviorsearch directory is located inside the "app" folder within the NetLogo installation.
+
+Windows:  Run "app\behaviorsearch\behaviorsearch_headless.bat" (located in the NetLogo installation folder).
+Mac: Run "behaviorsearch/behaviorsearch_gui.command" (located in the NetLogo installation folder).
+Linux: Run "app/behaviorsearch/behaviorsearch_gui.sh" (located in the NetLogo installation folder).
 
 TROUBLESHOOTING:
 
