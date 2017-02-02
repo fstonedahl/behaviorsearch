@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-import javax.swing.JOptionPane;
 import org.xml.sax.SAXException;
 
 
@@ -22,10 +21,6 @@ import bsearch.app.BehaviorSearch.RunOptions;
 
 import bsearch.app.BehaviorSearch;
 import bsearch.app.BehaviorSearchException;
-import bsearch.app.GUIProgressDialog;
-import bsearch.app.HelpAboutDialog;
-import bsearch.app.HelpInfoDialog;
-import bsearch.app.RunOptionsDialog;
 import bsearch.app.SearchProtocol;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.ChromosomeFactory;
@@ -52,7 +47,6 @@ import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
@@ -64,8 +58,6 @@ import javafx.stage.Modality;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-import javafx.stage.WindowEvent;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -74,7 +66,7 @@ import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 
-public class MainController extends Application implements Initializable {
+public class MainController implements Initializable {
 	// component outside of tab will have normal name
 
 	@FXML
@@ -156,40 +148,16 @@ public class MainController extends Application implements Initializable {
 
 	// other component that not in GUI
 	private File defaultUserDocumentsFolder = new FileChooser().getInitialDirectory();
-	private File currentSearchProtocolFile;
 	private String defaultProtocolXMLForNewSearch;
 	private HashMap<String, SearchMethod> searchMethodChoices = new HashMap<String, SearchMethod>();
 	private File currentFile;
 	private String lastSavedText;
-	private Window mainWindow;
 	protected RunOptions runOptions;
+	Image icon = new Image(GeneralUtils.getResource("icon_behaviorsearch.png").toURI().toString());
 	
-	// private Stage mainStage;
-
-	public static void main(String[] args) {
-		launch(args);
-	}
-
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		
-		//set up tooltip
-		MHelpSearchSpaceButton.setTooltip(new Tooltip("Help about Search Space Specification"));
-		SAHelpSearchSpaceRepresentationButton.setTooltip(new Tooltip("Help about this Search Space Representation"));
-		SOHelpEvaluationButton.setTooltip(new Tooltip("Help about Evaluation"));
-		SAHelpSearchMethodButton.setTooltip(new Tooltip("Help about this Search Method"));
-		SOFitnessSamplingRepetitionsField.setTooltip(new Tooltip("How many times should the model be run, for a given setting of the parameters?"));
-		browseField.setTooltip(new Tooltip("Path to .nlogo file - may be specified relative to the folder containing the '.bsearch' file"));
-		MMeasureIfField.setTooltip(new Tooltip("e.g. \"(ticks mod 100) = 0\", or \"member? ticks [50 100 200]\""));
-		SAEvaluationLimitField.setTooltip(new Tooltip("Stop the search after this many model runs have occurred."));	
-		MSuggestParamButton.setTooltip(new Tooltip("Sets the search space specification based on sliders, choosers, etc., from model interface tab."));
-		SACachingCheckBox.setTooltip(new Tooltip("If fitness caching is turned on then the result of running the model with certain parameters gets saved so the model won't be re-run if a run with those same parameters are requested again."));
-		SABestCheckingField.setTooltip(new Tooltip("BestChecking: running another N independent model runs to get an unbiased estimate of the objective function for each \"best\" individual that's found."));
-		SOTakeDerivativeCheckBox.setTooltip(new Tooltip("Instead of using the measure you've specified, use the *change* in that measure (with respect to a certain parameter) for your objective function."));
-		SOFitnessDerivativeUseAbsCheckBox.setTooltip(new Tooltip("You might want to take the absolute value if you don't care about the direction of the measured change... e.g., for trying to find phase transitions"));
-		SOWrtBox.setTooltip(new Tooltip("Which parameter should be varied by a small amount to see how much change results?"));
-		SODeltaField.setTooltip(new Tooltip("How much should be subtracted from the parameter's value, to get the measured change?"));
-				
 		// set up ChoiceBox in SO tab
 		SOGoalBox.setItems(FXCollections.observableArrayList("Minimize Fitness", "Maximize Fitness"));
 		List<String> fitnessCollecting = new ArrayList<String>();
@@ -212,8 +180,7 @@ public class MainController extends Application implements Initializable {
 		try {
 			SASearchMethodBox.setItems(FXCollections.observableArrayList(SearchMethodLoader.getAllSearchMethodNames()));
 		} catch (BehaviorSearchException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			handleError(e.getMessage());
 		}
 		try {
 			for (String name : SearchMethodLoader.getAllSearchMethodNames()) {
@@ -221,8 +188,7 @@ public class MainController extends Application implements Initializable {
 
 			}
 		} catch (BehaviorSearchException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			handleError(e1.getMessage());
 		}
 		SASearchMethodBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
 
@@ -239,8 +205,7 @@ public class MainController extends Application implements Initializable {
 			SAChromosomeTypeBox
 					.setItems(FXCollections.observableArrayList(ChromosomeTypeLoader.getAllChromosomeTypes()));
 		} catch (BehaviorSearchException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			handleError(e.getMessage());
 		}
 
 		// set up field that not in GUI
@@ -255,39 +220,7 @@ public class MainController extends Application implements Initializable {
 
 	}
 
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-		try {
-			// root gets layout from bsearchMain.fxml file, created with FX
-			// Scene Builder.
-			Parent root = FXMLLoader.load(getClass().getResource("bsearchMain.fxml"));
-			Scene scene = new Scene(root);
-			primaryStage.setScene(scene);
-			primaryStage.setTitle("Untitled" + getWindowTitleSuffix());
-			Platform.setImplicitExit(false);
-
-			primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-			    @Override
-			    public void handle(WindowEvent event) {
-			    	if (!checkDiscardOkay()){
-			    		event.consume();
-			    	}
-			    	else {
-			    		Platform.exit();
-			    		System.exit(0);
-			    	}
-			    }
-			});
-			primaryStage.show();
-			// mainStage = (Stage) anchorPane.getScene().getWindow();
-			Image icon = new Image(GeneralUtils.getResource("icon_behaviorsearch.png").toURI().toString());
-			primaryStage.getIcons().add(icon);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
+	
 	
 	public void helpDialog(String title, String content){
 		Alert alert = new Alert(AlertType.INFORMATION);
@@ -346,7 +279,7 @@ public class MainController extends Application implements Initializable {
 	}
 	
 	public void showTutorialAction(ActionEvent event) {
-		org.nlogo.swing.BrowserLauncher.openURL(null,GeneralUtils.attemptResolvePathFromBSearchRoot("documentation/tutorial.html"),true);
+		org.nlogo.swing.BrowserLauncher.openURL(null,GeneralUtils.attemptResolvePathFromBSearchRoot("documentation/tutorialFx.html"),true);
 	}
 	public void showAboutAction(ActionEvent event) {
 		
@@ -405,22 +338,19 @@ public class MainController extends Application implements Initializable {
 	private void updateWindowTitle(String fileName) {
 		Window mainWindow = getMainWindow();
 		if (mainWindow != null) {
-			((Stage) mainWindow).setTitle(fileName + getWindowTitleSuffix());
+			((Stage) mainWindow).setTitle(fileName + MainGUI.getWindowTitleSuffix());
 		}
 	}
 
-	private static String getWindowTitleSuffix() {
-		return " - BehaviorSearch " + GeneralUtils.getVersionString();
-	}
-
+	
 	public void actionNew() {
-		// TODO: add this method
-		/*
-		 * if (!checkDiscardOkay()) { return; } currentFile = null;
-		 * jTextAreaParamSpecs.setText("[\"integerParameter\" [0 1 10]] \n" +
-		 * "[\"continuousParameter\" [0.0 \"C\" 1.0]] \n " +
-		 * "[\"choiceParameter\" \"near\" \"far\"] \n");
-		 */
+				
+		if (!checkDiscardOkay()) { return; } 
+		currentFile = null;
+		MParamSpecsArea.setText("[\"integerParameter\" [0 1 10]] \n" +
+		"[\"continuousParameter\" [0.0 \"C\" 1.0]] \n " +
+		"[\"choiceParameter\" \"near\" \"far\"] \n");
+		 
 		SearchProtocol protocol;
 		try {
 			protocol = SearchProtocol.load(defaultProtocolXMLForNewSearch);
@@ -444,7 +374,6 @@ public class MainController extends Application implements Initializable {
 		FileChooser chooser = new FileChooser();
 
 		if (currentFile != null) {
-			// System.out.println(currentFile.getParentFile());
 			chooser.setInitialDirectory(currentFile.getParentFile());
 			;
 
@@ -454,7 +383,6 @@ public class MainController extends Application implements Initializable {
 				new ExtensionFilter("XML File", "*.xml"));
 
 		File selectedFile = chooser.showOpenDialog(null);
-		System.out.println(selectedFile.getAbsolutePath());
 		if (selectedFile != null) {
 			openFile(selectedFile);
 		}
@@ -481,10 +409,9 @@ public class MainController extends Application implements Initializable {
 		
 		if (selectedFile != null) {
 			openFile(selectedFile);
-			System.out.println(selectedFile.getAbsolutePath());
 		}
 	}
-	//TODO: change back to normal open when done testing
+	
 	public void actionOpenTest() {
 		File selectedFile = new File("C:/Users/AnNguyen/Google Drive/behaviorsearch/behaviorsearch/examples/TestForFX.bsearch"
 );
@@ -534,32 +461,26 @@ public class MainController extends Application implements Initializable {
 		SODeltaField.setText(Double.toString(protocol.fitnessDerivativeDelta));
 		SASearchMethodBox.setValue(protocol.searchMethodType);
 		SAChromosomeTypeBox.setValue(protocol.chromosomeType);
-		// TODO: check this method
 		updateSearchMethodParamTable(searchMethodChoices.get(protocol.searchMethodType), protocol.searchMethodParams);
 		SACachingCheckBox.setSelected(protocol.caching);
 		SABestCheckingField.setText(Integer.toString(protocol.bestCheckingNumReplications));
 		SAEvaluationLimitField.setText(Integer.toString(protocol.evaluationLimit));
-		
-
-		// TODO: check these two fields
-		
-		 lastSavedText = protocol.toXMLString(); 
-		 runOptions = null; 
-		 //the runOptions to defaults, when a different Protocol is loaded
-		 
+		lastSavedText = protocol.toXMLString(); 
+		runOptions = null; 
+		//the runOptions to defaults, when a different Protocol is loaded
 	}
 
 	private SearchProtocol createProtocolFromFormData() throws UIConstraintException {
 		HashMap<String, String> searchMethodParams = new java.util.LinkedHashMap<String, String>();
+		
 		List<SearchMethodParamTableRow> currentTable = SASearchMethodTable.getItems();
-		System.out.println(SASearchMethodTable);
+		
 		for (SearchMethodParamTableRow row : currentTable) {
 			searchMethodParams.put(row.getParam().trim(), row.getValue().trim());
 		}
 		int modelStepLimit = 0;
 		try {
 			modelStepLimit = Integer.valueOf(MModelStepLimitField.getText());
-			// System.out.println(modelStepLimit);
 			if (modelStepLimit < 0) {
 				throw new NumberFormatException();
 			}
@@ -676,11 +597,7 @@ public class MainController extends Application implements Initializable {
 			protocol.save(fout);
 			fout.close();
 			lastSavedText = protocol.toXMLString();
-			//TODO: adding Option pane appropriate to this
-			// javax.swing.JOptionPane.showMessageDialog(this, "Saved
-			// successfully.", "Saved.", JOptionPane.PLAIN_MESSAGE);
 		} catch (IOException ex) {
-			ex.printStackTrace();
 			handleError("IO Error occurred attempting to save file: " + currentFile.getPath(),ex);
 		} catch (UIConstraintException ex) {
 			System.out.println(ex.getMessage());
@@ -691,10 +608,14 @@ public class MainController extends Application implements Initializable {
 
 	
 
-	private boolean protocolChangedSinceLastSave() {
+	public boolean protocolChangedSinceLastSave() {
 		String xmlStr = "";
-		//TODO: ask about why this happen
-		/*try {
+		// Note: lastSavedText == null ONLY when the GUI is being loaded for the
+				// first time.
+		if(lastSavedText==null){
+			return false;
+		}
+		try {
 			
 			xmlStr = createProtocolFromFormData().toXMLString();
 		} catch (UIConstraintException ex) {
@@ -702,44 +623,28 @@ public class MainController extends Application implements Initializable {
 			// assume the user has changed something...
 			return true;
 		}
-		// System.out.println(xmlStr);
-		// System.out.println("--");
-		// System.out.println(lastSavedText);
-
-		// Note: lastSavedText == null ONLY when the GUI is being loaded for the
-		// first time.
-		return (lastSavedText != null && !lastSavedText.equals(xmlStr));*/
-		return true;
+		
+		return !lastSavedText.equals(xmlStr);
+		
 	}
 
-	private boolean checkDiscardOkay() {
+	boolean checkDiscardOkay() {
 		boolean check = true;
 		if (protocolChangedSinceLastSave()) {
-		/*Platform.runLater(new Runnable() {
-			public void run() {*/
-				Alert alert = new Alert(AlertType.CONFIRMATION);
-				alert.setTitle("Discard changes?");
-				alert.setHeaderText("Discard changes you've made to this search experiment?");
-				
+	
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("Discard changes?");
+			alert.setHeaderText("Discard changes you've made to this search experiment?");
+			
 
-				Optional<ButtonType> result = alert.showAndWait();
-				if (result.get() == ButtonType.OK){
-				    check = true;
-				} else {
-				    check = false;
-				}
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK){
+			    check = true;
+			} else {
+			    check = false;
+			}
 		}
 				
-		/*	}
-		});*/
-		/*
-		 * if (protocolChangedSinceLastSave()) { if
-		 * (JOptionPane.showConfirmDialog(this,
-		 * "Discard changes you've made to this search experiment?",
-		 * "Discard changes?", JOptionPane.YES_NO_OPTION,
-		 * JOptionPane.QUESTION_MESSAGE) == JOptionPane.NO_OPTION) { return
-		 * false; } }
-		 */
 		return check;
 	}
 
@@ -750,7 +655,6 @@ public class MainController extends Application implements Initializable {
 			this.SODeltaLabel.setDisable(false);
 			this.SOWrtBox.setDisable(false);
 			this.SODeltaField.setDisable(false);
-			// TODO: Set Wrt box item after check the model param
 			List<String> wrt = new ArrayList<String>();
 			SearchSpace ss = new SearchSpace(java.util.Arrays.asList(this.MParamSpecsArea.getText().split("\n")));
 
@@ -772,8 +676,7 @@ public class MainController extends Application implements Initializable {
 		try {
 			this.MParamSpecsArea.setText(bsearch.nlogolink.Utils.getDefaultConstraintsText(this.browseField.getText()));
 		} catch (NetLogoLinkException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			handleError(e.getMessage(), e);
 		}
 	}
 
@@ -804,45 +707,31 @@ public class MainController extends Application implements Initializable {
 			runOptions.protocolFilename = this.currentFile.getAbsolutePath();
 		}
 		
-		//TODO: ask about this, not sure why need to have if statement here
-		/*if (RunOptionsDialog.showDialog(this, runOptions))
-		{
-			GUIProgressDialog dialog = new GUIProgressDialog(this);
-	        dialog.setLocationRelativeTo(null);
-			dialog.startSearchTask(protocol, runOptions);
-			dialog.setVisible(true);
-		}*/
 		Stage stage = new Stage();
 		Parent root;
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("RunOptionDialog.fxml"));
-	        //this happen first, which cause null pointer exception
-			root = loader.load();
+	        root = loader.load();
 			stage.setScene(new Scene(root));
 			stage.setTitle("Run Options Dialog");
 			stage.initModality(Modality.APPLICATION_MODAL);
 			stage.initOwner(runButton.getScene().getWindow());
-			//TODO: Understand why it return null ???? or try alternative
+			stage.getIcons().add(icon);
 			RunOptionDialogController runController = loader.getController();
 			runController.ini(runOptions, this);
 			stage.showAndWait();
-			//System.out.println(runOptions.numSearches);
+			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			handleError("Required file not found: RunOptionDialog.fxml \nThe program will not run properly");
 		}
 	}		
-	// TODO: change to JavaFx dialog
+	
 	public static void handleError(String msg1, Throwable e) {
 		Platform.runLater(new Runnable() {
 			public void run() {
 				Alert alert = new Alert(AlertType.ERROR);
 				alert.setTitle("Exception Dialog");
-				
 				alert.setContentText(msg1);
-		
-				
-		
 				if (e!=null) {
 					// Create expandable Exception.
 					StringWriter sw = new StringWriter();
@@ -875,7 +764,7 @@ public class MainController extends Application implements Initializable {
 	}
 	public void displayProgressDialog(){
 		SearchProtocol protocol;
-		//TODO: check all HandleError
+		
 		try {
 			protocol = createProtocolFromFormData();
 		} catch (UIConstraintException e) {
@@ -886,21 +775,18 @@ public class MainController extends Application implements Initializable {
 		Parent root;
 		try {
 			FXMLLoader loader = new FXMLLoader(getClass().getResource("ProgressDialog.fxml"));
-	        //this happen first, which cause null pointer exception
-			root = loader.load();
+	        root = loader.load();
 			stage.setScene(new Scene(root));
 			stage.setTitle("Progress Dialog");
-			//stage.initModality(Modality.APPLICATION_MODAL);
-			//TODO: figure out how to do owner of this back in main
-			//stage.initOwner(runButton.getScene().getWindow());
-			
+			stage.initModality(Modality.APPLICATION_MODAL);
+			stage.initOwner(getMainWindow());
+			stage.getIcons().add(icon);
 			ProgressController progressController = loader.getController();
 			progressController.startSearchTask(protocol, runOptions);
 			stage.show();
-			//System.out.println(runOptions.numSearches);
+			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			handleError("Required file not found: ProgressDialog.fxml \nThe program will not run properly");
 		}
 		
 	}
@@ -917,43 +803,13 @@ public class MainController extends Application implements Initializable {
 		}
 		this.SASearchMethodTable.setEditable(true);
 
-		// model.setRowCount(0);
+		
 		List<SearchMethodParamTableRow> paramTable = new ArrayList<SearchMethodParamTableRow>();
 		for (String s : searchMethodParams.keySet()) {
 			paramTable.add(new SearchMethodParamTableRow(s, searchMethodParams.get(s)));
 		}
-		// this used to test if paramTable take right value, checked
-
-		// for (SearchMethodParamTableRow i: paramTable){ System.out.println(i);
-		// }
-
-		// http://java-buddy.blogspot.com/2013/05/detect-mouse-click-on-javafx-tableview.html
-		/*
-		 * Callback<TableColumn<SearchMethodParamTableRow, String>,
-		 * TableCell<SearchMethodParamTableRow, String>> stringCellFactory = new
-		 * Callback<TableColumn<SearchMethodParamTableRow, String>, TableCell()
-		 * {
-		 * 
-		 * @Override public TableCell call(TableColumn p) { MyStringTableCell
-		 * cell = new MyStringTableCell(); // cell.setFont(new Font("Arial",
-		 * 12)); // cell.addEventFilter(MouseEvent.MOUSE_CLICKED, new //
-		 * MyEventHandler()); return cell; } };
-		 * SAParamCol.setCellFactory(stringCellFactory);
-		 */
-		// TODO: CHANGE TO TABLE CELL THAT WORK
-		/*
-		 * Callback<TableColumn<SearchMethodParamTableRow, String>,
-		 * TableCell<SearchMethodParamTableRow, String>> cellFactory =
-		 * (TableColumn<SearchMethodParamTableRow, String> p) -> new
-		 * AcceptOnExitTableCell<SearchMethodParamTableRow, String>();
-		 * SAValCol.setCellFactory(cellFactory);
-		 */
+		
 		SAValCol.setCellFactory(AcceptOnExitTableCell.forTableColumn());
-
-		// this is the code that work, however, textField need to be commit with
-		// enter
-		// SAValCol.setCellFactory(TextFieldTableCell.forTableColumn());
-
 		// set up table data
 		SAParamCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("param"));
 		SAValCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("value"));
@@ -962,64 +818,13 @@ public class MainController extends Application implements Initializable {
 			@Override
 			public void handle(CellEditEvent<SearchMethodParamTableRow, String> t) {
 				t.getTableView().getItems().get(t.getTablePosition().getRow()).setValue(t.getNewValue());
-				// this code is to test if value actually come back to data
-				// for (SearchMethodParamTableRow i: paramTable){
-				// System.out.println(i); }
+				//this code is to test if value actually come back to data
+				//for (SearchMethodParamTableRow i: paramTable){
+				//System.out.println(i); }
 			}
 		});
 	}
-
-	public class SearchMethodParamTableRow {
-		private final SimpleStringProperty param;
-		private SimpleStringProperty value;
-
-		public SearchMethodParamTableRow(String param, String value) {
-			this.param = new SimpleStringProperty(param);
-			this.value = new SimpleStringProperty(value);
-		}
-
-		public String getParam() {
-			return param.get();
-		}
-
-		public String getValue() {
-			return value.get();
-		}
-
-		public void setValue(String value) {
-			this.value.set(value);
-		}
-
-		// TODO: use this method to test
-		@Override
-		public String toString() {
-			return param + " " + value;
-
-		}
-
-	}
-
-	// http://java-buddy.blogspot.com/2013/05/detect-mouse-click-on-javafx-tableview.html
-
-	/*
-	 * This is actually a new class
-	 */
-	class MyStringTableCell extends TableCell<SearchMethodParamTableRow, String> {
-
-		@Override
-		public void updateItem(String item, boolean empty) {
-			super.updateItem(item, empty);
-			setText(empty ? null : getString());
-			setGraphic(null);
-
-		}
-
-		private String getString() {
-			return getItem() == null ? "" : getItem().toString();
-		}
-	}
-
-	
+		
 	private class UIConstraintException extends Exception {
 		private String title;
 

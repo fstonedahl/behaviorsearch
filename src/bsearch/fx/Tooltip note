@@ -1,0 +1,17 @@
+//set up tooltip
+		//MHelpSearchSpaceButton.setTooltip(new Tooltip("Help about Search Space Specification"));
+		//SAHelpSearchSpaceRepresentationButton.setTooltip(new Tooltip("Help about this Search Space Representation"));
+		//SOHelpEvaluationButton.setTooltip(new Tooltip("Help about Evaluation"));
+		//SAHelpSearchMethodButton.setTooltip(new Tooltip("Help about this Search Method"));
+		//SOFitnessSamplingRepetitionsField.setTooltip(new Tooltip("How many times should the model be run, for a given setting of the parameters?"));
+		//browseField.setTooltip(new Tooltip("Path to .nlogo file - may be specified relative to the folder containing the '.bsearch' file"));
+		//MMeasureIfField.setTooltip(new Tooltip("e.g. \"(ticks mod 100) = 0\", or \"member? ticks [50 100 200]\""));
+		//SAEvaluationLimitField.setTooltip(new Tooltip("Stop the search after this many model runs have occurred."));	
+		//MSuggestParamButton.setTooltip(new Tooltip("Sets the search space specification based on sliders, choosers, etc., from model interface tab."));
+		//SACachingCheckBox.setTooltip(new Tooltip("If fitness caching is turned on then the result of running the model with certain parameters gets saved so the model won't be re-run if a run with those same parameters are requested again."));
+		//SABestCheckingField.setTooltip(new Tooltip("BestChecking: running another N independent model runs to get an unbiased estimate of the objective function for each \"best\" individual that's found."));
+		//SOTakeDerivativeCheckBox.setTooltip(new Tooltip("Instead of using the measure you've specified, use the *change* in that measure (with respect to a certain parameter) for your objective function."));
+		//SOFitnessDerivativeUseAbsCheckBox.setTooltip(new Tooltip("You might want to take the absolute value if you don't care about the direction of the measured change... e.g., for trying to find phase transitions"));
+		//SOWrtBox.setTooltip(new Tooltip("Which parameter should be varied by a small amount to see how much change results?"));
+		//SODeltaField.setTooltip(new Tooltip("How much should be subtracted from the parameter's value, to get the measured change?"));
+				

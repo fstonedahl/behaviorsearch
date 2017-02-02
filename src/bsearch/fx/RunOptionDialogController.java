@@ -132,8 +132,6 @@ public class RunOptionDialogController {
 	}
 
 	public void updateOptions(ActionEvent event) {
-		// TODO: input validation for this dialog, and don't let them press OK
-		// to close unless it's valid.
 		runOptions.outputStem = outputPathTextField.getText();
 		runOptions.numSearches = (Integer) searchesNumSpinner.getValue();
 		runOptions.firstSearchNumber = (Integer) startingSearchIDSpinner.getValue();

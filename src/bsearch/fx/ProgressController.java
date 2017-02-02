@@ -4,16 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
-
-import javax.swing.JOptionPane;
-
 import bsearch.algorithms.SearchParameterException;
 import bsearch.app.BehaviorSearch;
-
 import bsearch.app.SearchProtocol;
-
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.ModelRunResult;
@@ -21,22 +15,17 @@ import bsearch.nlogolink.ModelRunner.ModelRunnerException;
 import bsearch.representations.Chromosome;
 import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
-
 import javafx.application.Platform;
-
 import javafx.event.ActionEvent;
-
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.LineChart;
-
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -65,12 +54,6 @@ public class ProgressController {
 		progressLineChart.setTitle("Search Progress");
 		progressLineChart.getXAxis().setLabel("# of model runs");
 		progressLineChart.getYAxis().setLabel("Fitness");
-		/*
-		 * xAxis.setLabel(); xAxis.setTickLabelRotation(90);
-		 * yAxis.setLabel("Fitness");
-		 */
-		System.out.println("ini");
-		System.out.println(progressLineChart.getTitle());
 		progressLineChart.setCreateSymbols(false);
 		progressLineChart.getYAxis().setAutoRanging(true);
 		progressLineChart.setAnimated(false);
@@ -78,13 +61,6 @@ public class ProgressController {
 	}
 
 	public void startSearchTask(SearchProtocol protocol, BehaviorSearch.RunOptions runOptions) {
-
-		/*
-		 * if (protocol.useBestChecking()) { ValueAxis rangeAxis =
-		 * fitnessPlot.getXYPlot().getRangeAxis();
-		 * rangeAxis.setLabel(rangeAxis.getLabel() + " (rechecked)"); }
-		 */
-
 		labelMessage.setText("Search 0 of " + runOptions.numSearches);
 
 		taskStartTime = System.currentTimeMillis();
@@ -159,14 +135,13 @@ public class ProgressController {
 			
 			thisStage.close();
 		} else {
-			// progressBar.setIndeterminate(false);
 			task.cancel(true);
 			cancelAndDoneButton.setText("Done");
 			done = true;
 		}
 	}
 
-	// try using FutureTask instead
+	
 	class TaskWorker implements Runnable, ResultListener {
 
 		private SearchProtocol protocol;
@@ -183,7 +158,7 @@ public class ProgressController {
 
 		@Override
 		public void initListener(SearchSpace space) {
-			// TODO check
+			
 
 		}
 
@@ -229,6 +204,7 @@ public class ProgressController {
 					if (searchNumber - runOptions.firstSearchNumber + 1 > progressLineChart.getData().size()) {
 						XYChart.Series series = new XYChart.Series();
 						series.setName("Search " + searchNumber);
+						
 						progressLineChart.getData().addAll(series);
 
 					}
@@ -243,7 +219,7 @@ public class ProgressController {
 						if (evaluationCount > lastPoint.getXValue().intValue()
 								|| (bestFitnessSoFar != lastPoint.getYValue().doubleValue())) {
 							// This is a preventive measure to not bog down
-							// real-time graphing in JFreeChart:
+							// real-time graphing in FXChart:
 							// if the fitness is on a plateau, we don't need a
 							// million XY data points to show a flat line
 							// we can use just 2 points (one at the beginning of
@@ -272,8 +248,13 @@ public class ProgressController {
 
 		}
 
-		private void updateGUIForNextSearch(int searchIDNumber) {
-			// TODO check this in original
+		private void updateGUIForNextSearch(final int searchNum) {
+			Platform.runLater(new Runnable() {
+				public void run() {
+					labelMessage.setText("Performing search " + (searchNum - runOptions.firstSearchNumber + 1) + " of " + runOptions.numSearches + ":  ");
+		            
+				}
+			});
 
 		}
 
@@ -328,22 +309,11 @@ public class ProgressController {
 		public void updateGUIWhenFinished() {
 			Platform.runLater(new Runnable() {
 				public void run() {
-					System.out.println("GUI finished inside runlater");
-
 					labelMessage.setText(
 							"Finished search " + runOptions.numSearches + " of " + runOptions.numSearches + ":  ");
 					progressBar.setProgress(1.0);
 					cancelAndDoneButton.setText("Done");
 					done = true;
-
-					/*
-					 * XYLineAndShapeRenderer renderer =
-					 * (XYLineAndShapeRenderer)
-					 * fitnessPlot.getXYPlot().getRenderer();
-					 * renderer.setSeriesStroke(runOptions.numSearches - 1, new
-					 * BasicStroke(1.0f));
-					 */
-
 				}
 			});
 		}
@@ -372,21 +342,7 @@ public class ProgressController {
 			});
 
 		}
-		
-		/*
-		 * public void updateGUIWhenFinished() { Platform.runLater(new
-		 * Runnable() { public void run() {
-		 * System.out.println("GUI finished inside runlater");
-		 * labelMessage.setText("Finished search " + runOptions.numSearches +
-		 * " of " + runOptions.numSearches + ":  ");
-		 * progressBar.setValue(progressBar.getMaximum());
-		 * 
-		 * XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer)
-		 * fitnessPlot.getXYPlot().getRenderer();
-		 * renderer.setSeriesStroke(runOptions.numSearches - 1, new
-		 * BasicStroke(1.0f)); } }); }
-		 */
-
+	
 	}
 
 }

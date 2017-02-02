@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
@@ -11,26 +12,40 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="493.0" prefWidth="727.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="bsearch.fx.ProgressController">
    <children>
-      <LineChart fx:id="progressLineChart" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
-        <xAxis>
-          <NumberAxis side="BOTTOM" />
-        </xAxis>
-        <yAxis>
-          <NumberAxis side="LEFT" />
-        </yAxis>
-      </LineChart>
-      <BorderPane layoutX="9.0" layoutY="400.0" prefHeight="58.0" prefWidth="707.0" AnchorPane.bottomAnchor="32.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0">
-         <left>
-            <Label fx:id="labelMessage" BorderPane.alignment="CENTER" />
-         </left>
+      <BorderPane AnchorPane.bottomAnchor="35.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <center>
-            <ProgressBar fx:id="progressBar" prefHeight="18.0" prefWidth="374.0" BorderPane.alignment="CENTER" />
+            <LineChart fx:id="progressLineChart">
+              <xAxis>
+                <NumberAxis side="BOTTOM" />
+              </xAxis>
+              <yAxis>
+                <NumberAxis side="LEFT" />
+              </yAxis>
+            </LineChart>
          </center>
          <right>
-            <Label fx:id="labelTimeRemaining" text=" " BorderPane.alignment="CENTER" />
+            <WebView fx:id="infoTextWebView" prefHeight="348.0" prefWidth="215.0" BorderPane.alignment="CENTER" />
          </right>
+         <bottom>
+            <BorderPane prefHeight="58.0" prefWidth="707.0" BorderPane.alignment="CENTER">
+               <left>
+                  <Label fx:id="labelMessage" BorderPane.alignment="CENTER">
+                     <BorderPane.margin>
+                        <Insets left="10.0" />
+                     </BorderPane.margin></Label>
+               </left>
+               <center>
+                  <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" prefHeight="18.0" prefWidth="374.0" BorderPane.alignment="CENTER" />
+               </center>
+               <right>
+                  <Label fx:id="labelTimeRemaining" text=" " BorderPane.alignment="CENTER">
+                     <BorderPane.margin>
+                        <Insets right="10.0" />
+                     </BorderPane.margin></Label>
+               </right>
+            </BorderPane>
+         </bottom>
       </BorderPane>
-      <WebView fx:id="infoTextWebView" layoutX="500.0" layoutY="14.0" prefHeight="348.0" prefWidth="215.0" />
       <Button fx:id="cancelAndDoneButton" layoutX="338.0" layoutY="449.0" mnemonicParsing="false" onAction="#doCancel" text="Cancel" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
    </children>
 </AnchorPane>
