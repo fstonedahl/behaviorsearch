@@ -26,7 +26,7 @@ libraryDependencies ++= {
   if (description.value.contains("subproject of NetLogo"))
     Seq()
   else
-    Seq("org.nlogo" % "netlogo" % version intransitive)
+    Seq(("org.nlogo" % "netlogo" % version).intransitive)
 }
 
 artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
