@@ -134,24 +134,23 @@ public strictfp class BehaviorSearch {
 
 	public static class RunOptions implements Cloneable {
 		@Option(name="-p",aliases={"--protocol"},required=true,usage="file (.bsearch) from which to load the search experiment protocol.")
-		String protocolFilename;
+		public String protocolFilename;
 		
 		@Option(name="-o",aliases={"--output"},required=true,usage="output filename STEM: will create files named STEM.xxxx.csv")
-		String outputStem;
+		public String outputStem;
 		
 		@Option(name="-t",aliases={"--threads"},usage="number of simultaneous threads to run the search with (defaults to the number of processors available).")
-		int numThreads = Runtime.getRuntime().availableProcessors();
+		public int numThreads = Runtime.getRuntime().availableProcessors();
 
 		@Option(name="-n",aliases={"--numsearches"},usage="number of times to repeat the search (default 1)")
-		int numSearches = 1;
+		public int numSearches = 1;
 
 		@Option(name="-f",aliases={"--firstsearchnum"},usage="searches will be numbered starting at this index (only affects search # column in the output data)")
-		int firstSearchNumber = 1;
+		public int firstSearchNumber = 1;
 				
 		@Option(name="-r",aliases={"--randomseed"},usage="random seed to start the first search (additional searches will be seeded with following consecutive numbers)")
 		// if none specified, choose a random integer to start with.
-		Integer randomSeed = (Integer) new MersenneTwisterFast().nextInt();  
-
+		public Integer randomSeed = (Integer) new MersenneTwisterFast().nextInt();  
 
 		@Option(name="-q",aliases={"--quiet"},usage="suppress printing progress to stdout")
 		boolean quiet = false;
@@ -164,7 +163,7 @@ public strictfp class BehaviorSearch {
 		int shortenOutputFactor = 1;
 
 		@Option(name="-b", aliases={"--brief-output"},usage="shorthand flag for suppressing model-run-history and objective-function-history output, since these are the largest output files.")
-		boolean briefOutput = false;
+		public	boolean briefOutput = false;
 
 		@Option(name="--suppress-model-run-history",usage="don't create the .modelRunHistory.csv file")
 		boolean suppressModelRunHistory = false;
@@ -178,7 +177,7 @@ public strictfp class BehaviorSearch {
 		@Option(name="-v", aliases={"--version"},usage="print version number and exit")
 		boolean printVersion = false;
 
-		@Option(name="--override-parameter-spec",usage="override the parameter spec/range given in the .bsearch file, using usual syntax (e.g. [\"population\" 100 200 400] (NOTE: you may need to \\ escape the quotes in your shell)", multiValued=true)
+    @Option(name="--override-parameter-spec",usage="override the parameter spec/range given in the .bsearch file, using usual syntax (e.g. [\"population\" 100 200 400] (NOTE: you may need to \\ escape the quotes in your shell)", multiValued=true)
 		List<String> overrideParameters = new java.util.LinkedList<String>();
 
 		//@Argument(usage="any number of arguments...")

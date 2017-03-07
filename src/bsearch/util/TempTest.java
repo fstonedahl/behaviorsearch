@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 
 import org.nlogo.agent.Observer;
 import org.nlogo.api.CompilerException;
+import org.nlogo.api.LogoException;
 import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.Procedure;
@@ -30,7 +31,7 @@ public class TempTest {
 		return s.replace("e+0","E").replace("e+", "E");		
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws CompilerException, LogoException {
 		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
 		try {
 			Procedure p = workspace.compileReporter("ticks"); // error because reset-ticks hasn't been called yet.
