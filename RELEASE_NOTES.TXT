@@ -1,4 +1,10 @@
-NEW for Version 1.00: 
+NEW for Version 1.01:
+ * Ability to override parameter spec ranges from the command line...
+   (per the request of a BehaviorSearch user)
+ * No other changes, and file formats remain identical,
+   so should be backward/forward compatible with version 1.00
+
+Version 1.00: 
  * Updated BehaviorSearch to work with NetLogo 5.0.x  
    (Kudos to Kevin Zollman who submitted a patch that assisted with this transition!)
    Note that this and future versions of BehaviorSearch will not support NetLogo 4.x.

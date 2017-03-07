@@ -64,9 +64,9 @@ makensis -V2 win_installer.nsi
 ##No longer copying files to web downloads... upload them to Google Code instead, using another script.
 
 #echo "Copying setup files to /home/forrest/web_localcopy/behaviorsearch/"
-#cp "behaviorsearch_${VERSION}.tar.gz" /home/forrest/web_localcopy/behaviorsearch/downloads/
-#cp "behaviorsearch_${VERSION}.zip" /home/forrest/web_localcopy/behaviorsearch/downloads/
-#cp "behaviorsearch_${VERSION}_installer.exe" /home/forrest/web_localcopy/behaviorsearch/downloads/
+cp "behaviorsearch_${VERSION}.tar.gz" /home/forrest/web_localcopy/behaviorsearch/downloads/
+cp "behaviorsearch_${VERSION}.zip" /home/forrest/web_localcopy/behaviorsearch/downloads/
+cp "behaviorsearch_${VERSION}_installer.exe" /home/forrest/web_localcopy/behaviorsearch/downloads/
 
 #and copy LICENSE.TXT & RELEASE_NOTES.TXT files to website though...
 cp ../LICENSE.TXT /home/forrest/web_localcopy/behaviorsearch/
