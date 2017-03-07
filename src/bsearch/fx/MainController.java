@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import javax.swing.SwingUtilities;
+
 import org.xml.sax.SAXException;
 
 
@@ -279,7 +281,12 @@ public class MainController implements Initializable {
 	}
 	
 	public void showTutorialAction(ActionEvent event) {
-		org.nlogo.swing.BrowserLauncher.openURL(null,GeneralUtils.attemptResolvePathFromBSearchRoot("documentation/tutorialFx.html"),true);
+		SwingUtilities.invokeLater(new Runnable() {
+		    @Override
+		    public void run() {
+				org.nlogo.swing.BrowserLauncher.openURL(null,GeneralUtils.attemptResolvePathFromBSearchRoot("documentation/tutorialFx.html"),true);
+		    }
+		});
 	}
 	public void showAboutAction(ActionEvent event) {
 		
@@ -313,10 +320,15 @@ public class MainController implements Initializable {
 
         Optional<ButtonType> result = alert.showAndWait();
 		if (result.get() == browseWebsite){
-			org.nlogo.swing.BrowserLauncher.openURL(null, "http://www.behaviorsearch.org/", false);
-		} else {
-		    // ... user chose CANCEL or closed the dialog
-		}
+			SwingUtilities.invokeLater(new Runnable() {
+			    @Override
+			    public void run() {
+					org.nlogo.swing.BrowserLauncher.openURL(null, "http://www.behaviorsearch.org/", false);
+			    }
+			});
+		} 
+		// ...otherwise user chose CANCEL or closed the dialog
+
 		
 	}
 

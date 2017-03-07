@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -46,7 +47,9 @@
                      </accelerator>
                   </MenuItem>
                   <MenuItem mnemonicParsing="false" onAction="#actionSaveAs" text="Save as..." />
+                  <SeparatorMenuItem mnemonicParsing="false" />
                   <MenuItem mnemonicParsing="false" onAction="#actionOpenExample" text="Open Example" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
               <MenuItem mnemonicParsing="false" text="Exit" />
             </items>
           </Menu>
@@ -108,7 +111,7 @@
                         <AnchorPane prefHeight="319.0" prefWidth="298.0" BorderPane.alignment="CENTER">
                            <children>
                               <TextField fx:id="MModelStepField" layoutX="81.0" layoutY="89.0" prefHeight="25.0" prefWidth="194.0" AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="89.0" />
-                              <Label layoutX="149.0" layoutY="231.0" text="model steps" AnchorPane.rightAnchor="84.0" AnchorPane.topAnchor="231.0" />
+                              <Label layoutX="157.0" layoutY="231.0" text="model steps" AnchorPane.rightAnchor="68.0" AnchorPane.topAnchor="231.0" />
                               <TextField fx:id="MModelStepLimitField" layoutX="81.0" layoutY="227.0" prefHeight="25.0" prefWidth="60.0" AnchorPane.rightAnchor="157.0" AnchorPane.topAnchor="227.0" />
                               <TextField fx:id="MModelStopConditionField" layoutX="81.0" layoutY="193.0" prefHeight="25.0" prefWidth="194.0" AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="193.0" />
                               <TextField fx:id="MMeasureIfField" layoutX="81.0" layoutY="160.0" prefHeight="25.0" prefWidth="194.0" AnchorPane.rightAnchor="23.0" AnchorPane.topAnchor="160.0">
@@ -177,7 +180,7 @@
                                     <Tooltip text="How much should be subtracted from the parameter's value, to get the measured change?" />
                                  </tooltip>
                               </TextField>
-                              <TextField fx:id="SOFitnessSamplingRepetitionsField" layoutX="217.0" layoutY="134.0" prefHeight="25.0" prefWidth="128.0">
+                              <TextField fx:id="SOFitnessSamplingRepetitionsField" layoutX="217.0" layoutY="134.0" prefHeight="26.0" prefWidth="68.0">
                                  <tooltip>
                                     <Tooltip text="How many times should the model be run, for a given setting of the parameters?" />
                                  </tooltip>
@@ -193,7 +196,7 @@
                               <ChoiceBox fx:id="SOFixedSamplingBox" layoutX="56.0" layoutY="134.0" prefWidth="150.0" />
                               <ChoiceBox fx:id="SOGoalBox" layoutX="195.0" layoutY="61.0" prefWidth="150.0" />
                               <ChoiceBox fx:id="SOFitnessCollectingBox" layoutX="196.0" layoutY="97.0" prefWidth="150.0" />
-                              <CheckBox fx:id="SOFitnessDerivativeUseAbsCheckBox" layoutX="282.0" layoutY="221.0" mnemonicParsing="false" text="Use ABS value?">
+                              <CheckBox fx:id="SOFitnessDerivativeUseAbsCheckBox" disable="true" layoutX="282.0" layoutY="221.0" mnemonicParsing="false" text="Use ABS value?">
                                  <tooltip>
                                     <Tooltip text="You might want to take the absolute value if you don't care about the direction of the measured change... e.g., for trying to find phase transitions" />
                                  </tooltip>
@@ -216,7 +219,7 @@
                                     <Font name="System Bold" size="12.0" />
                                  </font>
                               </Label>
-                              <Button fx:id="SOHelpEvaluationButton" layoutX="284.0" layoutY="24.0" mnemonicParsing="false" onAction="#helpEvaluationAction" text="?">
+                              <Button fx:id="SOHelpEvaluationButton" layoutX="324.0" layoutY="24.0" mnemonicParsing="false" onAction="#helpEvaluationAction" text="?">
                                  <tooltip>
                                     <Tooltip text="Help about Evaluation" />
                                  </tooltip>
@@ -224,6 +227,11 @@
                               <Label layoutX="87.0" layoutY="26.0" text="Objective / Fitness Function">
                                  <font>
                                     <Font name="System Bold" size="14.0" />
+                                 </font>
+                              </Label>
+                              <Label layoutX="292.0" layoutY="140.0" text="replicates">
+                                 <font>
+                                    <Font size="12.0" />
                                  </font>
                               </Label>
                            </children>
@@ -250,7 +258,7 @@
                            <bottom>
                               <FlowPane prefHeight="13.0" prefWidth="698.0" BorderPane.alignment="CENTER">
                                  <children>
-                                    <ChoiceBox fx:id="SASearchMethodBox" prefWidth="150.0">
+                                    <ChoiceBox fx:id="SASearchMethodBox" prefHeight="26.0" prefWidth="209.0">
                                        <FlowPane.margin>
                                           <Insets left="10.0" />
                                        </FlowPane.margin>
@@ -271,36 +279,36 @@
                      <bottom>
                         <AnchorPane prefHeight="86.0" prefWidth="698.0" BorderPane.alignment="CENTER">
                            <children>
-                              <Label layoutX="613.0" layoutY="68.0" text="model runs" AnchorPane.bottomAnchor="30.0" AnchorPane.rightAnchor="10.0" />
-                              <Label layoutX="35.0" layoutY="44.0" text="Search Encoding Representation" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="35.0">
+                              <Label layoutX="597.0" layoutY="12.0" text="model runs" AnchorPane.bottomAnchor="58.0" AnchorPane.rightAnchor="27.0" />
+                              <Label layoutX="16.0" layoutY="31.0" text="Search Encoding Representation" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="16.0">
                                  <font>
                                     <Font name="System Bold" size="12.0" />
                                  </font>
                               </Label>
-                              <Label layoutX="314.0" layoutY="56.0" text="Best Cheking replicates: " AnchorPane.bottomAnchor="28.0" AnchorPane.rightAnchor="240.0">
+                              <Label layoutX="313.0" layoutY="43.0" text="Best-checking replicates: " AnchorPane.bottomAnchor="28.0" AnchorPane.rightAnchor="209.0">
                                  <font>
                                     <Font name="System Bold" size="12.0" />
                                  </font>
                               </Label>
-                              <ChoiceBox fx:id="SAChromosomeTypeBox" layoutX="34.0" layoutY="64.0" prefWidth="150.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="30.0" />
-                              <Button fx:id="SAHelpSearchSpaceRepresentationButton" layoutX="199.0" layoutY="64.0" mnemonicParsing="false" onAction="#helpSearchSpaceRepresentationAction" text="?" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="200.0">
+                              <ChoiceBox fx:id="SAChromosomeTypeBox" layoutX="17.0" layoutY="48.0" prefHeight="26.0" prefWidth="190.0" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="17.0" />
+                              <Button fx:id="SAHelpSearchSpaceRepresentationButton" layoutX="219.0" layoutY="48.0" mnemonicParsing="false" onAction="#helpSearchSpaceRepresentationAction" text="?" AnchorPane.bottomAnchor="12.0" AnchorPane.leftAnchor="219.0">
                                  <tooltip>
                                     <Tooltip text="Help about this Search Space Representation" />
                                  </tooltip></Button>
-                              <TextField fx:id="SABestCheckingField" layoutX="471.0" layoutY="52.0" AnchorPane.bottomAnchor="24.0" AnchorPane.rightAnchor="80.0">
+                              <TextField fx:id="SABestCheckingField" layoutX="486.0" layoutY="36.0" prefHeight="26.0" prefWidth="97.0" AnchorPane.bottomAnchor="24.0" AnchorPane.rightAnchor="115.0">
                                  <tooltip>
                                     <Tooltip text="BestChecking: running another N independent model runs to get an unbiased estimate of the objective function for each &quot;best&quot; individual that's found." />
                                  </tooltip></TextField>
-                              <TextField fx:id="SAEvaluationLimitField" layoutX="524.0" layoutY="21.0" AnchorPane.bottomAnchor="55.0" AnchorPane.rightAnchor="80.0">
+                              <TextField fx:id="SAEvaluationLimitField" layoutX="486.0" layoutY="5.0" prefHeight="26.0" prefWidth="97.0" AnchorPane.bottomAnchor="55.0" AnchorPane.rightAnchor="115.0">
                                  <tooltip>
                                     <Tooltip text="Stop the search after this many model runs have occurred." />
                                  </tooltip></TextField>
-                              <Label layoutX="357.0" layoutY="25.0" text="Evaluation limit: " AnchorPane.bottomAnchor="59.0" AnchorPane.rightAnchor="240.0">
+                              <Label layoutX="372.0" layoutY="12.0" text="Evaluation limit: " AnchorPane.bottomAnchor="59.0" AnchorPane.rightAnchor="210.0">
                                  <font>
                                     <Font name="System Bold" size="12.0" />
                                  </font>
                               </Label>
-                              <CheckBox fx:id="SACachingCheckBox" layoutX="34.0" layoutY="25.0" mnemonicParsing="false" text="Use fitness caching" AnchorPane.bottomAnchor="59.0" AnchorPane.leftAnchor="30.0">
+                              <CheckBox fx:id="SACachingCheckBox" layoutX="15.0" layoutY="9.0" mnemonicParsing="false" text="Use fitness caching" AnchorPane.bottomAnchor="59.0" AnchorPane.leftAnchor="15.0">
                                  <tooltip>
                                     <Tooltip text="If fitness caching is turned on then the result of running the model with certain parameters gets saved so the model won't be re-run if a run with those same parameters are requested again." />
                                  </tooltip></CheckBox>

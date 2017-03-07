@@ -15,29 +15,29 @@
       <Label layoutX="116.0" layoutY="120.0" text="Starting at search ID: " />
       <Label layoutX="122.0" layoutY="156.0" text="Initial random seed: " />
       <Label layoutX="123.0" layoutY="190.0" text="Number of threads: " />
-      <TextField fx:id="outputPathTextField" layoutX="116.0" layoutY="21.0" prefHeight="22.0" prefWidth="379.0" />
-      <Button fx:id="browseButton" layoutX="495.0" layoutY="21.0" mnemonicParsing="false" onAction="#browseFile" text="Browse" />
-      <CheckBox fx:id="briefOutputCheckBox" layoutX="116.0" layoutY="226.0" mnemonicParsing="false" text="Brief Output?" />
-      <Button fx:id="newRanSeedButton" layoutX="386.0" layoutY="151.0" mnemonicParsing="false" onAction="#newRanSeed" text="New" />
+      <TextField fx:id="outputPathTextField" layoutX="144.0" layoutY="21.0" prefHeight="26.0" prefWidth="344.0" />
+      <Button fx:id="browseButton" layoutX="501.0" layoutY="21.0" mnemonicParsing="false" onAction="#browseFile" text="Browse" />
+      <CheckBox fx:id="briefOutputCheckBox" layoutX="126.0" layoutY="226.0" mnemonicParsing="false" text="Brief Output?" />
+      <Button fx:id="newRanSeedButton" layoutX="410.0" layoutY="151.0" mnemonicParsing="false" onAction="#newRanSeed" text="New seed" />
       <Button fx:id="starSearchButton" layoutX="306.0" layoutY="269.0" mnemonicParsing="false" onAction="#updateOptions" text="Start Search" />
       <Button fx:id="cancelButton" layoutX="471.0" layoutY="269.0" mnemonicParsing="false" onAction="#cancel" text="Cancel" />
       
-      <Spinner fx:id="searchesNumSpinner" editable="true" layoutX="232.0" layoutY="78.0">
+      <Spinner fx:id="searchesNumSpinner" editable="true" layoutX="259.0" layoutY="78.0" prefHeight="26.0" prefWidth="140.0">
       <valueFactory>
         <SpinnerValueFactory.IntegerSpinnerValueFactory max="10" min="0" />
       </valueFactory>
       </Spinner>
-      <Spinner fx:id="startingSearchIDSpinner" editable="true" layoutX="232.0" layoutY="116.0">
+      <Spinner fx:id="startingSearchIDSpinner" editable="true" layoutX="260.0" layoutY="116.0" prefHeight="26.0" prefWidth="140.0">
       <valueFactory>
         <SpinnerValueFactory.IntegerSpinnerValueFactory max="10" min="0" />
       </valueFactory>
       </Spinner>
-      <Spinner fx:id="iniRanSeedSpinner" editable="true" layoutX="232.0" layoutY="152.0">
+      <Spinner fx:id="iniRanSeedSpinner" editable="true" layoutX="259.0" layoutY="152.0" prefHeight="26.0" prefWidth="140.0">
       <valueFactory>
         <SpinnerValueFactory.IntegerSpinnerValueFactory max="10" min="0" />
       </valueFactory>
       </Spinner>
-      <Spinner fx:id="threadNumSpinner" editable="true" layoutX="232.0" layoutY="186.0">
+      <Spinner fx:id="threadNumSpinner" editable="true" layoutX="260.0" layoutY="185.0" prefHeight="26.0" prefWidth="140.0">
       <valueFactory>
         <SpinnerValueFactory.IntegerSpinnerValueFactory max="10" min="0" />
       </valueFactory>
