@@ -14,10 +14,10 @@ libraryDependencies ++= Seq(
   "jfree"     % "jfreechart" % "1.0.13",
   "jfree"     % "jcommon"    % "1.0.16",
   "args4j"    % "args4j"     % "2.0.12",
-  "org.ow2.asm" % "asm-all" % "5.0.4" % "test",
-  "org.picocontainer" % "picocontainer" % "2.13.6" % "test",
-  "org.parboiled" %% "parboiled" % "2.1.3" % "test",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4" % "test",
+  "org.picocontainer" % "picocontainer" % "2.13.6",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+  "org.ow2.asm" % "asm-all" % "5.0.4",
+  "org.parboiled" %% "parboiled" % "2.1.3",
   "com.novocode" % "junit-interface" % "0.11" % "test"
 )
 
