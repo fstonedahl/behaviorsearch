@@ -11,6 +11,6 @@ General acknowledgments:
 
 Additional contributions:
  * Susa Stonedahl designed the BehaviorSpace icon/logo (based on the NetLogo icon, which is adapted from the version designed by Aaron Bramson.)
- * Kevin Zollman submitted a patch that helped with updating BehaviorSearch to work with NetLogo 5.     
-
-
+ * Kevin Zollman submitted a patch to help update BehaviorSearch to work with NetLogo 5.     
+ * An Nguyen Dang migrated the GUI from Swing to JavaFX.
+ * Robert Grider helped bundle BehaviorSearch with NetLogo 6 and improved native support on Macs.

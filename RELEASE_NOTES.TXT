@@ -1,4 +1,7 @@
-NEW for Version 1.01:
+NEW for Version 1.02:
+ * Various updates and tweaks to interoperate (and be bundled) with NetLogo 6.
+
+Version 1.01:
  * Ability to override parameter spec ranges from the command line...
    (per the request of a BehaviorSearch user)
  * No other changes, and file formats remain identical,
