@@ -1,7 +1,5 @@
 package bsearch.fx;
 
-import javax.media.Controller;
-
 import bsearch.util.GeneralUtils;
 import javafx.application.Application;
 import javafx.application.Platform;
