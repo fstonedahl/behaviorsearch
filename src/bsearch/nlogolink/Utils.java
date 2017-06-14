@@ -60,10 +60,10 @@ public strictfp class Utils {
 		}
 
 		StringBuilder sb = new StringBuilder();
-		int numVars = workspace.world().observer().getVariableCount();
+		int numVars = workspace.world().observer().variables().length;
 	    for (int i = 0; i < numVars; i++)
 	    {
-	    	ValueConstraint con = workspace.world().observer().variableConstraint(i);
+	    	ValueConstraint con = workspace.world().observer().constraint(i);
 	    	if ( con != null)
 	    	{
 	    		String name = workspace.world().observerOwnsNameAt(i);
