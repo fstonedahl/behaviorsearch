@@ -61,6 +61,8 @@ public strictfp class BehaviorSearch {
 	public static SearchManager runProtocol(SearchProtocol protocol, SearchSpace space, int searchIDNumber, int numEvaluationThreads,  MersenneTwisterFast rng, List<ResultListener> listeners) throws SearchParameterException, BehaviorSearchException,  InterruptedException
 	{
 		boolean measureEveryTick = !protocol.fitnessCollecting.equals(SearchProtocol.FITNESS_COLLECTING.AT_FINAL_STEP);
+		System.out.println("***" + GeneralUtils.attemptResolvePathFromProtocolFolder(protocol.modelFile));
+
 		ModelRunner.Factory mrunnerFactory = new ModelRunner.Factory(
 				GeneralUtils.attemptResolvePathFromProtocolFolder(protocol.modelFile), measureEveryTick, 
 				protocol.modelStepLimit, protocol.modelSetupCommands, protocol.modelStepCommands, 
@@ -96,22 +98,22 @@ public strictfp class BehaviorSearch {
 			}
 		}
 
-		SearchManager archive = new SearchManager(searchIDNumber, batchRunner, protocol, ffun, false, 0.0);
+		SearchManager manager = new SearchManager(searchIDNumber, batchRunner, protocol, ffun, false, 0.0);
 		
 		for (ResultListener listener: listeners)
 		{
-			archive.addResultsListener(listener);
+			manager.addResultsListener(listener);
 		}
         	
 
 		ChromosomeFactory cFactory = ChromosomeTypeLoader.createFromName(protocol.chromosomeType);
 		try {
         	for (ResultListener listener : listeners) {
-    			listener.searchStarting(archive);
+    			listener.searchStarting(manager);
     		} 
-			searcher.search( space , cFactory, protocol, archive, rng );			
+			searcher.search( space , cFactory, protocol, manager, rng );			
 	    	for (ResultListener listener : listeners) {
-				listener.searchFinished(archive);
+				listener.searchFinished(manager);
 			} 
 		}
 		catch (NetLogoLinkException ex)
@@ -127,7 +129,7 @@ public strictfp class BehaviorSearch {
 			}
 		}
 	
-		return archive;
+		return manager;
 	}
 	
 

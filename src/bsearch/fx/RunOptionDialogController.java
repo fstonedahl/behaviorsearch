@@ -71,13 +71,13 @@ public class RunOptionDialogController {
 				Integer.MAX_VALUE, runOptions.randomSeed.intValue()));
 		briefOutputCheckBox.setSelected(runOptions.briefOutput);
 		searchesNumSpinner.getValueFactory()
-				.setConverter(new myStringConverter<>(searchesNumSpinner.getValueFactory().getConverter()));
+				.setConverter(new NumericStringConverterWithErrorChecking(searchesNumSpinner.getValueFactory().getConverter()));
 		startingSearchIDSpinner.getValueFactory()
-				.setConverter(new myStringConverter<>(startingSearchIDSpinner.getValueFactory().getConverter()));
+				.setConverter(new NumericStringConverterWithErrorChecking(startingSearchIDSpinner.getValueFactory().getConverter()));
 		threadNumSpinner.getValueFactory()
-				.setConverter(new myStringConverter<>(threadNumSpinner.getValueFactory().getConverter()));
+				.setConverter(new NumericStringConverterWithErrorChecking(threadNumSpinner.getValueFactory().getConverter()));
 		iniRanSeedSpinner.getValueFactory()
-				.setConverter(new myStringConverter<>(iniRanSeedSpinner.getValueFactory().getConverter()));
+				.setConverter(new NumericStringConverterWithErrorChecking(iniRanSeedSpinner.getValueFactory().getConverter()));
 
 		this.main = main;
 		//http://stackoverflow.com/questions/32340476/manually-typing-in-text-in-javafx-spinner-is-not-updating-the-value-unless-user
@@ -131,7 +131,7 @@ public class RunOptionDialogController {
 
 	}
 
-	public void updateOptions(ActionEvent event) {
+	public void updateOptionsAndStartSearch(ActionEvent event) {
 		runOptions.outputStem = outputPathTextField.getText();
 		runOptions.numSearches = (Integer) searchesNumSpinner.getValue();
 		runOptions.firstSearchNumber = (Integer) startingSearchIDSpinner.getValue();
@@ -167,10 +167,10 @@ public class RunOptionDialogController {
 	    }
 	}
 
-	class myStringConverter<Interger> extends StringConverter<Integer> {
+	class NumericStringConverterWithErrorChecking extends StringConverter<Integer> {
 		StringConverter<Integer> original;
 
-		public myStringConverter(StringConverter<Integer> original) {
+		public NumericStringConverterWithErrorChecking(StringConverter<Integer> original) {
 			this.original = original;
 		}
 
@@ -180,7 +180,6 @@ public class RunOptionDialogController {
 				return original.fromString(value);
 			} catch (NumberFormatException nfe) {
 				MainController.handleError("Bad integer: " + value);
-
 				return 0;
 			}
 		}

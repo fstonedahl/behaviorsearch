@@ -19,7 +19,7 @@
       <Button fx:id="browseButton" layoutX="501.0" layoutY="21.0" mnemonicParsing="false" onAction="#browseFile" text="Browse" />
       <CheckBox fx:id="briefOutputCheckBox" layoutX="126.0" layoutY="226.0" mnemonicParsing="false" text="Brief Output?" />
       <Button fx:id="newRanSeedButton" layoutX="410.0" layoutY="151.0" mnemonicParsing="false" onAction="#newRanSeed" text="New seed" />
-      <Button fx:id="starSearchButton" layoutX="306.0" layoutY="269.0" mnemonicParsing="false" onAction="#updateOptions" text="Start Search" />
+      <Button fx:id="starSearchButton" layoutX="306.0" layoutY="269.0" mnemonicParsing="false" onAction="#updateOptionsAndStartSearch" text="Start Search" />
       <Button fx:id="cancelButton" layoutX="471.0" layoutY="269.0" mnemonicParsing="false" onAction="#cancel" text="Cancel" />
       
       <Spinner fx:id="searchesNumSpinner" editable="true" layoutX="259.0" layoutY="78.0" prefHeight="26.0" prefWidth="140.0">

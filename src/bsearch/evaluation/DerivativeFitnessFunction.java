@@ -15,7 +15,9 @@ import bsearch.representations.DummyChromosome;
 
 
 /**
- * This class is a work-in-progress.  Currently unused...
+ * This class is used to compute fitness based on an approximation of the derivative
+ * of the objective function -- i.e. how much change there is in the objective
+ * function as one of the parameters is varied...
  */
 public strictfp class DerivativeFitnessFunction implements FitnessFunction
 {
@@ -44,7 +46,7 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		//Special case: if we set paramName to "@MUTATE@" then it chooses a neighboring point
 		// in the search space by using mutation (with the mutation rate specified by deltaDistance) 
 		// from the current point.
-		if (paramName.equals("@MUTATE@"))
+		if (paramName.equals("@MUTATE@"))  // TODO: Consider, is this really useful, or should we remove this feature?
 		{
 			double mutRate = deltaDistance;
     		int failedMutationCounter = 0;

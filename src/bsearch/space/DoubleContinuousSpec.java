@@ -1,5 +1,7 @@
 package bsearch.space;
 
+import org.moeaframework.core.Variable;
+import org.moeaframework.core.variable.EncodingUtils;
 import org.nlogo.api.MersenneTwisterFast;
 
 /** characterizes a parameter that has a continuous (floating point) range on the interval [A,B) */
@@ -82,5 +84,15 @@ public strictfp class DoubleContinuousSpec extends ParameterSpec {
 		}
 		double dVal = ((Number) val).doubleValue();
 		return (long) StrictMath.round((dVal - dMin) * (maxNumChoices - 1) / (dMax - dMin));
+	}
+
+	@Override
+	public Variable getCorrespondingMOEAVariable() {
+		return EncodingUtils.newReal(dMin, Math.nextDown(dMax));
+	}
+
+	@Override
+	public Object getValueFromMOEAVariable(Variable var) {
+		return EncodingUtils.getReal(var);
 	}
 }

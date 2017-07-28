@@ -49,7 +49,7 @@ public strictfp interface SearchMethod
 
 	//TODO: return SearchResults object?  Or just use the SearchManager for this purpose? 
 	public abstract void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocol protocol,
-			 SearchManager archive, MersenneTwisterFast rng ) 
+			 SearchManager manager, MersenneTwisterFast rng ) 
 		throws BehaviorSearchException, NetLogoLinkException, InterruptedException;
 	 
 	public abstract boolean supportsAdaptiveSampling();

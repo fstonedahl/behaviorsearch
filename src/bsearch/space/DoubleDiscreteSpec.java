@@ -1,5 +1,7 @@
 package bsearch.space;
 
+import org.moeaframework.core.Variable;
+import org.moeaframework.core.variable.EncodingUtils;
 import org.nlogo.api.MersenneTwisterFast;
 
 public strictfp class DoubleDiscreteSpec extends ParameterSpec {
@@ -86,6 +88,16 @@ public strictfp class DoubleDiscreteSpec extends ParameterSpec {
 		double dVal = ((Number) val).doubleValue();
 		
 		return (long) StrictMath.round((dVal - dMin) / dStep);
+	}
+
+	@Override
+	public Variable getCorrespondingMOEAVariable() {
+		return EncodingUtils.newReal(dMin, Math.nextDown(dMax+dStep));
+	}
+
+	@Override
+	public Object getValueFromMOEAVariable(Variable var) {
+		return Math.floor((EncodingUtils.getReal(var)-dMin)/dStep)*dStep+dMin;
 	}
 
 	

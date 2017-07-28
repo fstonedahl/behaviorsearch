@@ -27,6 +27,18 @@ public strictfp abstract class ParameterSpec {
 	 * The special value -1 indicates a continuous parameter.
 	 */
 	public abstract int choiceCount();
+
+	/**
+	 * @return true if this is a continuous (real-valued) parameter, false if discrete
+	 */
+	public boolean isContinuous() {
+		return choiceCount() == -1;
+	}
+
+	public abstract org.moeaframework.core.Variable getCorrespondingMOEAVariable();
+
+	public abstract Object getValueFromMOEAVariable(org.moeaframework.core.Variable var);	
+
 	//	public abstract Object enforceValid(Object obj1); 
 	
 	
@@ -97,6 +109,6 @@ public strictfp abstract class ParameterSpec {
 			//TODO: Better error messages?
 			throw new IllegalArgumentException("Invalid parameter range spec: " + paramString + ".  Error was " + ex.getMessage(), ex); 			
 		}
-	}	
+	}
 	
 }

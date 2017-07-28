@@ -64,7 +64,7 @@ public class ProgressController {
 		labelMessage.setText("Search 0 of " + runOptions.numSearches);
 
 		taskStartTime = System.currentTimeMillis();
-		TaskWorker insideTask = new TaskWorker(protocol, runOptions);
+		BSearchTaskWorker insideTask = new BSearchTaskWorker(protocol, runOptions);
 
 		task = new FutureTask<Void>(insideTask, null);
 		new Thread(new Runnable() {
@@ -142,14 +142,14 @@ public class ProgressController {
 	}
 
 	
-	class TaskWorker implements Runnable, ResultListener {
+	class BSearchTaskWorker implements Runnable, ResultListener {
 
 		private SearchProtocol protocol;
 		private BehaviorSearch.RunOptions runOptions;
 		protected Throwable fatalException = null;
 		private double evaluationLimit;
 
-		public TaskWorker(SearchProtocol protocol, BehaviorSearch.RunOptions runOptions) {
+		public BSearchTaskWorker(SearchProtocol protocol, BehaviorSearch.RunOptions runOptions) {
 			this.protocol = protocol;
 			this.runOptions = runOptions;
 			this.evaluationLimit = (double) protocol.evaluationLimit;

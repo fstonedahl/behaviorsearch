@@ -310,7 +310,7 @@
                               </Label>
                               <CheckBox fx:id="SACachingCheckBox" layoutX="15.0" layoutY="9.0" mnemonicParsing="false" text="Use fitness caching" AnchorPane.bottomAnchor="59.0" AnchorPane.leftAnchor="15.0">
                                  <tooltip>
-                                    <Tooltip text="If fitness caching is turned on then the result of running the model with certain parameters gets saved so the model won't be re-run if a run with those same parameters are requested again." />
+                                    <Tooltip text="If fitness caching is turned on then the result of running the model with certain parameters gets saved so the model won't be re-run if a run with those same parameters are requested again.  NOTE: If you are running out of RAM when doing long searches, turn this off!" />
                                  </tooltip></CheckBox>
                            </children>
                         </AnchorPane>

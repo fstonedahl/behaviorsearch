@@ -1,5 +1,7 @@
 package bsearch.space;
 
+import org.moeaframework.core.Variable;
+import org.moeaframework.core.variable.EncodingUtils;
 import org.nlogo.api.MersenneTwisterFast;
 
 /** For any parameter that is fixed for the search.
@@ -46,4 +48,15 @@ public strictfp class ConstantSpec extends ParameterSpec {
 	public long getChoiceIndexFromValue(Object val, long maxNumChoices) {
 		return 0;
 	}
+
+	@Override
+	public Variable getCorrespondingMOEAVariable() {
+		return EncodingUtils.newInt(0, 0); // dummy variable
+	}
+
+	@Override
+	public Object getValueFromMOEAVariable(Variable var) {
+		return obj;
+	}
+	
 }

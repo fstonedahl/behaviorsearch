@@ -5,6 +5,8 @@ package bsearch.space;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.moeaframework.core.Variable;
+import org.moeaframework.core.variable.EncodingUtils;
 import org.nlogo.api.MersenneTwisterFast;
 
 /** For any parameter that is fixed for the search.
@@ -76,4 +78,15 @@ public strictfp class CategoricalSpec extends ParameterSpec {
 	public long getChoiceIndexFromValue(Object val, long maxNumChoices) {
 		return choices.indexOf(val);
 	}
+	@Override
+	public Variable getCorrespondingMOEAVariable() {
+		//TODO: Decide about using subset instead, or using large int range with modular arithmetic to get a more "circular" representation?
+		return EncodingUtils.newInt(0, choices.size()-1);
+	}
+	@Override
+	public Object getValueFromMOEAVariable(Variable var) {
+		int choice = EncodingUtils.getInt(var);
+		return choices.get(choice );  // % choices.size()   ?
+	}
+	
 }

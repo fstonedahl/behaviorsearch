@@ -68,7 +68,7 @@ public class SearchManager
 	}
 
 	/**
-	 * Note that this method *will* effect the state of the RNG, so you may wish to pass in a cloned copy of your RNG, 
+	 * Note that this method *will* affect the state of the RNG, so you may wish to pass in a cloned copy of your RNG, 
 	 *  or a brand new RNG, rather than an RNG that you are using for other purposes...
 	 * @param pointOfInterest
 	 * @param numReplicationsDesired

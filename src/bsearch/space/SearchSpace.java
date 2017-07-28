@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
 public strictfp class SearchSpace {
 	private final ArrayList<ParameterSpec> paramSpecs;
 
@@ -24,12 +23,19 @@ public strictfp class SearchSpace {
 	{
 		return paramSpecs;
 	}
-	// private, so that after a SearchSpace is immutable after creation.
+	// private, so that a SearchSpace is immutable after creation.
 	private void addParamSpec(ParameterSpec pspec)
 	{
 		paramSpecs.add(pspec);
 	}
 
+	public List<org.moeaframework.core.Variable> getMOEAVariables() {
+		List<org.moeaframework.core.Variable> vars = new ArrayList<>();
+		for (ParameterSpec spec: paramSpecs) {
+			vars.add(spec.getCorrespondingMOEAVariable());
+		}
+		return vars;
+	}
 
 	/**
 	 * @return the size of the search space, or -1 if the size is (nearly) infinite,
@@ -42,12 +48,11 @@ public strictfp class SearchSpace {
 		long size = 1;
 		for (ParameterSpec p : paramSpecs)
 		{
-			long n = p.choiceCount();
-			if (n < 0)
+			if (p.isContinuous())
 			{
 				return -1;
 			}
-			size *= n;
+			size *= p.choiceCount();
 		}
 		return size;
 	}
@@ -61,14 +66,13 @@ public strictfp class SearchSpace {
 		int continuousCount = 0; 
 		for (ParameterSpec p : paramSpecs)
 		{
-			long n = p.choiceCount();
-			if (n < 0)
+			if (p.isContinuous())
 			{
 				continuousCount++;
 			}
 			else
 			{
-				size *= n;
+				size *= p.choiceCount();
 			}
 		}
 		String text = Long.toString(size);
