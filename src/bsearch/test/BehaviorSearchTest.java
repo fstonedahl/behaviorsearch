@@ -42,7 +42,7 @@ import bsearch.util.GeneralUtils;
 
 public strictfp class BehaviorSearchTest
 {
-  public static final String DEFAULT_MODEL_PATH = "/home/forrest/apps/netlogo/models/Sample Models/";
+  public static final String DEFAULT_MODEL_PATH = "/home/forrest/apps/NetLogo 6.0.1/app/models/Sample Models/";
 
 	// a main method to run it -- for convenience.
 	public static void main( String... args )

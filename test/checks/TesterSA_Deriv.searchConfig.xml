@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <!DOCTYPE search SYSTEM "behaviorsearch.dtd">
 <search>
-<bsearchVersionNumber>1.00</bsearchVersionNumber>
+<bsearchVersionNumber>1.10</bsearchVersionNumber>
 <modelInfo>
 <modelFile>Tester.nlogo</modelFile>
 <modelSetupCommands>setup</modelSetupCommands>
