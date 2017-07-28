@@ -1,7 +1,7 @@
 package bsearch.space;
 
-import org.nlogo.api.LogoList;
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.core.LogoList;
+import org.nlogo.api.MersenneTwisterFast;
 
 /**
  *  Note: the Objects need to be types that NetLogo understands
@@ -76,7 +76,7 @@ public strictfp abstract class ParameterSpec {
 				{
 					if (lst.size() > 2)
 					{
-						return new CategoricalSpec(name, lst.butFirst());
+						return new CategoricalSpec(name, lst.butFirst().toJava());
 					}
 					else
 					{

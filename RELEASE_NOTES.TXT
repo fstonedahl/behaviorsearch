@@ -1,4 +1,4 @@
-Version 1.10
+NEW for Version 1.10
  * Migrated/modernized the UI from Swing to JavaFX (Thanks An Nguyen Dang!)
 
 Version 1.02:

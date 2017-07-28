@@ -76,18 +76,18 @@ public strictfp class SearchSpace {
 		{
 			text += "* R^" + continuousCount;
 		}
-		return text;		
+		return text;
 	}
-	
+
 	@Override
 	public String toString()
 	{
-		StringBuilder sb = new StringBuilder(); 
+		StringBuilder sb = new StringBuilder();
 		for (ParameterSpec p : paramSpecs)
 		{
-			sb.append( p.toString() + "\n" );			
+			sb.append( p.toString() + "\n" );
 		}
-		return sb.toString();		
+		return sb.toString();
 	}
 
 }

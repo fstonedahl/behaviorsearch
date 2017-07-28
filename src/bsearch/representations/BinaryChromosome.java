@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.space.ParameterSpec;
 import bsearch.space.SearchSpace;
@@ -126,7 +126,7 @@ public abstract strictfp class BinaryChromosome implements Chromosome
 				paramSettings.put(p.getParameterName(), p.getValueFromChoice(0,0));
 			}
 		}
-		
+
 		return paramSettings;
 	}
 	

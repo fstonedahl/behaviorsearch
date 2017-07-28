@@ -1,6 +1,6 @@
 package bsearch.space;
 
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 
 public strictfp class DoubleDiscreteSpec extends ParameterSpec {
 	private double dMin;

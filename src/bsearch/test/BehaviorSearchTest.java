@@ -5,17 +5,22 @@ package bsearch.test;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import junit.framework.Assert;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
+import org.nlogo.api.Version$;
 import org.xml.sax.SAXException;
 
 import bsearch.algorithms.SearchMethod;
@@ -35,39 +40,50 @@ import bsearch.representations.StandardBinaryChromosome;
 import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
 
-public strictfp class TestBehaviorSearch
+public strictfp class BehaviorSearchTest
 {
-	public static final String PATH_TO_NETLOGO_MODELS = "/home/forrest/apps/netlogo/models/Sample Models/";
-	
+  public static final String DEFAULT_MODEL_PATH = "/home/forrest/apps/netlogo/models/Sample Models/";
+
 	// a main method to run it -- for convenience.
 	public static void main( String... args )
 	{
-		org.junit.runner.JUnitCore.main
-				( TestBehaviorSearch.class.getName() ) ;
+		org.junit.runner.JUnitCore.main( BehaviorSearchTest.class.getName() ) ;
 	}
-	
+
+  public String sampleModelsPath() {
+    String osName = System.getProperty("os.name");
+    String netLogoVersion = Version$.MODULE$.version();
+    if (osName.contains("Mac")) {
+      return "/Applications/" + netLogoVersion + "/models/Sample Models/";
+    } else if (osName.contains("Win")) {
+      return "C:\\Program Files\\" + netLogoVersion + "/app/models/Sample Models/";
+    } else {
+      return DEFAULT_MODEL_PATH;
+    }
+  }
+
 
 	@Test
 	public void testModelRunner1() throws Exception
 	{
 		ModelRunner runner;
-		LinkedHashMap<String,Object> params; 
-    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(PATH_TO_NETLOGO_MODELS + "Earth Science/Fire.nlogo", true, 100);
+		LinkedHashMap<String,Object> params;
+    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(sampleModelsPath() + "Earth Science/Fire.nlogo", true, 100);
     	runner.setSetupCommands( "setup" );
     	runner.setStepCommands( "go" );
     	runner.setStopConditionReporter( "burned-trees > 3000" );
-    	runner.setMeasureIfReporter("ticks mod 10 = 0 or ticks = 37");	
+    	runner.setMeasureIfReporter("ticks mod 10 = 0 or ticks = 37");
     	runner.addResultReporter( "burned-trees" );
 
         params = new LinkedHashMap<String, Object>();
         params.put("density", 61.0);
-        
-        ModelRunner.RunSetup runSetup = new ModelRunner.RunSetup(0, params); 
-    	
+
+        ModelRunner.RunSetup runSetup = new ModelRunner.RunSetup(0, params);
+
         List<Double> results = runner.doFullRun( runSetup ).getTimeSeriesForMeasure("burned-trees");
         Assert.assertEquals(5, results.size()); // 5 because we only get to tick 37, due to the stop condition.
-        
-        Assert.assertEquals(3002.0, results.get(results.size() - 1));
+
+        Assert.assertEquals(3002.0, results.get(results.size() - 1).doubleValue(), 0.001);
         Assert.assertEquals(37.0, runner.report( "ticks" ));
         runner.command("go");
         Assert.assertEquals(3068.0, runner.measureResults().get("burned-trees"));
@@ -79,8 +95,8 @@ public strictfp class TestBehaviorSearch
 	public void testModelRunner2() throws Exception
     {
 		ModelRunner runner;
-		LinkedHashMap<String,Object> params; 
-    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(PATH_TO_NETLOGO_MODELS + "Earth Science/Fire.nlogo", false, 100);
+		LinkedHashMap<String,Object> params;
+    	runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(sampleModelsPath() + "Earth Science/Fire.nlogo", false, 100);
     	runner.setSetupCommands( "setup" );
     	runner.setStepCommands( "go" );
     	runner.setStopConditionReporter( "burned-trees > 3000" );
@@ -90,7 +106,7 @@ public strictfp class TestBehaviorSearch
         params = new LinkedHashMap<String, Object>();
         params.put("density", 61.0);
 
-        // now do it manually, without using doFullRun() 
+        // now do it manually, without using doFullRun()
         runner.setup(0, params);
         int i;
         for (i = 0; i < 100; i++)
@@ -100,15 +116,15 @@ public strictfp class TestBehaviorSearch
         }
         Assert.assertEquals(3002.0, runner.measureResults().get("burned-trees"));
         Assert.assertEquals(37.0, runner.report("ticks"));
-        runner.dispose();        
+        runner.dispose();
 	}
 	@Test
 	public void testConstraintsTextGeneration() throws BehaviorSearchException, NetLogoLinkException
     {
-		Assert.assertEquals(bsearch.nlogolink.Utils.getDefaultConstraintsText(PATH_TO_NETLOGO_MODELS + "/Social Science/Ethnocentrism.nlogo").trim(),
+		Assert.assertEquals(bsearch.nlogolink.Utils.getDefaultConstraintsText(sampleModelsPath() + "/Social Science/Ethnocentrism.nlogo").trim(),
 		"[\"mutation-rate\" [0 0.001 1]]\n[\"death-rate\" [0 0.05 1]]\n[\"immigrants-per-day\" [0 1 100]]\n[\"initial-ptr\" [0 0.01 1]]\n[\"cost-of-giving\" [0 0.01 1]]\n[\"gain-of-receiving\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-same\" [0 0.01 1]]\n[\"immigrant-chance-cooperate-with-different\" [0 0.01 1]]");
     }
-	
+
 
 	@Test
 	public void testSearchProtocol() throws IOException , SAXException
@@ -125,7 +141,7 @@ public strictfp class TestBehaviorSearch
 		//System.out.println( result.equals( original ) ) ;
 		Assert.assertEquals(result, original);
 	}
-	
+
 	@Test
 	public void testSearchMethodLoader() throws BehaviorSearchException
 	{
@@ -134,33 +150,35 @@ public strictfp class TestBehaviorSearch
     	{
     		SearchMethod searcher = SearchMethodLoader.createFromName(s);
     		searcher.getSearchParams().toString();
-    	}		
+    	}
 	}
 
 	@Test
 	public void testChromosomes() throws BehaviorSearchException
 	{
-		SearchSpace ss = new SearchSpace(Arrays.asList("[\"discrete1to4\" [1 1 4]]", 
+		SearchSpace ss = new SearchSpace(Arrays.asList("[\"discrete1to4\" [1 1 4]]",
 														"[\"continuous0to1.5\" [0.0 \"C\" 1.5]]",
 														"[\"categorical\" \"apple\" \"banana\" \"cherry\"]",
 														"[\"const\" 25]",
 														"[\"discretedecimal\" [-1 0.17 2]]"));
 		MersenneTwisterFast rng = new MersenneTwisterFast();
-		
+
     	for (String chromoType: ChromosomeTypeLoader.getAllChromosomeTypes())
     	{
-    		ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(chromoType);    		
+    		ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(chromoType);
     		Chromosome cs[] = new Chromosome[] {factory.createChromosome(ss, rng), factory.createChromosome(ss, rng)};
 			for (int i = 0; i < 1000; i++)
 			{
 				cs[0] = cs[0].mutate(0.20, rng);
 				cs[1] = cs[1].crossoverWith(cs[0], rng)[0];
-				
+
 				for (Chromosome c: cs )
 				{
-					LinkedHashMap<String, Object> params = c.getParamSettings(); 
+					LinkedHashMap<String, Object> params = c.getParamSettings();
 					double val1 = (Double)params.get("discrete1to4");
 					double val2 = (Double)params.get("continuous0to1.5");
+          // legitimate bug here - we have a logolist of strings when we're expecting a
+          // single string, unclear what broke
 					String val3 = (String) params.get("categorical");
 					Object val4 = params.get("const");
 					double val5 = (Double)params.get("discretedecimal");
@@ -181,7 +199,7 @@ public strictfp class TestBehaviorSearch
 				Chromosome c2 = factory.createChromosome(ss, c.getParamSettings());
 				Assert.assertEquals(chromoType + " check recreate Chromosomes from values:", c.getParamSettings(), c2.getParamSettings());
 			}
-    	}		
+    	}
 	}
 
 	@Test
@@ -189,7 +207,7 @@ public strictfp class TestBehaviorSearch
 	{
 		int numBits = 8;
 		boolean[] bits = new boolean[numBits + 12];
-		
+
 		SearchSpace ss = new SearchSpace(Arrays.asList("[\"moo\" [1 1 4]]"));
 		GrayBinaryChromosome bcgray = new GrayBinaryChromosome(ss, new MersenneTwisterFast() );
 		StandardBinaryChromosome bcstd = new StandardBinaryChromosome(ss, new MersenneTwisterFast() );
@@ -197,10 +215,10 @@ public strictfp class TestBehaviorSearch
 		for (long i = 0; i < (1L << numBits); i ++)
 		{
 			bcgray.binaryEncode(i, bits, 5, numBits);
-			long dec = bcgray.binaryDecode(bits, 5, numBits);  
+			long dec = bcgray.binaryDecode(bits, 5, numBits);
 			Assert.assertEquals(i, dec);
 			bcstd.binaryEncode(i, bits, 5, numBits);
-			dec = bcstd.binaryDecode(bits, 5, numBits);  
+			dec = bcstd.binaryDecode(bits, 5, numBits);
 //			if (i != dec)
 //			{
 //				System.out.println("i = " + i + ":  " + BinaryChromosome.toBinaryString(bits) + "   decode=" + dec);
@@ -212,12 +230,12 @@ public strictfp class TestBehaviorSearch
 		for (long i = 0; i < (1L << numBits); i += 15037093017331L)
 		{
 			bcgray.binaryEncode(i, bits, 2, numBits);
-			long dec = bcgray.binaryDecode(bits, 2, numBits);  
+			long dec = bcgray.binaryDecode(bits, 2, numBits);
 			Assert.assertEquals(i, dec);
 			bcstd.binaryEncode(i, bits, 2, numBits);
-			dec = bcstd.binaryDecode(bits, 2, numBits);  
+			dec = bcstd.binaryDecode(bits, 2, numBits);
 			Assert.assertEquals(i, dec);
-		}		
+		}
 	}
 
 
@@ -234,6 +252,8 @@ public strictfp class TestBehaviorSearch
 	@Test
 	public void testConsistentOutputResults() throws IOException , SAXException, SearchParameterException, BehaviorSearchException, InterruptedException, CmdLineException
 	{
+    Path tmpDirectory = Paths.get("test/tmp");
+    Files.createDirectories(tmpDirectory);
 		LinkedHashMap<String,String> scenarios = new LinkedHashMap<String,String>();
 		scenarios.put("TesterSuperRandom","-p test/TesterSuperRandom.bsearch -o test/tmp/TesterSuperRandom -t 7 -n 2 --randomseed 123 --quiet");
 		scenarios.put("Tester1","-p test/Tester.bsearch -o test/tmp/Tester1 -t 1 -n 2 -f 3 --randomseed 1234 --quiet");
