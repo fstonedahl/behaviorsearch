@@ -8,11 +8,11 @@ import java.util.Queue;
 
 import org.nlogo.agent.Observer;
 import org.nlogo.api.AgentException;
-import org.nlogo.api.CompilerException;
+import org.nlogo.core.CompilerException;
 import org.nlogo.api.LogoException;
 import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.nvm.Procedure;
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 import org.nlogo.headless.HeadlessWorkspace;
 
 public strictfp class ModelRunner {
@@ -101,10 +101,10 @@ public strictfp class ModelRunner {
 		workspace.clearAll();
 		for (String s: parameterSettings.keySet())
 		{
-			workspace.world.setObserverVariableByName(s, parameterSettings.get(s));		
+			workspace.world().setObserverVariableByName(s, parameterSettings.get(s));
 		}
 		try {
-			workspace.world.mainRNG.setSeed( seed );
+			workspace.world().mainRNG().setSeed( seed );
 			// For evaluating reporters (like measureIfReporter) we want to use a separate RNG 
 			// (which is seeded by a random number that depends on the random seed for this model run,
 			//  so that the results are deterministic/repeatable, but will generate an independent 
@@ -112,9 +112,9 @@ public strictfp class ModelRunner {
 			// This approach should allow the user to recreate a run by setting RANDOM-SEED XXX
 			// and running SETUP followed by GO, without worrying about all of the additional conditions
 			// and reporters affecting the state of the RNG and changing the outcome of the run...
-			mainJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Main", workspace.mainRNG(), Observer.class);
+			mainJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Main", workspace.mainRNG(), org.nlogo.core.AgentKindJ.Observer());
 			MersenneTwisterFast extraReporterRNG = new MersenneTwisterFast(workspace.mainRNG().clone().nextInt());
-			extraJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Extra", extraReporterRNG, Observer.class);
+			extraJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Extra", extraReporterRNG, org.nlogo.core.AgentKindJ.Observer());
 		} catch (Exception ex) {ex.printStackTrace(); }
 		
 		if (setupCommands != null)

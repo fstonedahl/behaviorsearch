@@ -1,6 +1,6 @@
 package bsearch.space;
 
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 
 /** For any parameter that is fixed for the search.
  */

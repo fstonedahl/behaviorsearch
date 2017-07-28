@@ -1,6 +1,6 @@
 package bsearch.space;
 
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 
 /** characterizes a parameter that has a continuous (floating point) range on the interval [A,B) */
 public strictfp class DoubleContinuousSpec extends ParameterSpec {

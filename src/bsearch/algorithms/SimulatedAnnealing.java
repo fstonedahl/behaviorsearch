@@ -2,7 +2,7 @@ package bsearch.algorithms;
 
 import java.util.HashMap;
 
-import org.nlogo.util.MersenneTwisterFast;
+import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.app.BehaviorSearchException;
 import bsearch.app.SearchProtocol;

@@ -2,7 +2,7 @@ package bsearch.representations ;
 
 import java.util.LinkedHashMap ;
 
-import org.nlogo.util.MersenneTwisterFast ;
+import org.nlogo.api.MersenneTwisterFast ;
 
 import bsearch.space.SearchSpace;
 
