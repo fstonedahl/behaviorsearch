@@ -49,6 +49,7 @@ public class SearchMethodLoader {
 				list.add(s);			
 			}
 		}
+		scanner.close();
 		return list;
 	}
 }

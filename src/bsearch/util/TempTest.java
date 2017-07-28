@@ -1,7 +1,5 @@
 package bsearch.util;
 
-import java.io.FileNotFoundException;
-
 import org.nlogo.core.CompilerException;
 import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.headless.HeadlessWorkspace;
@@ -55,11 +53,6 @@ public class TempTest {
 
 		System.exit(0);
 
-		try {
-			SimpleDiGraph.readEdgeListFromFile("testgraph.txt");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
 		
 		MersenneTwisterFast rng = new MersenneTwisterFast();
 		double d = 0.99;

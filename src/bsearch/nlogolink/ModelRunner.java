@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Queue;
 
-import org.nlogo.agent.Observer;
 import org.nlogo.api.AgentException;
 import org.nlogo.core.CompilerException;
 import org.nlogo.api.LogoException;

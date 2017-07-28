@@ -3,21 +3,15 @@ package bsearch.test;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.junit.Test;
 import org.moeaframework.core.Variable;
-import org.nlogo.util.MersenneTwisterFast;
 
-import bsearch.representations.Chromosome;
-import bsearch.representations.ChromosomeFactory;
-import bsearch.representations.ChromosomeTypeLoader;
 import bsearch.space.ParameterSpec;
 import bsearch.space.SearchSpace;
-import junit.framework.Assert;
 
 public class SearchSpaceTest {
 
@@ -28,7 +22,6 @@ public class SearchSpaceTest {
 				"[\"categorical\" \"apple\" \"banana\" \"cherry\"]",
 				"[\"const\" 25]",
 				"[\"discretedecimal\" [-1 0.17 2]]"));
-		MersenneTwisterFast rng = new MersenneTwisterFast();
 		
 		List<ParameterSpec> specs = ss.getParamSpecs();
 		assertEquals(4,specs.get(0).choiceCount());
