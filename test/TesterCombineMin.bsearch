@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="us-ascii"?>
 <!DOCTYPE search SYSTEM "behaviorsearch.dtd">
 <search>
-<bsearchVersionNumber>1.10</bsearchVersionNumber>
+<bsearchVersionNumber>0.72</bsearchVersionNumber>
 <modelInfo>
 <modelFile>Tester.nlogo</modelFile>
 <modelSetupCommands>setup</modelSetupCommands>
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
 <modelStepLimit>0</modelStepLimit>
-<modelMetricReporter>ellipsoid</modelMetricReporter>
+<modelMetricReporter>ellipsoid + random-normal 0 20</modelMetricReporter>
 <modelMeasureIf>true</modelMeasureIf>
 </modelInfo>
 <fitnessInfo>
 <fitnessMinimized>false</fitnessMinimized>
-<fitnessCollecting>last @{MEASURE1}</fitnessCollecting>
-<fitnessSamplingReplications>1</fitnessSamplingReplications>
-<fitnessCombineReplications>MEAN</fitnessCombineReplications>
+<fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
+<fitnessSamplingReplications>5</fitnessSamplingReplications>
+<fitnessCombineReplications>MIN</fitnessCombineReplications>
 </fitnessInfo>
 <searchSpace>
 <paramSpec>["a" [-32 1 32]]</paramSpec>

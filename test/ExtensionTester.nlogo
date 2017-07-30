@@ -4,7 +4,7 @@ to setup
 end
 
 to go
-  
+
 end
 
 to-report ellipsoid
@@ -14,7 +14,7 @@ to-report ellipsoid
 end
 
 to-report ackley4
-  report 0 - 
+  report 0 -
      (-20 * exp(-0.2 * sqrt( 1 / 4 * (a * a + b * b + c * c + d * d))) + e
               - exp( 1 / 4 * (cos (360 * a) + cos (360 * b) + cos (360 * c) + cos (360 * d))) + 20)
 end
@@ -27,10 +27,10 @@ end
 GRAPHICS-WINDOW
 205
 10
-701
-527
-40
-40
+699
+505
+-1
+-1
 6.0
 1
 10
@@ -49,6 +49,7 @@ GRAPHICS-WINDOW
 0
 1
 ticks
+30.0
 
 SLIDER
 10
@@ -59,7 +60,7 @@ a
 a
 -32
 32
-0
+0.0
 1
 1
 NIL
@@ -74,7 +75,7 @@ b
 b
 -32
 32
-0
+0.0
 1
 1
 NIL
@@ -89,7 +90,7 @@ c
 c
 -32
 32
-0
+0.0
 1
 1
 NIL
@@ -104,55 +105,47 @@ d
 d
 -32
 32
-0
+0.0
 1
 1
 NIL
 HORIZONTAL
 
 @#$#@#$#@
-WHAT IS IT?
------------
+## WHAT IS IT?
+
 This section could give a general understanding of what the model is trying to show or explain.
 
+## HOW IT WORKS
 
-HOW IT WORKS
-------------
 This section could explain what rules the agents use to create the overall behavior of the model.
 
+## HOW TO USE IT
 
-HOW TO USE IT
--------------
 This section could explain how to use the model, including a description of each of the items in the interface tab.
 
+## THINGS TO NOTICE
 
-THINGS TO NOTICE
-----------------
 This section could give some ideas of things for the user to notice while running the model.
 
+## THINGS TO TRY
 
-THINGS TO TRY
--------------
 This section could give some ideas of things for the user to try to do (move sliders, switches, etc.) with the model.
 
+## EXTENDING THE MODEL
 
-EXTENDING THE MODEL
--------------------
 This section could give some ideas of things to add or change in the procedures tab to make the model more complicated, detailed, accurate, etc.
 
+## NETLOGO FEATURES
 
-NETLOGO FEATURES
-----------------
 This section could point out any especially interesting or unusual features of NetLogo that the model makes use of, particularly in the Procedures tab.  It might also point out places where workarounds were needed because of missing features.
 
+## RELATED MODELS
 
-RELATED MODELS
---------------
 This section could give the names of models in the NetLogo Models Library or elsewhere which are of related interest.
 
+## CREDITS AND REFERENCES
 
-CREDITS AND REFERENCES
-----------------------
 This section could contain a reference to the model's URL on the web if it has one, as well as any other necessary credits or references.
 @#$#@#$#@
 default
@@ -436,9 +429,8 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 4.1RC5
+NetLogo 6.0.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -474,15 +466,14 @@ NetLogo 4.1RC5
 @#$#@#$#@
 default
 0.0
--0.2 0 1.0 0.0
+-0.2 0 0.0 1.0
 0.0 1 1.0 0.0
-0.2 0 1.0 0.0
+0.2 0 0.0 1.0
 link direction
 true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@

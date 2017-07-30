@@ -8,7 +8,7 @@ public interface ResultListener
 {
 	public void initListener(SearchSpace space);
 
-	public void modelRunOccurred(SearchManager manager, Chromosome point, ModelRunResult result);
+	public void modelRunOccurred(SearchManager manager, ModelRunResult result);
 
 	public void fitnessComputed(SearchManager manager, Chromosome point, double fitness);
 

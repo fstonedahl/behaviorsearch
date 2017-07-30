@@ -6,7 +6,7 @@ import java.util.HashMap;
 import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.app.BehaviorSearchException;
-import bsearch.app.SearchProtocol;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.Chromosome;
@@ -65,7 +65,7 @@ public strictfp class StandardGA extends AbstractSearchMethod{
 	}
 
 
-	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocol protocol ,
+	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocolInfo protocol ,
 			 SearchManager manager, MersenneTwisterFast rng ) 
 		throws BehaviorSearchException, NetLogoLinkException, InterruptedException
 	{

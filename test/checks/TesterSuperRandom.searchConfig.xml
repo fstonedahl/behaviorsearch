@@ -13,7 +13,7 @@
 </modelInfo>
 <fitnessInfo>
 <fitnessMinimized>false</fitnessMinimized>
-<fitnessCollecting>SUM_ACROSS_STEPS</fitnessCollecting>
+<fitnessCollecting>sum @{MEASURE1}</fitnessCollecting>
 <fitnessSamplingReplications>5</fitnessSamplingReplications>
 <fitnessCombineReplications>MEAN</fitnessCombineReplications>
 </fitnessInfo>

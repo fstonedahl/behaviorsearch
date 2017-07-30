@@ -13,7 +13,7 @@
 </modelInfo>
 <fitnessInfo>
 <fitnessMinimized>false</fitnessMinimized>
-<fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
+<fitnessCollecting>last @{MEASURE1}</fitnessCollecting>
 <fitnessSamplingReplications>1</fitnessSamplingReplications>
 <fitnessCombineReplications>MEAN</fitnessCombineReplications>
 </fitnessInfo>

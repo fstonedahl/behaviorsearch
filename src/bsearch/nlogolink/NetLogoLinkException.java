@@ -1,6 +1,9 @@
 package bsearch.nlogolink;
 
-public class NetLogoLinkException extends Exception {
+import bsearch.app.BehaviorSearchException;
+
+//TODO: Get rid of NetLogoLinkException, and just use BehaviorSearchException for everything?  Consider...
+public class NetLogoLinkException extends BehaviorSearchException {
 
 	private static final long serialVersionUID = 1L;
 

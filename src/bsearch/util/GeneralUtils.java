@@ -7,8 +7,8 @@ import java.util.Scanner;
 public class GeneralUtils {
 	//NOTE: Before release, need to change the version number here, 
 	//      and in the dist/version_number.txt file
-	private static final String VERSION_STRING = "1.10";
-	private static final double VERSION_NUMBER = 1.10;
+	private static final String VERSION_STRING = "2.00";
+	private static final double VERSION_NUMBER = 2.00;
 	
 	public static String getVersionString()
 	{
@@ -173,6 +173,10 @@ public class GeneralUtils {
 	public static File getResource(String fileName)
 	{
 		return new File(attemptResolvePathFromBSearchRoot("resources/" + fileName));
+	}
+	public static void debug(String string) {
+		System.out.println("DEBUG: " + string);
+		
 	}
 
 }

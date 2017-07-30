@@ -5,7 +5,7 @@ import java.util.HashMap ;
 import org.nlogo.api.MersenneTwisterFast ;
 
 import bsearch.app.BehaviorSearchException;
-import bsearch.app.SearchProtocol;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.ChromosomeFactory;
@@ -48,7 +48,7 @@ public strictfp interface SearchMethod
 
 
 	//TODO: return SearchResults object?  Or just use the SearchManager for this purpose? 
-	public abstract void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocol protocol,
+	public abstract void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocolInfo protocol,
 			 SearchManager manager, MersenneTwisterFast rng ) 
 		throws BehaviorSearchException, NetLogoLinkException, InterruptedException;
 	 

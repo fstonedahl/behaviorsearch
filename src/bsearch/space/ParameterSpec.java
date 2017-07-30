@@ -53,7 +53,7 @@ public strictfp abstract class ParameterSpec {
 	public static ParameterSpec fromString(String paramString)
 	{
 		try {
-			Object obj = bsearch.nlogolink.Utils.evaluateNetLogoReporterInEmptyWorkspace(paramString);
+			Object obj = bsearch.nlogolink.NLogoUtils.evaluateNetLogoReporterInEmptyWorkspace(paramString);
 			if (obj instanceof LogoList)
 			{
 				LogoList lst = (LogoList) obj;

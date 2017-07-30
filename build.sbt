@@ -18,7 +18,11 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "org.ow2.asm" % "asm-all" % "5.0.4",
   "org.parboiled" %% "parboiled" % "2.1.3",
-  "com.novocode" % "junit-interface" % "0.11" % "test"
+  "com.novocode" % "junit-interface" % "0.11" % "test",
+  "com.google.code.gson" % "gson" % "1.7.1"
+// libraryDependencies += "org.moeaframework" % "moeaframework" % "2.12"
+// PROBLEM: MOEA 2.12 isn't good enough, since I need my custom contributions (already merged to master, but not released) 
+
 )
 
 libraryDependencies ++= {

@@ -5,33 +5,31 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
-import bsearch.nlogolink.ModelRunner.Factory;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.nlogolink.ModelRunner.ModelRunnerException;
 
-public class BatchRunner {
+public class BatchRunner implements ModelRunningService {
 	
-	private ModelRunner.Factory factory;
-	ExecutorService pool;
-	private final int numThreads;
-		
-	public BatchRunner(int numThreads, Factory factory) {
-		this.factory = factory;
-		this.numThreads = numThreads;
-		pool = java.util.concurrent.Executors.newFixedThreadPool(numThreads);
-	}
-	public int getNumThreads()
-	{
-		return numThreads;
+	private ModelRunnerPool modelRunnerPool;
+	private ExecutorService threadPool;
+	
+	public BatchRunner(int numThreads,  SearchProtocolInfo protocol) throws NetLogoLinkException {
+		List<String> combineReporterSourceCodes = protocol.objectives.stream().map(obj -> obj.fitnessCombineReplications).collect(Collectors.toList());
+
+		this.modelRunnerPool = new ModelRunnerPool(protocol.modelDCInfo, combineReporterSourceCodes);
+		this.threadPool = java.util.concurrent.Executors.newFixedThreadPool(numThreads);
 	}
 
-	public List<ModelRunResult> doBatchRun(List<ModelRunner.RunSetup> setups) throws NetLogoLinkException, ModelRunnerException, InterruptedException
+	@Override
+	public List<ModelRunResult> doBatchRun(List<ModelRunSetupInfo> setups) throws NetLogoLinkException, InterruptedException
 	{
 		ArrayList<ModelRunnerTask> tasks = new ArrayList<ModelRunnerTask>();
 		
-		for (ModelRunner.RunSetup setup: setups)
+		for (ModelRunSetupInfo setup: setups)
 		{
-			tasks.add(new ModelRunnerTask(factory, setup));
+			tasks.add(new ModelRunnerTask(modelRunnerPool, setup));
 		}
 		List<Future<ModelRunResult>> futures = new ArrayList<Future<ModelRunResult>>(tasks.size());
 		List<ModelRunResult> results = new ArrayList<ModelRunResult>(tasks.size());
@@ -39,7 +37,7 @@ public class BatchRunner {
 		try {
 			for (ModelRunnerTask task : tasks)
 			{
-				futures.add(pool.submit(task));
+				futures.add(threadPool.submit(task));
 			}
 			
 			for (Future<ModelRunResult> future : futures)
@@ -65,10 +63,28 @@ public class BatchRunner {
 			}
 		}
 	}
+		
+	/**
+	 * 
+	 * @param resultList - list of result data for each model run
+	 * @return a List containing the result of *combining* across replicate model runs. 
+	 *         The resulting list contains one item for each objective. 
+	 * @throws NetLogoLinkException
+	 */
+	@Override
+	public List<Object> getCombinedResultsForEachObjective(List<ModelRunResult> resultList) throws NetLogoLinkException {
+		ModelRunner runner = modelRunnerPool.acquireModelRunner();
+//		ModelRunner runner = modelRunnerPool.getExtraRunner();
+		List<Object> combinedResults = runner.evaluateCombineReplicateReporters(resultList);
+		modelRunnerPool.releaseModelRunner(runner);
+		return combinedResults;
+	}
+
+	
 	
 	public void dispose() throws InterruptedException
 	{
-		pool.shutdownNow();
-		factory.disposeAllRunners();		
+		threadPool.shutdownNow();
+		modelRunnerPool.disposeAllRunners();		
 	}
 }

@@ -81,6 +81,7 @@ public strictfp class CategoricalSpec extends ParameterSpec {
 	@Override
 	public Variable getCorrespondingMOEAVariable() {
 		//TODO: Decide about using subset instead, or using large int range with modular arithmetic to get a more "circular" representation?
+		// Note: If there's only TWO choices, then no big worries about unfairness to end/middle values, but 3+ could be biased.
 		return EncodingUtils.newInt(0, choices.size()-1);
 	}
 	@Override

@@ -1,19 +1,21 @@
 package bsearch.evaluation;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import bsearch.nlogolink.ModelRunResult;
 import bsearch.representations.Chromosome;
 
 public class ResultsArchive {
 	// for storing the model run data in
-	private HashMap<Chromosome, List<ModelRunResult>> cacheMap;
+	private Map<Chromosome, List<ModelRunResult>> cacheMap;
 	
 	public ResultsArchive(int initialCapacity)
 	{
-		cacheMap = new HashMap<Chromosome, List<ModelRunResult>>(initialCapacity);
+		cacheMap = Collections.synchronizedMap(new HashMap<Chromosome, List<ModelRunResult>>(initialCapacity));
 	}
 
 	public void clear()

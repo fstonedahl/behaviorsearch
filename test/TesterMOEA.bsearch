@@ -14,7 +14,7 @@
 <fitnessInfo>
 <fitnessMinimized>true</fitnessMinimized>
 <fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
-<fitnessSamplingReplications>4</fitnessSamplingReplications>
+<fitnessSamplingReplications>8</fitnessSamplingReplications>
 <fitnessCombineReplications>MEAN</fitnessCombineReplications>
 </fitnessInfo>
 <searchSpace>
@@ -30,5 +30,5 @@
 <chromosomeRepresentation type="GrayBinaryChromosome"/>
 <caching>true</caching>
 <evaluationLimit>60</evaluationLimit>
-<bestCheckingNumReplications>0</bestCheckingNumReplications>
+<bestCheckingNumReplications>5</bestCheckingNumReplications>
 </search>

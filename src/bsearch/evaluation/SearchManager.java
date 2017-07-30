@@ -12,24 +12,22 @@ import org.nlogo.api.MersenneTwisterFast;
 
 
 import bsearch.app.BehaviorSearchException;
-import bsearch.app.SearchProtocol;
-import bsearch.nlogolink.BatchRunner;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.nlogolink.ModelRunResult;
-import bsearch.nlogolink.ModelRunner;
 import bsearch.nlogolink.NetLogoLinkException;
+import bsearch.nlogolink.ModelRunSetupInfo;
 import bsearch.nlogolink.ModelRunner.ModelRunnerException;
+import bsearch.nlogolink.ModelRunningService;
 import bsearch.representations.Chromosome;
 
 
 public class SearchManager 
 {
-	private final BatchRunner runner;
-	private final SearchProtocol protocol;  
+	private final ModelRunningService runner;
+	private final SearchProtocolInfo protocol;  
 	
 	private final FitnessFunction fitnessFunction;
 	private int searchIDNumber;
-	private double fitnessGoalLimit;
-	private boolean stopAtFitnessGoal;
 	
 	private int evaluationCounter;	
 	private int requestedCounter;
@@ -44,8 +42,8 @@ public class SearchManager
 
 	private List<ResultListener> resultListeners = new ArrayList<ResultListener>();
 	
-	public SearchManager(int searchIDNumber, BatchRunner runner, SearchProtocol protocol, 
-			FitnessFunction fitnessFunction, boolean stopAtFitnessGoal, double fitnessGoalLimit )
+	public SearchManager(int searchIDNumber, ModelRunningService runner, SearchProtocolInfo protocol, 
+			FitnessFunction fitnessFunction )
 	{
 		this.searchIDNumber = searchIDNumber;
 		this.runner = runner;
@@ -54,9 +52,7 @@ public class SearchManager
 		this.evaluationCounter = 0 ;
 		this.requestedCounter = 0;
 		this.requestedCounterWhenLastEvaluated = 0;
-		this.auxilliaryEvaluationCounter = 0;
-		this.stopAtFitnessGoal = stopAtFitnessGoal;		
-		this.fitnessGoalLimit = fitnessGoalLimit;
+		this.auxilliaryEvaluationCounter = 0;		
 		this.cache = new ResultsArchive(4096);
 
 		setCurrentBest(null, fitnessFunction.getWorstConceivableFitnessValue());		
@@ -90,10 +86,10 @@ public class SearchManager
 			evaluationQueue.addAll(Collections.nCopies(desiredRuns.get(point), point ));
 		}
 		
-		List<ModelRunner.RunSetup> setupList = new ArrayList<ModelRunner.RunSetup>(evaluationQueue.size());
+		List<ModelRunSetupInfo> setupList = new ArrayList<ModelRunSetupInfo>(evaluationQueue.size());
 		for (Chromosome point: evaluationQueue)
 		{
-			setupList.add(new ModelRunner.RunSetup(rng.nextInt(), point.getParamSettings()));
+			setupList.add(new ModelRunSetupInfo(rng.nextInt(), point.getParamSettings()));
 		}
 
 		List<ModelRunResult> results = runner.doBatchRun(setupList);
@@ -102,7 +98,9 @@ public class SearchManager
 			tempCache.add(evaluationQueue.get(i), results.get(i), numReplicationsDesired);
 		}
 		auxilliaryEvaluationCounter += results.size(); 
-		return fitnessFunction.evaluate(pointOfInterest, tempCache);
+		
+		double result = fitnessFunction.evaluate(pointOfInterest, tempCache, runner);
+		return result;
 	}
 
 	public double computeFitnessSingle(Chromosome point, int numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, BehaviorSearchException, InterruptedException
@@ -136,7 +134,7 @@ public class SearchManager
 			throw new IllegalArgumentException("there must be some number of desired replications specified for *each* of the Chromosomes to be evaluated.");
 		}
 
-		if (!protocol.caching)
+		if (!protocol.searchAlgorithmInfo.caching)
 		{
 			cache.clear();
 		}
@@ -169,7 +167,7 @@ public class SearchManager
 				}
 				int newReps;
 				
-				if (protocol.caching)
+				if (protocol.searchAlgorithmInfo.caching)
 				{
 					newReps = StrictMath.max(desiredRuns.get(p), oldReps);
 				}
@@ -191,13 +189,13 @@ public class SearchManager
 			evaluationQueue.addAll(Collections.nCopies(allDesiredRuns.get(point), point ));
 		}
 		
-		List<ModelRunner.RunSetup> setupList = new ArrayList<ModelRunner.RunSetup>(evaluationQueue.size());
+		List<ModelRunSetupInfo> setupList = new ArrayList<ModelRunSetupInfo>(evaluationQueue.size());
 		for (Chromosome point: evaluationQueue)
 		{	
 			//Note: We use a seed that is within the valid seed range for the PRNG. 
 			// users can recreate a specific run in NetLogo by running "RANDOM-SEED XXXX" and then running their model.  
 			int seed = rng.nextInt();
-			setupList.add(new ModelRunner.RunSetup(seed, point.getParamSettings()));
+			setupList.add(new ModelRunSetupInfo(seed, point.getParamSettings()));
 		}
 
 		// We create an auxilliaryRNG to use for "best-checking", so that the number of best-checking
@@ -233,7 +231,7 @@ public class SearchManager
 			
 			for (ResultListener listener : resultListeners)
 			{
-				listener.modelRunOccurred(this, point, results.get(i));
+				listener.modelRunOccurred(this, results.get(i));
 			}
 		}
 		evaluationQueue.clear();
@@ -242,16 +240,16 @@ public class SearchManager
 		double[] fitnesses = new double[points.length]; 
 		for (int i = 0; i < points.length; i++)
 		{
-			double fitness = fitnessFunction.evaluate(points[i], cache);
+			double fitness = fitnessFunction.evaluate(points[i], cache, runner);
 			fitnesses[i] = fitness;
 			evaluationCounter += numReplicationsNeeded[i];
 			
 			if (fitnessFunction.strictlyBetterThan(fitness, currentBestFitness))
 			{
 				setCurrentBest(points[i],fitness);
-				if (protocol.useBestChecking())
+				if (protocol.searchAlgorithmInfo.useBestChecking())
 				{
-					currentBestFitnessCheckedEstimate = computeFitnessWithoutSideEffects(points[i], protocol.bestCheckingNumReplications, auxilliaryRNG);
+					currentBestFitnessCheckedEstimate = computeFitnessWithoutSideEffects(points[i], protocol.searchAlgorithmInfo.bestCheckingNumReplications, auxilliaryRNG);
 				}
 				for (ResultListener listener : resultListeners)
 				{
@@ -306,16 +304,11 @@ public class SearchManager
 	}
 	public boolean searchFinished()
 	{
-		return searchHasTotallyStalled() || evaluationCounter >= protocol.evaluationLimit 
-			|| (stopAtFitnessGoal && fitnessFunction.reachedStopGoalFitness(fitnessGoalLimit));
+		return searchHasTotallyStalled() || evaluationCounter >= protocol.searchAlgorithmInfo.evaluationLimit;
 	}
 	public int getRemainingEvaluations()
 	{
-		return protocol.evaluationLimit - evaluationCounter;
-	}
-	public int getBatchRunnerNumThreads()
-	{
-		return runner.getNumThreads();
+		return protocol.searchAlgorithmInfo.evaluationLimit - evaluationCounter;
 	}
 	
 	public int getSearchIDNumber()
@@ -358,7 +351,7 @@ public class SearchManager
 	
 	public double getBestFitnessCheckingReplications()
 	{
-		return protocol.bestCheckingNumReplications;
+		return protocol.searchAlgorithmInfo.bestCheckingNumReplications;
 	}
 
 	// TODO: This method probably doesn't belong here... refactor to a cleaner design? 

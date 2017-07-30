@@ -5,7 +5,7 @@ import java.util.HashMap;
 import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.app.BehaviorSearchException;
-import bsearch.app.SearchProtocol;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.Chromosome;
@@ -39,7 +39,7 @@ public strictfp class RandomSearch extends AbstractSearchMethod {
 		return params;
 	}
 
-	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocol protocol,
+	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocolInfo protocol,
 			SearchManager manager, MersenneTwisterFast rng ) throws BehaviorSearchException, NetLogoLinkException, InterruptedException
 	{
 		final int BATCH_SIZE = 16;  // processing model runs in batches allows us to take advantage of multi-threading/multi-processors 

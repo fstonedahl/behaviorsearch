@@ -1,0 +1,45 @@
+{
+  "bsearchVersionNumber": 0.72,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "Tester.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "count turtles \u003e 1000",
+    "measureIfReporter": "true",
+    "maxModelSteps": 0,
+    "measureReporters": {
+      "MEASURE1": "ellipsoid + random-normal 0 20"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "last @{MEASURE1}"
+    }
+  },
+  "fitnessSamplingReplications": 5,
+  "paramSpecStrings": [
+    "[\"a\" [-32 1 32]]",
+    "[\"b\" [-32 1 32]]",
+    "[\"c\" [-32 1 32]]",
+    "[\"d\" [-32 1 32]]"
+  ],
+  "objectives": [
+    {
+      "fitnessMinimized": false,
+      "fitnessCombineReplications": "MIN",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "MutationHillClimber",
+    "searchMethodParams": {
+      "mutation-rate": "0.05",
+      "restart-after-stall-count": "0"
+    },
+    "chromosomeType": "GrayBinaryChromosome",
+    "caching": true,
+    "evaluationLimit": 200,
+    "bestCheckingNumReplications": 0
+  }
+}

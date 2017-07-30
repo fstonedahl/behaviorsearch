@@ -1,4 +1,4 @@
-Copyright 2013 Forrest Stonedahl & Uri Wilensky
+Copyright 2013-2017 Forrest Stonedahl & Uri Wilensky
 
 The BehaviorSearch software was initially developed as part of Forrest Stonedahl's doctoral thesis research, with adviser Uri Wilensky at the Center for Connected Learning and Computer-Based Modeling at Northwestern University.
 It is an open source project, and new contributors/developers are welcome (contact feedback@behaviorsearch.org if interested).

@@ -1,8 +1,8 @@
 package bsearch.app;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -10,13 +10,15 @@ import java.util.List;
 
 import bsearch.representations.Chromosome;
 import bsearch.space.ParameterSpec;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.ModelRunResult;
+import bsearch.nlogolink.ModelRunSetupInfo;
 
 public class CSVLoggerListener implements ResultListener {
 	
-	private SearchProtocol protocol;
+	private SearchProtocolInfo protocol;
 	private PrintWriter modelHistoryOut = null;
 	private PrintWriter fitnessOut = null;
 	private int shortenOutputFactor = 1;
@@ -35,7 +37,7 @@ public class CSVLoggerListener implements ResultListener {
 	 * @throws IOException
 	 * @throws BehaviorSearchException 
 	 */
-	public CSVLoggerListener(SearchProtocol protocol, String fileNameStem, boolean logAllModelRuns, boolean logAllFitnessEvals, boolean logBests, boolean logFinalBests, int shortenOutputFactor) throws IOException, BehaviorSearchException 
+	public CSVLoggerListener(SearchProtocolInfo protocol, String fileNameStem, boolean logAllModelRuns, boolean logAllFitnessEvals, boolean logBests, boolean logFinalBests, int shortenOutputFactor) throws IOException, BehaviorSearchException 
 	{
 		this.protocol = protocol;		
 		this.shortenOutputFactor = shortenOutputFactor;
@@ -54,7 +56,7 @@ public class CSVLoggerListener implements ResultListener {
 		if (logFinalBests)
 		{
 			finalBestOut = new java.io.PrintWriter(new java.io.BufferedWriter(new java.io.FileWriter(fileNameStem + ".finalBests.csv")));
-			if (protocol.useBestChecking())
+			if (protocol.searchAlgorithmInfo.useBestChecking())
 			{
 				finalCheckedBestOut = new java.io.PrintWriter(new java.io.BufferedWriter(new java.io.FileWriter(fileNameStem + ".finalCheckedBests.csv")));	
 			}
@@ -63,10 +65,8 @@ public class CSVLoggerListener implements ResultListener {
 		// Also output a copy of the protocol that was used for this search.  
 		// It's the same format as the .bsearch files, but we use the .xml suffix
 		// to differentiate it from the .bsearch file which was actually run.
-		try {
-			FileWriter fw = new java.io.FileWriter(fileNameStem + ".searchConfig.xml"); 
-			protocol.save(fw);
-			fw.close();
+		try { 
+			protocol.save(fileNameStem + ".searchConfig.xml");
 		} catch (java.io.IOException ex)
 		{
 			throw new BehaviorSearchException("File I/O error attempting to create or write to file: '" + fileNameStem + ".searchConfig.xml'", ex);
@@ -106,7 +106,7 @@ public class CSVLoggerListener implements ResultListener {
 			headerList.add("fitness");
 			headerList.add("num-replicates");
 			headerList.add("best-fitness-so-far");
-			if (protocol.useBestChecking())
+			if (protocol.searchAlgorithmInfo.useBestChecking())
 			{
 				headerList.add("best-fitness-rechecked");
 			}
@@ -122,7 +122,7 @@ public class CSVLoggerListener implements ResultListener {
 		}
 		headerList.add("num-replicates");
 		headerList.add("best-fitness-so-far");
-		if (protocol.useBestChecking())
+		if (protocol.searchAlgorithmInfo.useBestChecking())
 		{
 			headerList.add("recheck-replications");
 			headerList.add("best-fitness-rechecked");
@@ -148,23 +148,30 @@ public class CSVLoggerListener implements ResultListener {
 	}
 
 
-	public void modelRunOccurred(SearchManager manager, Chromosome point, ModelRunResult result) 
+	public void modelRunOccurred(SearchManager manager, ModelRunResult result) 
 	{
 		if (modelHistoryOut == null)
 		{
 			return;
 		}
+		ModelRunSetupInfo runSetup = result.getModelRunSetupInfo();
 		//TODO: add in field for "[ticks]" ?
 		List<Object> dataList = new LinkedList<Object>();
 		dataList.add(manager.getSearchIDNumber());
 		dataList.add(manager.getEvaluationCount());
 		dataList.add(manager.getEvaluationsRequestedCount());
-		for (ParameterSpec p : point.getSearchSpace().getParamSpecs())
-		{
-			dataList.add(point.getParamSettings().get(p.getParameterName()));
+		
+		for (Object val : result.getModelRunSetupInfo().getParameterSettings().values()) {
+			dataList.add(val);
 		}
-		dataList.add(Long.toString(result.getRandomSeed())); 
-		LinkedList<Double> resultTimeSeries = result.getPrimaryTimeSeries() ;
+		dataList.add(Long.toString(runSetup.getSeed())); 
+		//TODO: Remove this max/min junk, and just save all the condensed result values...
+		AbstractSequentialList<Object> resultTimeSeriesObj = result.getRawMeasureData(result.getRawMeasureNames()[0]).toJava() ;
+		LinkedList<Double> resultTimeSeries = new LinkedList<Double>();
+		for (Object obj : resultTimeSeriesObj) {
+			resultTimeSeries.add((Double)obj);
+		}
+		
 		dataList.add(Collections.min(resultTimeSeries)); 
 		dataList.add(Collections.max(resultTimeSeries)); 		
 		dataList.add(bsearch.util.Stats.mean(resultTimeSeries)); 
@@ -194,7 +201,7 @@ public class CSVLoggerListener implements ResultListener {
 		List<ModelRunResult> allTrials = manager.getCachedResults(point);		
 		dataList.add(allTrials.size());
 		dataList.add(manager.getCurrentBestFitness());
-		if (protocol.useBestChecking())
+		if (protocol.searchAlgorithmInfo.useBestChecking())
 		{
 			dataList.add(manager.getCurrentBestFitnessCheckedEstimate());
 		}
@@ -214,7 +221,7 @@ public class CSVLoggerListener implements ResultListener {
 		List<ModelRunResult> allTrials = manager.getCachedResults(newBest);		
 		dataList.add(allTrials.size());
 		dataList.add(manager.getCurrentBestFitness());
-		if (protocol.useBestChecking())
+		if (protocol.searchAlgorithmInfo.useBestChecking())
 		{
 			dataList.add(manager.getBestFitnessCheckingReplications());
 			dataList.add(manager.getCurrentBestFitnessCheckedEstimate());
@@ -244,7 +251,7 @@ public class CSVLoggerListener implements ResultListener {
 	public void newBestFound(SearchManager manager)
 	{
 		lastBestRowData = getRowDataForNewBest(manager);
-		if (protocol.useBestChecking())
+		if (protocol.searchAlgorithmInfo.useBestChecking())
 		{
 			double checkedFitness = manager.getCurrentBestFitnessCheckedEstimate();
 			if (checkedBestRowData == null || manager.fitnessStrictlyBetter(checkedFitness,bestCheckedFitness))

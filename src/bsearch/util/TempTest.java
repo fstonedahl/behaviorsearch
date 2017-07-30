@@ -4,6 +4,10 @@ import org.nlogo.core.CompilerException;
 import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.Procedure;
+
+import java.util.Arrays;
+
+import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.MersenneTwisterFast;
 
 
@@ -29,6 +33,30 @@ public class TempTest {
 
 	public static void main(String[] args) throws CompilerException {
 		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
+		
+		try {
+
+			// Here's a nasty hack for how we can use an empty workspace to perform operations on a list... 
+			LogoListBuilder llb = new LogoListBuilder();
+			llb.addAll(Arrays.asList(1.0,2.0,3.0));;
+			workspace.clearTurtles();
+			
+			//workspace.world().createTurtle(workspace.world().turtles());
+			workspace.world().getOrCreateTurtle(0).setTurtleOrLinkVariable("LABEL", llb.toLogoList());
+			workspace.world().getOrCreateTurtle(1).setTurtleOrLinkVariable("LABEL", llb.toLogoList());
+			System.out.println(workspace.report("mean (map + ([label] of turtle 0) ([label] of turtle 1))"));
+
+			// VARIABLE SLOT 3 is the PLABEL patch variable, which CAN be assigned a list value (unlike the other built-in patch vars)  
+//			emptyWorkspace.world().fastGetPatchAt(0, 0).setVariable(3, listBuilder.toLogoList());
+//			System.out.println(emptyWorkspace.report("[" + reporterStringToExec + "] of patch 0 0"));
+
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+		System.exit(0);
+		
 		try {
 			Procedure p = workspace.compileReporter("ticks"); // error because reset-ticks hasn't been called yet.
 			SimpleJobOwner owner = new SimpleJobOwner("", new MersenneTwisterFast(), org.nlogo.core.AgentKindJ.Observer());

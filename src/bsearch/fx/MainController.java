@@ -20,10 +20,9 @@ import org.xml.sax.SAXException;
 import bsearch.algorithms.SearchMethod;
 import bsearch.algorithms.SearchMethodLoader;
 import bsearch.app.BehaviorSearch.RunOptions;
-
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.app.BehaviorSearch;
 import bsearch.app.BehaviorSearchException;
-import bsearch.app.SearchProtocol;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.ChromosomeFactory;
 import bsearch.representations.ChromosomeTypeLoader;
@@ -161,17 +160,11 @@ public class MainController implements Initializable {
 		// set up ChoiceBox in SO tab
 		SOGoalBox.setItems(FXCollections.observableArrayList("Minimize Fitness", "Maximize Fitness"));
 		List<String> fitnessCollecting = new ArrayList<String>();
-		for (SearchProtocol.FITNESS_COLLECTING f : SearchProtocol.FITNESS_COLLECTING.values()) {
-
-			fitnessCollecting.add(f.toString());
-
-		}
+		fitnessCollecting.add("last @{MEASURED1}");
 		SOFitnessCollectingBox.setItems(FXCollections.observableArrayList(fitnessCollecting));
 		SOFixedSamplingBox.setItems(FXCollections.observableArrayList("Fixed Sampling"));
 		List<String> combineReplication = new ArrayList<String>();
-		for (SearchProtocol.FITNESS_COMBINE_REPLICATIONS f : SearchProtocol.FITNESS_COMBINE_REPLICATIONS.values()) {
-			combineReplication.add(f.toString());
-		}
+		combineReplication.add("mean @{CONDENSED1}");
 		SOCombineReplicatesBox.setItems(FXCollections.observableArrayList(combineReplication));
 
 		SOWrtBox.setItems(FXCollections.observableArrayList("---"));
@@ -361,9 +354,9 @@ public class MainController implements Initializable {
 		"[\"continuousParameter\" [0.0 \"C\" 1.0]] \n " +
 		"[\"choiceParameter\" \"near\" \"far\"] \n");
 		 
-		SearchProtocol protocol;
+		SearchProtocolInfo protocol;
 		try {
-			protocol = SearchProtocol.load(defaultProtocolXMLForNewSearch);
+			protocol = SearchProtocolInfo.loadOldXML(defaultProtocolXMLForNewSearch);
 			loadProtocol(protocol);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -430,7 +423,7 @@ public class MainController implements Initializable {
 
 	private void openFile(File fProtocol) {
 		try {
-			SearchProtocol protocol = SearchProtocol.loadFile(fProtocol.getPath());
+			SearchProtocolInfo protocol = SearchProtocolInfo.loadOldXMLBasedFile(fProtocol.getPath());
 
 			currentFile = fProtocol;
 			loadProtocol(protocol);
@@ -444,43 +437,43 @@ public class MainController implements Initializable {
 		}
 	}
 
-	public void loadProtocol(SearchProtocol protocol) {
-		browseField.setText(protocol.modelFile);
+	public void loadProtocol(SearchProtocolInfo protocol) {
+		browseField.setText(protocol.modelDCInfo.modelFileName);
 		StringBuilder sb = new StringBuilder();
 		for (String s : protocol.paramSpecStrings) {
 			sb.append(s);
 			sb.append("\n");
 		}
 		this.MParamSpecsArea.setText(sb.toString());
-		MModelStepField.setText(protocol.modelStepCommands);
-		MModelSetupField.setText(protocol.modelSetupCommands);
-		MModelStopConditionField.setText(protocol.modelStopCondition);
-		MModelStepLimitField.setText(Integer.toString(protocol.modelStepLimit));
-		MMeasureField.setText(protocol.modelMetricReporter);
-		MMeasureIfField.setText(protocol.modelMeasureIf);
-		SOGoalBox.setValue(protocol.fitnessMinimized ? "Minimize Fitness" : "Maximize Fitness");
-		SOFitnessCollectingBox.setValue(protocol.fitnessCollecting.toString());
+		MModelStepField.setText(protocol.modelDCInfo.stepCommands);
+		MModelSetupField.setText(protocol.modelDCInfo.setupCommands);
+		MModelStopConditionField.setText(protocol.modelDCInfo.stopCondition);
+		MModelStepLimitField.setText(Integer.toString(protocol.modelDCInfo.maxModelSteps));
+		MMeasureField.setText(protocol.modelDCInfo.measureReporters.values().toArray()[0].toString());
+		MMeasureIfField.setText(protocol.modelDCInfo.measureIfReporter);
+		SOGoalBox.setValue(protocol.objectives.get(0).fitnessMinimized ? "Minimize Fitness" : "Maximize Fitness");
+		SOFitnessCollectingBox.setValue(protocol.modelDCInfo.singleRunCondenserReporters.values().toArray()[0].toString());
 		SOFitnessSamplingRepetitionsField.setText(Integer.toString(protocol.fitnessSamplingReplications));
 		SOFixedSamplingBox
 				.setValue((protocol.fitnessSamplingReplications != 0) ? "Fixed Sampling" : "Adaptive Sampling");
-		SOCombineReplicatesBox.setValue(protocol.fitnessCombineReplications.toString());
-		SOTakeDerivativeCheckBox.setSelected(protocol.fitnessDerivativeParameter.length() > 0);
-		SOFitnessDerivativeUseAbsCheckBox.setSelected(protocol.fitnessDerivativeUseAbs);
+		SOCombineReplicatesBox.setValue(protocol.objectives.get(0).fitnessCombineReplications.toString());
+		SOTakeDerivativeCheckBox.setSelected(protocol.objectives.get(0).fitnessDerivativeParameter.length() > 0);
+		SOFitnessDerivativeUseAbsCheckBox.setSelected(protocol.objectives.get(0).fitnessDerivativeUseAbs);
 		takeDerivativeAction(new ActionEvent());
-		SOWrtBox.setValue(protocol.fitnessDerivativeParameter);
-		SODeltaField.setText(Double.toString(protocol.fitnessDerivativeDelta));
-		SASearchMethodBox.setValue(protocol.searchMethodType);
-		SAChromosomeTypeBox.setValue(protocol.chromosomeType);
-		updateSearchMethodParamTable(searchMethodChoices.get(protocol.searchMethodType), protocol.searchMethodParams);
-		SACachingCheckBox.setSelected(protocol.caching);
-		SABestCheckingField.setText(Integer.toString(protocol.bestCheckingNumReplications));
-		SAEvaluationLimitField.setText(Integer.toString(protocol.evaluationLimit));
-		lastSavedText = protocol.toXMLString(); 
+		SOWrtBox.setValue(protocol.objectives.get(0).fitnessDerivativeParameter);
+		SODeltaField.setText(Double.toString(protocol.objectives.get(0).fitnessDerivativeDelta));
+		SASearchMethodBox.setValue(protocol.searchAlgorithmInfo.searchMethodType);
+		SAChromosomeTypeBox.setValue(protocol.searchAlgorithmInfo.chromosomeType);
+		updateSearchMethodParamTable(searchMethodChoices.get(protocol.searchAlgorithmInfo.searchMethodType), protocol.searchAlgorithmInfo.searchMethodParams);
+		SACachingCheckBox.setSelected(protocol.searchAlgorithmInfo.caching);
+		SABestCheckingField.setText(Integer.toString(protocol.searchAlgorithmInfo.bestCheckingNumReplications));
+		SAEvaluationLimitField.setText(Integer.toString(protocol.searchAlgorithmInfo.evaluationLimit));
+		lastSavedText = protocol.toJSONString(); 
 		runOptions = null; 
 		//the runOptions to defaults, when a different Protocol is loaded
 	}
 
-	private SearchProtocol createProtocolFromFormData() throws UIConstraintException {
+	private SearchProtocolInfo createProtocolFromFormData() throws UIConstraintException {
 		HashMap<String, String> searchMethodParams = new java.util.LinkedHashMap<String, String>();
 		
 		List<SearchMethodParamTableRow> currentTable = SASearchMethodTable.getItems();
@@ -546,13 +539,13 @@ public class MainController implements Initializable {
 						"Error: can't create search protocol");
 			}
 		}
-		SearchProtocol protocol = new SearchProtocol(browseField.getText(),
+		SearchProtocolInfo protocol = new SearchProtocolInfo(browseField.getText(),
 				java.util.Arrays.asList(MParamSpecsArea.getText().split("\n")), MModelStepField.getText(),
 				MModelSetupField.getText(), MModelStopConditionField.getText(), modelStepLimit, MMeasureField.getText(),
 				MMeasureIfField.getText(), SOGoalBox.getValue().toString().equals("Minimize Fitness"),
 				fitnessSamplingRepetitions,
-				SearchProtocol.FITNESS_COLLECTING.valueOf(SOFitnessCollectingBox.getValue().toString()),
-				SearchProtocol.FITNESS_COMBINE_REPLICATIONS.valueOf(SOCombineReplicatesBox.getValue().toString()),
+				SOFitnessCollectingBox.getValue().toString(),
+				SOCombineReplicatesBox.getValue().toString(),
 				SOTakeDerivativeCheckBox.isSelected() ? SOWrtBox.getValue().toString() : "", fitnessDerivDelta,
 				SOFitnessDerivativeUseAbsCheckBox.isSelected(), SASearchMethodBox.getValue().toString(),
 				searchMethodParams, SAChromosomeTypeBox.getValue().toString(), caching, evaluationLimit,
@@ -600,13 +593,10 @@ public class MainController implements Initializable {
 	}
 
 	private void doSave() {
-		java.io.FileWriter fout;
 		try {
-			fout = new java.io.FileWriter(currentFile);
-			SearchProtocol protocol = createProtocolFromFormData();
-			protocol.save(fout);
-			fout.close();
-			lastSavedText = protocol.toXMLString();
+			SearchProtocolInfo protocol = createProtocolFromFormData();
+			protocol.save(currentFile.getAbsolutePath());
+			lastSavedText = protocol.toJSONString();
 		} catch (IOException ex) {
 			handleError("IO Error occurred attempting to save file: " + currentFile.getPath(),ex);
 		} catch (UIConstraintException ex) {
@@ -627,7 +617,7 @@ public class MainController implements Initializable {
 		}
 		try {
 			
-			xmlStr = createProtocolFromFormData().toXMLString();
+			xmlStr = createProtocolFromFormData().toJSONString();
 		} catch (UIConstraintException ex) {
 			// if we can't create a valid protocol object from the form data,
 			// assume the user has changed something...
@@ -684,7 +674,7 @@ public class MainController implements Initializable {
 
 	public void suggestParam(ActionEvent event) {
 		try {
-			this.MParamSpecsArea.setText(bsearch.nlogolink.Utils.getDefaultConstraintsText(this.browseField.getText()));
+			this.MParamSpecsArea.setText(bsearch.nlogolink.NLogoUtils.getDefaultConstraintsText(this.browseField.getText()));
 		} catch (NetLogoLinkException e) {
 			handleError(e.getMessage(), e);
 		}
@@ -773,7 +763,7 @@ public class MainController implements Initializable {
 		handleError(msg1, null);
 	}
 	public void displayProgressDialog(){
-		SearchProtocol protocol;
+		SearchProtocolInfo protocol;
 		
 		try {
 			protocol = createProtocolFromFormData();

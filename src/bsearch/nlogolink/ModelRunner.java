@@ -1,16 +1,21 @@
 package bsearch.nlogolink;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Queue;
 
 import org.nlogo.api.AgentException;
 import org.nlogo.core.CompilerException;
+import org.nlogo.core.LogoList;
 import org.nlogo.api.LogoException;
+import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.nvm.Procedure;
+
+import bsearch.datamodel.ModelDataCollectionInfo;
+import bsearch.util.GeneralUtils;
+
 import org.nlogo.api.MersenneTwisterFast;
 import org.nlogo.headless.HeadlessWorkspace;
 
@@ -18,16 +23,25 @@ public strictfp class ModelRunner {
 
 	private HeadlessWorkspace workspace;
 
-	private Procedure setupCommands;
-	private Procedure stepCommands;
-	private Procedure stopConditionReporter;
-	private Procedure measureIfReporter = null;
-	private final boolean recordEveryTick;
-	private final int maxModelSteps;
+	private ModelDataCollectionInfo modelDCInfo;
+
+	// use pre-compiled versions of all NetLogo code for efficiency
+	private Procedure setupCommandsProcedure;
+	private Procedure stepCommandsProcedure;
+	private Procedure stopConditionReporterProcedure;
+	private Procedure measureIfReporterProcedure = null;
 	
-	// Note: ModelRunner can collect multiple measures, for eventual support for extending to multi-objective optimization.
-	private LinkedHashMap<String,Procedure> resultReporters = new LinkedHashMap<String,Procedure>();
-		
+	// Note: ModelRunner can collect multiple measures
+	private LinkedHashMap<String,Procedure> measureReporterProcs = new LinkedHashMap<String,Procedure>();
+
+	private LinkedHashMap<String,Procedure> singleRunCondenserReporterProcs = new LinkedHashMap<String,Procedure>();
+
+	// Admittedly, combining doesn't pertain to any single model run, but we need access
+	// to the model/workspace in order to compile and execute NetLogo code,
+	//  AND the code must be compiled in the same world that it gets executed in!
+	private List<String> multipleRunCombinerSourceCodes;
+	private List<Procedure> multipleRunCombinerProcs = new ArrayList<>();
+
 	private boolean runIsDone; 
 
 	// Until setup() is run for the first time (and the random seed can be set appropriately), 
@@ -35,51 +49,123 @@ public strictfp class ModelRunner {
 	private SimpleJobOwner mainJobOwner = null; // uses NetLogo world's mainRNG (and thus affects the state of the world)
 	private SimpleJobOwner extraJobOwner = null; // uses a private RNG, and thus may not affect world state (unless the NetLogo code being run has side effects)
 	
-	private ModelRunner(String modelFileName, boolean recordEveryTick, int maxModelSteps) 
-		throws LogoException, IOException, CompilerException 
+	/**
+	 * Should probably not be called directly - instead allow the Pool/Factory to create it
+	 * @throws NetLogoLinkException 
+	 */
+	ModelRunner(ModelDataCollectionInfo modelDCInfo, List<String> combineReporterSourceCodes) throws NetLogoLinkException  
 	{
-		workspace = Utils.createWorkspace();
-		workspace.open(modelFileName);
+		this.modelDCInfo = modelDCInfo;
+		this.multipleRunCombinerSourceCodes = combineReporterSourceCodes;
 
-		this.recordEveryTick = recordEveryTick;
-		this.maxModelSteps = maxModelSteps;
+		workspace = NLogoUtils.createWorkspace();
+    	try {    		
+    		workspace.open(GeneralUtils.attemptResolvePathFromProtocolFolder(modelDCInfo.modelFileName));			
+    	} catch (LogoException e) {
+			e.printStackTrace();
+			throw new NetLogoLinkException("Error opening NetLogo model.  NetLogo sent back this error message: \"" + e.getMessage() + "\"");
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new NetLogoLinkException("I/O error when loading NetLogo model ( " + modelDCInfo.modelFileName + " ).  Error message: \"" + e.getMessage() + "\"");
+		} catch (CompilerException e) {
+			e.printStackTrace();
+			throw new NetLogoLinkException("Error compiling NetLogo model ( " + modelDCInfo.modelFileName + " ).  NetLogo's error message: \"" + e.getMessage() + "\"");
+		}
+    	
+		setSetupCommands(modelDCInfo.setupCommands);		
+		setStepCommands(modelDCInfo.stepCommands);
+		setStopConditionReporter(modelDCInfo.stopCondition );
+		setMeasureIfReporter(modelDCInfo.measureIfReporter);
+		
+		for (String reporterName : modelDCInfo.measureReporters.keySet()) {
+			addMeasureReporter(reporterName, modelDCInfo.measureReporters.get(reporterName));
+		}
+		// 
+		String[] measureVarNames = modelDCInfo.measureReporters.keySet().toArray(new String[0]);
+		for (String reporterName : modelDCInfo.singleRunCondenserReporters.keySet()) {
+			addSingleRunCondenserReporter(reporterName, modelDCInfo.singleRunCondenserReporters.get(reporterName), measureVarNames);
+		}
+
+		String[] condenserVarNames = modelDCInfo.singleRunCondenserReporters.keySet().toArray(new String[0]);
+		for (String reporterSource : multipleRunCombinerSourceCodes) {
+			addMultipleRunCombinerReporter(reporterSource, condenserVarNames);
+		}
 	}
 
-	public void setSetupCommands(String commands) throws CompilerException
+	public void setSetupCommands(String commands) throws NetLogoLinkException
 	{
-		setupCommands = workspace.compileCommands(commands);
+		try {
+			setupCommandsProcedure = workspace.compileCommands(commands);
+		} catch (CompilerException e) {
+			e.printStackTrace();
+			throw new NetLogoLinkException("Error compiling the model's setup commands : " +commands.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+		}
 	}
-	public void setStepCommands(String commands) throws CompilerException
+	public void setStepCommands(String commands) throws NetLogoLinkException
 	{
-		stepCommands = workspace.compileCommands(commands);
+		try {
+			stepCommandsProcedure = workspace.compileCommands(commands);
+		} catch (CompilerException e) {
+			e.printStackTrace();
+			throw new NetLogoLinkException("Error compiling the model's step commands : " +commands.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+		}
+			
 	}
-	public void setStopConditionReporter(String reporter) throws CompilerException
+	public void setStopConditionReporter(String reporter) throws NetLogoLinkException
 	{
 		if (reporter.trim().length() > 0)
 		{
-			stopConditionReporter = workspace.compileReporter(reporter);
+			try {
+				stopConditionReporterProcedure = workspace.compileReporter(reporter);
+			} catch (CompilerException e) {
+				e.printStackTrace();
+				throw new NetLogoLinkException("Error compiling the model's stop condition reporter: " + reporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+			}
+
 		}
 	}	
-	public void addResultReporter(String reporter) throws CompilerException
+	public void setMeasureIfReporter(String reporter) throws NetLogoLinkException
 	{
-		resultReporters.put(reporter, workspace.compileReporter(reporter));
-	}
-	public void setMeasureIfReporter(String reporter) throws CompilerException
-	{
-		if (reporter.trim().length() > 0)
+		if (reporter.trim().length() > 0 && !reporter.equals(ModelDataCollectionInfo.SPECIAL_MEASURE_IF_DONE_FLAG))
 		{
-			measureIfReporter = workspace.compileReporter(reporter);
+			try {
+				measureIfReporterProcedure = workspace.compileReporter(reporter);
+			} catch (CompilerException e) {
+				e.printStackTrace();
+				throw new NetLogoLinkException("Error compiling the model's 'measure if' reporter: " + reporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+			}
 		}
 	}
+	public void addMeasureReporter(String reporterName, String reporter) throws NetLogoLinkException
+	{
+		try {
+			measureReporterProcs.put(reporterName, workspace.compileReporter(reporter));
+		} catch (CompilerException e) {
+			e.printStackTrace();
+			throw new NetLogoLinkException("Error compiling model's measure reporter: " + reporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+		}
+	}
+
+	public void addSingleRunCondenserReporter(String reporterName, String reporter, String[] measureVarNames) throws NetLogoLinkException
+	{
+		singleRunCondenserReporterProcs.put(reporterName, NLogoUtils.substituteVariablesAndCompile(reporter, measureVarNames, workspace));
+	}
+
+	public void addMultipleRunCombinerReporter(String reporter, String[] condensedVarNames) throws NetLogoLinkException
+	{
+		multipleRunCombinerProcs.add(NLogoUtils.substituteVariablesAndCompile(reporter, condensedVarNames, workspace));
+	}
+
+	
 	public boolean checkStopCondition() throws NetLogoLinkException
 	{
 		if (extraJobOwner == null)
 		{
 			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
 		}
-		if (stopConditionReporter != null)
+		if (stopConditionReporterProcedure != null)
 		{
-			Object obj = workspace.runCompiledReporter( extraJobOwner, stopConditionReporter);
+			Object obj = workspace.runCompiledReporter( extraJobOwner, stopConditionReporterProcedure);
 			LogoException ex = workspace.lastLogoException();
 			if (ex != null)
 			{
@@ -112,13 +198,14 @@ public strictfp class ModelRunner {
 			// and running SETUP followed by GO, without worrying about all of the additional conditions
 			// and reporters affecting the state of the RNG and changing the outcome of the run...
 			mainJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Main", workspace.mainRNG(), org.nlogo.core.AgentKindJ.Observer());
+			
 			MersenneTwisterFast extraReporterRNG = new MersenneTwisterFast(workspace.mainRNG().clone().nextInt());
 			extraJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Extra", extraReporterRNG, org.nlogo.core.AgentKindJ.Observer());
 		} catch (Exception ex) {ex.printStackTrace(); }
 		
-		if (setupCommands != null)
+		if (setupCommandsProcedure != null)
 		{
-			workspace.runCompiledCommands(mainJobOwner,setupCommands);
+			workspace.runCompiledCommands(mainJobOwner,setupCommandsProcedure);
 			LogoException ex = workspace.lastLogoException();
 			if (ex != null)
 			{
@@ -138,9 +225,9 @@ public strictfp class ModelRunner {
 		{
 			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
 		}
-		if (stepCommands != null)
+		if (stepCommandsProcedure != null)
 		{
-			workspace.runCompiledCommands(mainJobOwner, stepCommands );				
+			workspace.runCompiledCommands(mainJobOwner, stepCommandsProcedure );				
 			LogoException ex = workspace.lastLogoException();
 			if (ex != null)
 			{
@@ -156,9 +243,9 @@ public strictfp class ModelRunner {
 	public LinkedHashMap<String,Object> measureResults() throws NetLogoLinkException
 	{
 		LinkedHashMap<String,Object> results = new LinkedHashMap<String,Object>();
-		for (String key: resultReporters.keySet())
+		for (String key: measureReporterProcs.keySet())
 		{
-			results.put(key, measureResultReporter(resultReporters.get(key)));
+			results.put(key, measureResultReporter(measureReporterProcs.get(key)));
 		}		
 		return results;
 	}
@@ -183,14 +270,17 @@ public strictfp class ModelRunner {
 		return (Double) obj;
 	}
 
-	private boolean evaluateMeasureIfReporter() throws NetLogoLinkException
+	private boolean evaluateMeasureIfReporter(boolean isAfterFinalStep) throws NetLogoLinkException
 	{
-		// If they left the field blank, we'll assume we should measure every time.
-		if (measureIfReporter == null) 
+		if (measureIfReporterProcedure == null) 
 		{
-			return true;
+			if (modelDCInfo.measureIfReporter.equals(ModelDataCollectionInfo.SPECIAL_MEASURE_IF_DONE_FLAG)) {
+				return isAfterFinalStep;
+			} else {// they left the field blank, and so we assume we should measure every time.
+				return true;				
+			}
 		}
-		Object obj = workspace.runCompiledReporter(extraJobOwner, measureIfReporter).equals(Boolean.TRUE);
+		Object obj = workspace.runCompiledReporter(extraJobOwner, measureIfReporterProcedure).equals(Boolean.TRUE);
 		LogoException ex = workspace.lastLogoException();
 		if (ex != null)
 		{
@@ -203,42 +293,38 @@ public strictfp class ModelRunner {
 		}
 		return 	(Boolean) obj;		
 	}
-	private void conditionallyRecordResults(ModelRunResult results) throws NetLogoLinkException
+	private void conditionallyRecordResults(ModelRunResultBuilder resultBuilder, boolean isAfterFinalStep) throws NetLogoLinkException
 	{
 		if (extraJobOwner == null)
 		{
 			throw new IllegalStateException("ModelRunner.setup() must be called before running commands/reporters.");
 		}
 
-		if (evaluateMeasureIfReporter())
+		if (evaluateMeasureIfReporter(isAfterFinalStep))
 		{
-			for (String key: resultReporters.keySet())
+			for (String measureName: measureReporterProcs.keySet())
 			{
-				results.addResult(key, measureResultReporter(resultReporters.get(key)));
+				resultBuilder.appendMeasureResult(measureName, measureResultReporter(measureReporterProcs.get(measureName)));
 			}
 		}		
 	}
-	public ModelRunResult doFullRun(RunSetup runSetup) throws ModelRunnerException
+		
+	public ModelRunResult doFullRun(ModelRunSetupInfo runSetup) throws ModelRunnerException
 	{
 		try {
-			ModelRunResult results = new ModelRunResult(runSetup.seed);
-			setup(runSetup.seed, runSetup.parameterSettings);
+			ModelRunResultBuilder resultBuilder = new ModelRunResultBuilder();
+			setup(runSetup.getSeed(), runSetup.getParameterSettings());
 			
 			int steps;
-			for (steps = 0; steps < maxModelSteps && !runIsDone; steps++)
+			for (steps = 0; steps < modelDCInfo.maxModelSteps && !runIsDone; steps++)
 			{
-				if (recordEveryTick )
-				{
-					conditionallyRecordResults(results);
-				}
+				conditionallyRecordResults(resultBuilder,false);
 				go();
 			}
-			conditionallyRecordResults(results);
-			if (results.isEmpty())
-			{
-				throw new NetLogoLinkException("No values were measured/collected during this model run! (Model was run for " + steps + " steps.)");
-			}
-			return results;
+			conditionallyRecordResults(resultBuilder,true);
+			String[] originalCondenserCodes = modelDCInfo.singleRunCondenserReporters.values().toArray(new String[0]);
+			return resultBuilder.createModelRunResults(runSetup, originalCondenserCodes, 
+					singleRunCondenserReporterProcs, workspace, extraJobOwner);
 		}
 		catch (Exception ex)  {		
 			throw new ModelRunnerException(runSetup, ex);
@@ -249,18 +335,37 @@ public strictfp class ModelRunner {
 	{
 		return runIsDone;
 	}
+	
+	// After multiple runs are done, then this method will get called on (an arbitrary) ModelRunner
+	// to combine the results across runs.
+	public List<Object> evaluateCombineReplicateReporters(List<ModelRunResult> replicateRunsResults)
+			throws NetLogoLinkException {
+		String[] condensedVarNames =  modelDCInfo.singleRunCondenserReporters.keySet().toArray(new String[0]);
+		
+		LogoList[] condensedVarValues= new LogoList[condensedVarNames.length];
 
+		for (int i = 0; i < condensedVarNames.length; i++) { 
+			LogoListBuilder builder = new LogoListBuilder();
+			for (ModelRunResult runResult : replicateRunsResults) {
+				builder.add(runResult.getCondensedResultMap().get(condensedVarNames[i]));
+			}
+			condensedVarValues[i] = builder.toLogoList();
+		}
+		
+		List<Object> combinedResults = new ArrayList<Object>();
+		for (int i = 0; i < multipleRunCombinerProcs.size(); i++) {
+			combinedResults.add(NLogoUtils.evaluateNetLogoWithSubstitution(multipleRunCombinerSourceCodes.get(i),
+					multipleRunCombinerProcs.get(i), condensedVarNames, condensedVarValues, workspace, extraJobOwner));
+		}
+		return combinedResults;
+	}
+
+	
 	public void dispose() throws InterruptedException {
 		workspace.dispose();		
 	}
+		
 
-	/** Just used for unit testing - preferable to use the ModelRunner.Factory paradigm */
-	public static ModelRunner createModelRunnerForTesting (String s, boolean recordEveryTick, int maxModelSteps) throws LogoException, IOException, CompilerException
-	{
-		return new ModelRunner(s, recordEveryTick, maxModelSteps);				
-	}
-	
-	
 	/** Note: This uses the "extra" random number generator, so it 
 	 * won't affect the state of the main RNG for the run.  
 	 * Still, be careful because some reporters could have side-effects in the model
@@ -296,17 +401,25 @@ public strictfp class ModelRunner {
 		workspace.command( cmd );
 	}
 
+	
+	
+	/** Just used for unit testing - preferable to acquire from the Pool */
+	public static ModelRunner createModelRunnerForTesting (ModelDataCollectionInfo modelDCInfo, List<String> multipleRunCombinerReporters) throws NetLogoLinkException
+	{
+		return new ModelRunner(modelDCInfo,multipleRunCombinerReporters);				
+	}
+	
 	public static class ModelRunnerException extends NetLogoLinkException
 	{
 		private static final long serialVersionUID = 1L;
-		private final RunSetup runSetup;
+		private final ModelRunSetupInfo runSetup;
 
-		public ModelRunnerException(RunSetup runSetup, Exception ex) {
+		public ModelRunnerException(ModelRunSetupInfo runSetup, Exception ex) {
 			super("", ex);
 			this.runSetup = runSetup;
 		}
 		
-		public RunSetup getRunSetup()
+		public ModelRunSetupInfo getRunSetup()
 		{
 			return runSetup;
 		}
@@ -318,138 +431,6 @@ public strictfp class ModelRunner {
 		}
 	}
 	
-	public static class RunSetup {
-		final int seed;
-		final private LinkedHashMap<String,Object> parameterSettings;
-		
-		public RunSetup(int seed,
-				LinkedHashMap<String, Object> parameterSettings) {
-			super();
-			this.seed = seed;
-			this.parameterSettings = parameterSettings;
-		}
-		
-		@Override
-		public String toString()
-		{
-			StringBuilder sb = new StringBuilder();
-			sb.append("{RANDOM-SEED: " + seed + ",\n  SETTINGS: {");
-			for (String key : parameterSettings.keySet())
-			{
-				sb.append(key + "=" + org.nlogo.api.Dump.logoObject(parameterSettings.get(key), true, false) + ", ");
-			}
-			sb.append("}}"); 
-			return sb.toString();
-		}
-	}
 
-	public static class Factory {
-		private List<ModelRunner> allModelRunners = Collections.synchronizedList(new java.util.LinkedList<ModelRunner>());
-		private Queue<ModelRunner> unusedModelRunners = new java.util.concurrent.ConcurrentLinkedQueue<ModelRunner>();
-		
-		private final String modelFileName, setupCommands, stepCommands, stopCondition, metricReporter, measureIfReporter;
-		private final boolean recordEveryTick;
-		private final int maxModelSteps;		
-		
-		public Factory(String modelFileName, boolean recordEveryTick, int maxModelSteps, 
-				String setupCommands, String stepCommands, String stopCondition, String metricReporter, 
-				String measureIfReporter)
-		{
-			this.modelFileName = modelFileName;
-			this.setupCommands = setupCommands;
-			this.stepCommands = stepCommands;
-			this.stopCondition = stopCondition;
-			this.metricReporter = metricReporter;
-			this.measureIfReporter = measureIfReporter;
-			this.recordEveryTick = recordEveryTick;
-			this.maxModelSteps = maxModelSteps;
-			
-		}
-		/** Either creates a new one, or recycles a ModelRunner that has been released again into the pool */
-		public ModelRunner acquireModelRunner() throws NetLogoLinkException 
-		{
-			ModelRunner runner = unusedModelRunners.poll();
-			if (runner != null)
-			{
-				return runner;
-			}
-			else
-			{
-				return newModelRunner();
-			}
-		}
-		public void releaseModelRunner(ModelRunner runner)
-		{
-			unusedModelRunners.add(runner);
-		}
-		
-		private ModelRunner newModelRunner() throws NetLogoLinkException
-		{
-			ModelRunner runner;
-	    	try {
-				runner = new ModelRunner(modelFileName, recordEveryTick, maxModelSteps);
-	    	} catch (LogoException e) {
-				e.printStackTrace();
-				throw new NetLogoLinkException("Error opening NetLogo model.  NetLogo sent back this error message: \"" + e.getMessage() + "\"");
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new NetLogoLinkException("I/O error when loading NetLogo model ( " + modelFileName + " ).  Error message: \"" + e.getMessage() + "\"");
-			} catch (CompilerException e) {
-				e.printStackTrace();
-				throw new NetLogoLinkException("Error compiling NetLogo model ( " + modelFileName + " ).  NetLogo's error message: \"" + e.getMessage() + "\"");
-			}
-	
-	        try {
-				runner.setSetupCommands(setupCommands);
-			} catch (CompilerException e) {
-				e.printStackTrace();
-				throw new NetLogoLinkException("Error compiling the model's setup commands : " +setupCommands.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
-			}
-			
-	        try {
-				runner.setStepCommands(stepCommands);
-			} catch (CompilerException e) {
-				e.printStackTrace();
-				throw new NetLogoLinkException("Error compiling the model's step commands : " +stepCommands.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
-			}
-	        try {
-				runner.setStopConditionReporter(stopCondition );
-			} catch (CompilerException e) {
-				e.printStackTrace();
-				throw new NetLogoLinkException("Error compiling the model's stop condition: " +stopCondition.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
-			}
-			try {
-				runner.setMeasureIfReporter(measureIfReporter);
-			} catch (CompilerException e) {
-				e.printStackTrace();
-				throw new NetLogoLinkException("Error compiling the model's measure-if condition: " +measureIfReporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
-			}
-	        try {
-				runner.addResultReporter(metricReporter);
-			} catch (CompilerException e) {
-				e.printStackTrace();
-				throw new NetLogoLinkException("Error compiling the model's fitness metric: " +metricReporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
-			}
-			
-			allModelRunners.add(runner);
-			
-			return runner;			
-		}
-
-		/** This method should only be called after you are done using this Factory, and all the ModelRunners created by it.
-		 * It disposes the ModelRunners (and their corresponding NetLogo workspaces), and attempting to use them after this
-		 * will result in errors.
-		 * */
-		public void disposeAllRunners() throws InterruptedException {
-			synchronized(allModelRunners)
-			{
-				for (ModelRunner runner : allModelRunners) {
-					runner.dispose();
-				}
-				allModelRunners.clear();
-			}
-		}
-
-	}
 
 }

@@ -1,7 +1,6 @@
 package bsearch.MOEAlink;
 
 import java.io.IOException;
-
 import org.moeaframework.Executor;
 import org.moeaframework.analysis.plot.Plot;
 import org.moeaframework.core.NondominatedPopulation;
@@ -10,17 +9,20 @@ import org.moeaframework.util.progress.ProgressEvent;
 import org.moeaframework.util.progress.ProgressListener;
 import org.xml.sax.SAXException;
 
-import bsearch.app.SearchProtocol;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.SearchManager;
 import bsearch.evaluation.StandardFitnessFunction;
 import bsearch.nlogolink.BatchRunner;
-import bsearch.nlogolink.ModelRunner;
-import bsearch.nlogolink.Utils;
+import bsearch.nlogolink.NLogoUtils;
+import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.util.GeneralUtils;
 
 public class RunBSProblem {
 
-	public static void main(String[] args) throws IOException, SAXException {
+	public static void main(String[] args) throws IOException, SAXException, NetLogoLinkException {
 //		Instrumenter instrumenter = new Instrumenter()
 //				.withProblemClass(SchafferProblem.class)
 //				.withFrequency(1000)
@@ -30,18 +32,25 @@ public class RunBSProblem {
 
 		GeneralUtils.updateProtocolFolder(FILENAME);
 
-		SearchProtocol protocol = SearchProtocol.loadFile( FILENAME ) ;
+		SearchProtocolInfo protocol = SearchProtocolInfo.loadOldXMLBasedFile( FILENAME ) ;
+		//Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		Gson gson = new GsonBuilder().create();
+		String json = gson.toJson(protocol);
+		System.out.println(json);
+		json = "{\"bsearchVersionNumber\":0.72,\"modelFile\":\"TesterMOEA.nlogo\",\"modelStepCommands\":\"go\",\"modelSetupCommands\":\"setup\",\"modelStopCondition\":\"count turtles \\u003e 1000\",\"modelStepLimit\":0,\"modelMetricReporter\":\"ellipsoid-slow\",\"modelMeasureIf\":\"true\",\"paramSpecStrings\":[\"[\\\"a\\\" [-32 1 32]]\",\"[\\\"b\\\" [-32 1 32]]\",\"[\\\"c\\\" [-32 1 32]]\",\"[\\\"d\\\" [-32 1 32]]\"],\"fitnessMinimized\":true,\"fitnessSamplingReplications\":8,\"fitnessCollecting\":\"last @{MEASURE1}\",\"fitnessCombineReplications\":\"MEAN\",\"fitnessDerivativeParameter\":\"\",\"fitnessDerivativeDelta\":0.0,\"fitnessDerivativeUseAbs\":false,\"searchMethodType\":\"MutationHillClimber\",\"searchMethodParams\":{\"mutation-rate\":\"0.05\",\"restart-after-stall-count\":\"0\"},\"chromosomeType\":\"GrayBinaryChromosome\",\"caching\":true,\"evaluationLimit\":60,\"bestCheckingNumReplications\":5}";
+		SearchProtocolInfo protocol2 = gson.fromJson(json,SearchProtocolInfo.class);
+		System.out.println(gson.toJson(protocol2));
+		
 
-		boolean measureEveryTick = !protocol.fitnessCollecting.equals(SearchProtocol.FITNESS_COLLECTING.AT_FINAL_STEP);
-		ModelRunner.Factory mrunnerFactory = new ModelRunner.Factory(
-				GeneralUtils.attemptResolvePathFromProtocolFolder(protocol.modelFile), measureEveryTick, 
-				protocol.modelStepLimit, protocol.modelSetupCommands, protocol.modelStepCommands, 
-				protocol.modelStopCondition, protocol.modelMetricReporter, protocol.modelMeasureIf);
+		//protocol2.save(new FileWriter(GeneralUtils.attemptResolvePathFromBSearchRoot("test/TesterMOEA.bsearch2")));
+		
+		System.exit(0);
+		
+		
     	int numEvaluationThreads = 1;
-		BatchRunner batchRunner = new BatchRunner(numEvaluationThreads, mrunnerFactory);
+		BatchRunner batchRunner = new BatchRunner(numEvaluationThreads,protocol);
 
-		SearchManager manager = new SearchManager(0, batchRunner, protocol, new StandardFitnessFunction(protocol),
-				false, 0);
+		SearchManager manager = new SearchManager(0, batchRunner, protocol, new StandardFitnessFunction(protocol.objectives.get(0)));
 
 		Plot plot = new Plot();
 
@@ -76,18 +85,18 @@ public class RunBSProblem {
 				.withProblem(new BSProblem(protocol,manager))
 				.withProperty("populationSize", 20)
 //				.withInstrumenter(instrumenter)
-				.withMaxEvaluations(protocol.evaluationLimit)
+				.withMaxEvaluations(protocol.searchAlgorithmInfo.evaluationLimit)
 				.distributeOn(1)
-				//.withProgressListener(progListener)
+				.withProgressListener(progListener)
 				.run();
 		long endTime = System.currentTimeMillis();
-		System.out.println(endTime-startTime);
-		//plot.show();
+		//System.out.println(endTime-startTime);
+		plot.show();
 		
 		
 		try {
 			batchRunner.dispose();
-			Utils.fullyShutDownNetLogoLink();
+			NLogoUtils.fullyShutDownNetLogoLink();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}

@@ -9,6 +9,28 @@
 	<title>BehaviorSearch Documentation</title>
 </head>
 
+
+<!--MULTI-OBJ NOTES:
+* Need to document:
+
+measureIf can either be Netlogo reporter OR the special value "@DONE"
+
+
+ Raw (step-by-step) measures are collected throughout the simulation run 
+ (although you can use the measureIf condition to only collect a subset, which may be faster and more memory-efficient)
+ all turtles are cleared (necessary for technical reasons), and single run condensers get evaluated
+ with the outputs from the raw  measures (which are LISTS -- although note that they might contain 0 or 1 data elements).  
+ The condensing is done in your model workspace, so you can use custom procedures that you wrote)...)
+ Combining across runs happens in one of the workspaces where your model has been loaded, but you should not assume
+ anything about the model state (e.g. that it is at the end of a run, etc)...
+ 
+ The condensed or combined results should ONLY consist of lists or primitive data (numbers, strings), 
+ not agents or any of the more complex data types (arrays, tables, etc)  
+ 
+ -->
+
+
+
 <body>
 <div id="container">
 	<div id="header">

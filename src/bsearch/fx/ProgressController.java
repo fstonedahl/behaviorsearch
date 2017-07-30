@@ -7,7 +7,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.FutureTask;
 import bsearch.algorithms.SearchParameterException;
 import bsearch.app.BehaviorSearch;
-import bsearch.app.SearchProtocol;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.ModelRunResult;
@@ -60,7 +60,7 @@ public class ProgressController {
 		progressLineChart.getXAxis().setAnimated(true);
 	}
 
-	public void startSearchTask(SearchProtocol protocol, BehaviorSearch.RunOptions runOptions) {
+	public void startSearchTask(SearchProtocolInfo protocol, BehaviorSearch.RunOptions runOptions) {
 		labelMessage.setText("Search 0 of " + runOptions.numSearches);
 
 		taskStartTime = System.currentTimeMillis();
@@ -144,15 +144,15 @@ public class ProgressController {
 	
 	class BSearchTaskWorker implements Runnable, ResultListener {
 
-		private SearchProtocol protocol;
+		private SearchProtocolInfo protocol;
 		private BehaviorSearch.RunOptions runOptions;
 		protected Throwable fatalException = null;
-		private double evaluationLimit;
+		private int evaluationLimit;
 
-		public BSearchTaskWorker(SearchProtocol protocol, BehaviorSearch.RunOptions runOptions) {
+		public BSearchTaskWorker(SearchProtocolInfo protocol, BehaviorSearch.RunOptions runOptions) {
 			this.protocol = protocol;
 			this.runOptions = runOptions;
-			this.evaluationLimit = (double) protocol.evaluationLimit;
+			this.evaluationLimit = protocol.searchAlgorithmInfo.evaluationLimit;
 			
 		}
 
@@ -163,7 +163,7 @@ public class ProgressController {
 		}
 
 		@Override
-		public void modelRunOccurred(SearchManager manager, Chromosome point, ModelRunResult result) {
+		public void modelRunOccurred(SearchManager manager,  ModelRunResult result) {
 
 			long currentTime = System.currentTimeMillis();
 			long elapsed = currentTime - taskStartTime;
@@ -171,7 +171,7 @@ public class ProgressController {
 			int searchesCompleted = (manager.getSearchIDNumber() - runOptions.firstSearchNumber);
 			int totalSearches = runOptions.numSearches;
 			double runsCompleted = manager.getEvaluationCount() + manager.getAuxilliaryEvaluationCount();
-			double totalRuns = protocol.evaluationLimit + manager.getAuxilliaryEvaluationCount();
+			double totalRuns = protocol.searchAlgorithmInfo.evaluationLimit + manager.getAuxilliaryEvaluationCount();
 			double searchProgress = (searchesCompleted + runsCompleted / totalRuns) / totalSearches;
 
 			long remaining = (long) (elapsed / searchProgress - elapsed); // in
@@ -190,7 +190,7 @@ public class ProgressController {
 		@Override
 		public void fitnessComputed(SearchManager manager, Chromosome point, double fitness) {
 			final int searchNumber = manager.getSearchIDNumber();
-			final double bestFitnessSoFar = protocol.useBestChecking() ? manager.getCurrentBestFitnessCheckedEstimate()
+			final double bestFitnessSoFar = protocol.searchAlgorithmInfo.useBestChecking() ? manager.getCurrentBestFitnessCheckedEstimate()
 					: manager.getCurrentBestFitness();
 
 			final int evaluationCount = manager.getEvaluationCount();
@@ -199,7 +199,7 @@ public class ProgressController {
 				@SuppressWarnings("unchecked")
 				public void run() {
 
-					progressBar.setProgress(evaluationCount / evaluationLimit);
+					progressBar.setProgress((double) evaluationCount / evaluationLimit);
 
 					if (searchNumber - runOptions.firstSearchNumber + 1 > progressLineChart.getData().size()) {
 						XYChart.Series series = new XYChart.Series();
@@ -273,7 +273,7 @@ public class ProgressController {
 			if (overallBest == null || manager.fitnessStrictlyBetter(bestFitness, overallBestFitness)) {
 				overallBest = manager.getCurrentBest();
 				overallBestFitness = bestFitness;
-				if (protocol.useBestChecking()) {
+				if (protocol.searchAlgorithmInfo.useBestChecking()) {
 					overallBestFitnessChecked = manager.getCurrentBestFitnessCheckedEstimate();
 				}
 			}
@@ -328,7 +328,7 @@ public class ProgressController {
 			sb.append("<BR><B>Fitness</B>=");
 			sb.append(String.format("%10.6g", fitness));
 			sb.append("<BR>");
-			if (protocol.useBestChecking()) {
+			if (protocol.searchAlgorithmInfo.useBestChecking()) {
 				sb.append("<B>(re-checked)</B>=");
 				sb.append(String.format("%10.6g", checkedFitness));
 				sb.append("<BR>");

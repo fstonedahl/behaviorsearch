@@ -3,6 +3,7 @@ package bsearch.evaluation;
 import java.util.HashMap;
 
 import bsearch.app.BehaviorSearchException;
+import bsearch.nlogolink.ModelRunningService;
 import bsearch.representations.Chromosome;
 
 
@@ -22,7 +23,7 @@ public strictfp interface FitnessFunction
 	 */
 	public abstract int getMaximumRunsThatCouldBeNeeded(int repetitionsRequested);
 
-	public abstract double evaluate(Chromosome point , ResultsArchive archive) throws BehaviorSearchException;
+	public abstract double evaluate(Chromosome point , ResultsArchive archive, ModelRunningService runService) throws BehaviorSearchException;
 	
 	/** @return a number representing how much better v2 is than v1 (0 if they are equal, negative if v1 is better) */
 	public abstract double compare(double v1, double v2);
@@ -40,8 +41,5 @@ public strictfp interface FitnessFunction
 	 */
 	public abstract double getBestConceivableFitnessValue();
 	
-	/** @return true if the fitness has reached a goal level, signaling that the search algorithm should terminate */
-	public abstract boolean reachedStopGoalFitness(double fitness);
-
 
 }

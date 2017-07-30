@@ -15,15 +15,15 @@ import org.xml.sax.SAXException;
 import bsearch.algorithms.SearchMethod;
 import bsearch.algorithms.SearchMethodLoader;
 import bsearch.algorithms.SearchParameterException;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.DerivativeFitnessFunction;
 import bsearch.evaluation.StandardFitnessFunction;
 import bsearch.evaluation.FitnessFunction;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.BatchRunner;
-import bsearch.nlogolink.ModelRunner;
 import bsearch.nlogolink.NetLogoLinkException;
-import bsearch.nlogolink.Utils;
+import bsearch.nlogolink.NLogoUtils;
 import bsearch.representations.ChromosomeFactory;
 import bsearch.representations.ChromosomeTypeLoader;
 import bsearch.space.ParameterSpec;
@@ -37,7 +37,7 @@ import bsearch.util.GeneralUtils;
  */
 public strictfp class BehaviorSearch {
 
-	public static void runMultipleSearches(SearchProtocol protocol, int numSearches, int firstSearchNumber, String fnameStem, List<ResultListener> listeners, int numThreads, int firstRandomSeed) throws BehaviorSearchException, InterruptedException, SearchParameterException
+	public static void runMultipleSearches(SearchProtocolInfo protocol, int numSearches, int firstSearchNumber, String fnameStem, List<ResultListener> listeners, int numThreads, int firstRandomSeed) throws BehaviorSearchException, InterruptedException, SearchParameterException
 	{
 		SearchSpace space = new SearchSpace(protocol.paramSpecStrings);
 
@@ -55,32 +55,27 @@ public strictfp class BehaviorSearch {
 			listener.allSearchesFinished();
 		}      		
 
-		
 	}
 	
-	public static SearchManager runProtocol(SearchProtocol protocol, SearchSpace space, int searchIDNumber, int numEvaluationThreads,  MersenneTwisterFast rng, List<ResultListener> listeners) throws SearchParameterException, BehaviorSearchException,  InterruptedException
+	public static SearchManager runProtocol(SearchProtocolInfo protocol, SearchSpace space, int searchIDNumber, int numEvaluationThreads,  MersenneTwisterFast rng, List<ResultListener> listeners) throws SearchParameterException, BehaviorSearchException,  InterruptedException
 	{
-		boolean measureEveryTick = !protocol.fitnessCollecting.equals(SearchProtocol.FITNESS_COLLECTING.AT_FINAL_STEP);
-		System.out.println("***" + GeneralUtils.attemptResolvePathFromProtocolFolder(protocol.modelFile));
-
-		ModelRunner.Factory mrunnerFactory = new ModelRunner.Factory(
-				GeneralUtils.attemptResolvePathFromProtocolFolder(protocol.modelFile), measureEveryTick, 
-				protocol.modelStepLimit, protocol.modelSetupCommands, protocol.modelStepCommands, 
-				protocol.modelStopCondition, protocol.modelMetricReporter, protocol.modelMeasureIf);
-    	BatchRunner batchRunner = new BatchRunner(numEvaluationThreads, mrunnerFactory);
+		
+		
+    	BatchRunner batchRunner = new BatchRunner(numEvaluationThreads, protocol);
     	
-        SearchMethod searcher = SearchMethodLoader.createFromName(protocol.searchMethodType);
+        SearchMethod searcher = SearchMethodLoader.createFromName(protocol.searchAlgorithmInfo.searchMethodType);
 
         //if the search method in the protocol is missing some parameters, fill them in with defaults
         HashMap<String, String> defaultParams = searcher.getSearchParams();
+        HashMap<String, String> searchParams = protocol.searchAlgorithmInfo.searchMethodParams;
         for (String key : defaultParams.keySet())
         {
-        	if (!protocol.searchMethodParams.containsKey(key))
+        	if (!searchParams.containsKey(key))
         	{
-        		protocol.searchMethodParams.put(key, defaultParams.get(key));
+        		searchParams.put(key, defaultParams.get(key));
         	}
         }        
-		searcher.setSearchParams(protocol.searchMethodParams);
+		searcher.setSearchParams(searchParams);
 
 		FitnessFunction ffun;
 		if (protocol.fitnessSamplingReplications == 0 && !searcher.supportsAdaptiveSampling())
@@ -89,16 +84,16 @@ public strictfp class BehaviorSearch {
         }
 		else
 		{
-			if (protocol.fitnessDerivativeParameter.length() > 0)
+			if (protocol.objectives.get(0).fitnessDerivativeParameter.length() > 0)
 			{
-				ffun = new DerivativeFitnessFunction(protocol,rng);
+				ffun = new DerivativeFitnessFunction(protocol.objectives.get(0));
 			}
 			else {
-				ffun = new StandardFitnessFunction(protocol) ;
+				ffun = new StandardFitnessFunction(protocol.objectives.get(0)) ;
 			}
 		}
 
-		SearchManager manager = new SearchManager(searchIDNumber, batchRunner, protocol, ffun, false, 0.0);
+		SearchManager manager = new SearchManager(searchIDNumber, batchRunner, protocol, ffun);
 		
 		for (ResultListener listener: listeners)
 		{
@@ -106,7 +101,7 @@ public strictfp class BehaviorSearch {
 		}
         	
 
-		ChromosomeFactory cFactory = ChromosomeTypeLoader.createFromName(protocol.chromosomeType);
+		ChromosomeFactory cFactory = ChromosomeTypeLoader.createFromName(protocol.searchAlgorithmInfo.chromosomeType);
 		try {
         	for (ResultListener listener : listeners) {
     			listener.searchStarting(manager);
@@ -236,7 +231,7 @@ public strictfp class BehaviorSearch {
         }
         finally {
         	try {
-				Utils.fullyShutDownNetLogoLink();
+				NLogoUtils.fullyShutDownNetLogoLink();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -258,14 +253,14 @@ public strictfp class BehaviorSearch {
 	 * @throws InterruptedException
 	 * @throws SearchParameterException
 	 */
-	public static void runWithOptions(RunOptions runOptions, SearchProtocol protocol, List<ResultListener> additionalListeners) throws IOException, SAXException, BehaviorSearchException, InterruptedException, SearchParameterException
+	public static void runWithOptions(RunOptions runOptions, SearchProtocolInfo protocol, List<ResultListener> additionalListeners) throws IOException, SAXException, BehaviorSearchException, InterruptedException, SearchParameterException
 	{
 		runOptions = (RunOptions) runOptions.clone(); // so we don't cause any side-effects to the parameter
 		if (protocol == null)
 		{
 			runOptions.protocolFilename = GeneralUtils.attemptResolvePathFromStartupFolder(runOptions.protocolFilename);
 			runOptions.outputStem = GeneralUtils.attemptResolvePathFromStartupFolder(runOptions.outputStem);
-			protocol = SearchProtocol.loadFile(runOptions.protocolFilename);
+			protocol = SearchProtocolInfo.loadOldXMLBasedFile(runOptions.protocolFilename);
 		}
 		GeneralUtils.updateProtocolFolder(runOptions.protocolFilename);
         
@@ -299,7 +294,7 @@ public strictfp class BehaviorSearch {
 
     	if (!runOptions.quiet)
     	{
-    		listeners.add(new ConsoleProgressListener(protocol.evaluationLimit, System.out));
+    		listeners.add(new ConsoleProgressListener(protocol.searchAlgorithmInfo.evaluationLimit, System.out));
     	}
     	if (additionalListeners != null)
     	{

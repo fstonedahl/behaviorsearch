@@ -2,14 +2,13 @@ package bsearch.evaluation;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 
-import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.app.BehaviorSearchException;
-import bsearch.app.SearchProtocol;
+import bsearch.datamodel.ObjectiveFunctionInfo;
 import bsearch.nlogolink.ModelRunResult;
+import bsearch.nlogolink.ModelRunningService;
 import bsearch.representations.Chromosome;
 import bsearch.representations.DummyChromosome;
 
@@ -21,21 +20,13 @@ import bsearch.representations.DummyChromosome;
  */
 public strictfp class DerivativeFitnessFunction implements FitnessFunction
 {
-	private final SearchProtocol protocol;
-	private final String paramName;
-	private final double deltaDistance; 
-	private final MersenneTwisterFast rng;
+	private final ObjectiveFunctionInfo objectiveInfo;
 	
-	private List<Chromosome> SPECIAL_MUTATE_pointsqueue = new LinkedList<Chromosome>(); 
-	private List<Chromosome> SPECIAL_MUTATE_neighborsqueue = new LinkedList<Chromosome>(); 
 	
-	public DerivativeFitnessFunction(SearchProtocol protocol, MersenneTwisterFast rng) throws BehaviorSearchException
+	public DerivativeFitnessFunction(ObjectiveFunctionInfo objectiveInfo) throws BehaviorSearchException
 	{
-		this.protocol = protocol;
-		this.paramName = protocol.fitnessDerivativeParameter;
-		this.deltaDistance = protocol.fitnessDerivativeDelta;
-		this.rng = rng;
-		if 	(deltaDistance == 0)
+		this.objectiveInfo = objectiveInfo;
+		if 	(objectiveInfo.fitnessDerivativeDelta == 0)
 		{
 			throw new BehaviorSearchException("When taking the 'derivative' of the fitness function with respect to parameter X, the delta value (change in X) cannot be 0!");
 		}
@@ -43,35 +34,14 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 	}
 	private Chromosome getPointDeltaNearby(Chromosome point) throws BehaviorSearchException
 	{
-		//Special case: if we set paramName to "@MUTATE@" then it chooses a neighboring point
-		// in the search space by using mutation (with the mutation rate specified by deltaDistance) 
-		// from the current point.
-		if (paramName.equals("@MUTATE@"))  // TODO: Consider, is this really useful, or should we remove this feature?
-		{
-			double mutRate = deltaDistance;
-    		int failedMutationCounter = 0;
-    		final int MAX_MUTATION_ATTEMPTS = 1000000;
-    		Chromosome neighbor = point.mutate(mutRate, rng);
-    		while (neighbor.equals(point) && failedMutationCounter < MAX_MUTATION_ATTEMPTS )
-    		{
-    			neighbor = point.mutate(mutRate, rng);
-    		}
-    		if (failedMutationCounter == MAX_MUTATION_ATTEMPTS)
-    		{
-    			throw new BehaviorSearchException("An extremely large number of mutation attempts all resulted in no mutation - perhaps your mutation-rate is too low?");
-    		}
-    		SPECIAL_MUTATE_pointsqueue.add(point);
-    		SPECIAL_MUTATE_neighborsqueue.add(neighbor);
-			return neighbor;
-		}
 		LinkedHashMap<String, Object> newParamSettings = new LinkedHashMap<String,Object>(point.getParamSettings());
 		
-		Object curVal = newParamSettings.get(paramName);
+		Object curVal = newParamSettings.get(objectiveInfo.fitnessDerivativeParameter);
 		if (curVal instanceof Number)
 		{
 			double val = ((Number) curVal).doubleValue();
-			double newVal = (val - deltaDistance); 
-			newParamSettings.put(paramName, newVal);
+			double newVal = (val - objectiveInfo.fitnessDerivativeDelta); 
+			newParamSettings.put(objectiveInfo.fitnessDerivativeParameter, newVal);
 		}
 		else
 		{
@@ -93,65 +63,31 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 		return 2 * repetitionsRequested;
 	}
 	
-	public double evaluate(Chromosome point, ResultsArchive archive) throws BehaviorSearchException
+	public double evaluate(Chromosome point, ResultsArchive archive, ModelRunningService runService) throws BehaviorSearchException
 	{	
-		List<ModelRunResult> resultsSoFar = archive.getResults( point );
+		List<ModelRunResult> pointResults = archive.getResults( point );
+		double pointVal = (double) runService.getCombinedResultsForEachObjective(pointResults).get(0);
 		
-		LinkedList<Double> condensedResults = new LinkedList<Double>();
-		for (ModelRunResult result: resultsSoFar)
-		{
-			List<Double> singleRunHistory = result.getPrimaryTimeSeries();
-			double dResult = protocol.fitnessCollecting.collectFrom(singleRunHistory);
-			
-			condensedResults.add(dResult);
-		}
-		double pointVal = protocol.fitnessCombineReplications.combine(condensedResults);
+		Chromosome neighbor = getPointDeltaNearby( point );
 		
-		Chromosome neighbor;
-		if (paramName.equals("@MUTATE@"))   
-		{
-			int index = SPECIAL_MUTATE_pointsqueue.indexOf(point);
-			neighbor = SPECIAL_MUTATE_neighborsqueue.get(index);
-			SPECIAL_MUTATE_pointsqueue.remove(index);
-			SPECIAL_MUTATE_neighborsqueue.remove(index);
-		}
-		else
-		{
-			neighbor = getPointDeltaNearby( point );
-		}
-		
-		resultsSoFar = archive.getResults( neighbor );	
-		condensedResults = new LinkedList<Double>();
-		for (ModelRunResult result: resultsSoFar)
-		{
-			List<Double> singleRunHistory = result.getPrimaryTimeSeries();
-			double dResult = protocol.fitnessCollecting.collectFrom(singleRunHistory);
-			
-			condensedResults.add(dResult);
-		}
-		double deltaComparePointVal = protocol.fitnessCombineReplications.combine(condensedResults);  
+		List<ModelRunResult> neighborResults = archive.getResults( neighbor );	
+		double nieghborPointVal = (double) runService.getCombinedResultsForEachObjective(neighborResults).get(0);
 
-		double denominator = deltaDistance;
-		
-		// Special case, to see how much fitness varies between neighbors in the search space
-		if (paramName.equals("@MUTATE@"))   
+		double denominator = objectiveInfo.fitnessDerivativeDelta;
+				
+		if (objectiveInfo.fitnessDerivativeUseAbs)
 		{
-			denominator = 1;
-		}
-		
-		if (protocol.fitnessDerivativeUseAbs)
-		{
-			return StrictMath.abs((pointVal - deltaComparePointVal) / denominator);
+			return StrictMath.abs((pointVal - nieghborPointVal) / denominator);
 		}
 		else
 		{
-			return (pointVal - deltaComparePointVal) / denominator;
+			return (pointVal - nieghborPointVal) / denominator;
 		}
 	}
 
 	public double compare(double v1, double v2)
 	{
-		if (protocol.fitnessMinimized)
+		if (objectiveInfo.fitnessMinimized)
 		{
 			return v2 - v1 ;
 		}
@@ -166,30 +102,12 @@ public strictfp class DerivativeFitnessFunction implements FitnessFunction
 	}
 
 	public double getWorstConceivableFitnessValue() {
-		return protocol.fitnessMinimized?Double.POSITIVE_INFINITY:Double.NEGATIVE_INFINITY;
+		return objectiveInfo.fitnessMinimized?Double.POSITIVE_INFINITY:Double.NEGATIVE_INFINITY;
 	}
 	public double getBestConceivableFitnessValue() {
-		return protocol.fitnessMinimized?Double.NEGATIVE_INFINITY:Double.POSITIVE_INFINITY;
+		return objectiveInfo.fitnessMinimized?Double.NEGATIVE_INFINITY:Double.POSITIVE_INFINITY;
 	}
 
-	public boolean reachedStopGoalFitness(double fitness) {
-		return false;  //TODO: not implemented (see comment in StandardFitnessFunction)
-		/*if (!hasStopGoal)
-		{
-			return false;
-		}
-		else
-		{
-			if (protocol.fitnessMinimized)
-			{ 
-				return fitness <= stopGoalFitness;
-			}
-			else
-			{
-				return fitness >= stopGoalFitness;
-			}
-		}*/
-	}
 	
 
 }

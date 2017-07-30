@@ -3,10 +3,10 @@ package bsearch.nlogolink;
 
 
 public class ModelRunnerTask implements java.util.concurrent.Callable<ModelRunResult> {
-	ModelRunner.RunSetup runSetup;
-	ModelRunner.Factory factory;
+	ModelRunSetupInfo runSetup;
+	ModelRunnerPool factory;
 
-	public ModelRunnerTask(ModelRunner.Factory factory, ModelRunner.RunSetup runSetup) {
+	public ModelRunnerTask(ModelRunnerPool factory, ModelRunSetupInfo runSetup) {
 		super();
 		this.factory = factory;
 		this.runSetup = runSetup;

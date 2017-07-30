@@ -14,5 +14,6 @@
 	<classpathentry kind="lib" path="/home/forrest/.ivy2/cache/com.novocode/junit-interface/jars/junit-interface-0.11.jar"/>
 	<classpathentry kind="lib" path="/home/forrest/.ivy2/cache/org.scala-lang.modules/scala-parser-combinators_2.12/bundles/scala-parser-combinators_2.12-1.0.4.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MOEAFramework"/>
+	<classpathentry kind="lib" path="/home/forrest/.ivy2/cache/com.google.code.gson/gson/jars/gson-1.7.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

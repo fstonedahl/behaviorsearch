@@ -18,8 +18,7 @@ public class ConsoleProgressListener implements ResultListener {
 		this.out = out;
 	}
 
-	public void modelRunOccurred(SearchManager manager, Chromosome point,
-			ModelRunResult result) 
+	public void modelRunOccurred(SearchManager manager, ModelRunResult result) 
 	{
 		String progress = String.format("Search %s: %.0f%%\n", manager.getSearchIDNumber(),
 				((double) manager.getEvaluationCount()) / totalEvals * 100);

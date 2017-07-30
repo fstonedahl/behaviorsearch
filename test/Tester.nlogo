@@ -1,9 +1,8 @@
-
 to setup
 end
 
 to go
-  
+
 end
 
 to-report ellipsoid-with-noise
@@ -15,7 +14,7 @@ to-report ellipsoid
 end
 
 to-report ackley4
-  report 0 - 
+  report 0 -
      (-20 * exp(-0.2 * sqrt( 1 / 4 * (a * a + b * b + c * c + d * d))) + e
               - exp( 1 / 4 * (cos (360 * a) + cos (360 * b) + cos (360 * c) + cos (360 * d))) + 20)
 end
@@ -28,10 +27,10 @@ end
 GRAPHICS-WINDOW
 205
 10
-701
-527
-40
-40
+699
+505
+-1
+-1
 6.0
 1
 10
@@ -50,6 +49,7 @@ GRAPHICS-WINDOW
 0
 1
 ticks
+30.0
 
 SLIDER
 10
@@ -60,7 +60,7 @@ a
 a
 -32
 32
-0
+0.0
 1
 1
 NIL
@@ -75,7 +75,7 @@ b
 b
 -32
 32
-0
+0.0
 1
 1
 NIL
@@ -90,7 +90,7 @@ c
 c
 -32
 32
-0
+0.0
 1
 1
 NIL
@@ -105,7 +105,7 @@ d
 d
 -32
 32
-0
+0.0
 1
 1
 NIL
@@ -120,7 +120,7 @@ noise
 noise
 0
 100
-1
+1.0
 1
 1
 NIL
@@ -452,9 +452,8 @@ false
 0
 Polygon -7500403 true true 270 75 225 30 30 225 75 270
 Polygon -7500403 true true 30 75 75 30 270 225 225 270
-
 @#$#@#$#@
-NetLogo 6.0-BETA2
+NetLogo 6.0.1
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
@@ -462,15 +461,14 @@ NetLogo 6.0-BETA2
 @#$#@#$#@
 default
 0.0
--0.2 0 1.0 0.0
+-0.2 0 0.0 1.0
 0.0 1 1.0 0.0
-0.2 0 1.0 0.0
+0.2 0 0.0 1.0
 link direction
 true
 0
 Line -7500403 true 150 150 90 180
 Line -7500403 true 150 150 210 180
-
 @#$#@#$#@
 0
 @#$#@#$#@
