@@ -39,6 +39,10 @@ javacOptions in Test++= List("-g", "-deprecation", "-target", "1.8", "-source", 
 
 javaSource in Compile := baseDirectory.value / "src"
 
+resourceDirectory in Compile := baseDirectory.value / "src"
+
+includeFilter in unmanagedResources := "*.fxml"
+
 excludeFilter in Compile in unmanagedSources := "*test*"
 
 unmanagedJars in Compile += Attributed.blank(file(System.getenv("JAVA_HOME") + "/lib/ext/jfxrt.jar"))
@@ -50,6 +54,8 @@ excludeFilter in Test in unmanagedSources := HiddenFileFilter
 includeFilter in Test in unmanagedSources := "*Test.java"
 
 testOptions in Test := Seq(Tests.Argument(TestFrameworks.JUnit, "-a"))
+
+fork in run := true
 
 fork in Test := true
 
