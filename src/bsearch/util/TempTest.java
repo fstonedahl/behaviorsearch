@@ -2,7 +2,6 @@ package bsearch.util;
 
 import java.io.FileNotFoundException;
 
-import org.nlogo.agent.Observer;
 import org.nlogo.core.CompilerException;
 import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.headless.HeadlessWorkspace;
@@ -30,7 +29,7 @@ public class TempTest {
 		return s.replace("e+0","E").replace("e+", "E");		
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws CompilerException {
 		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
 		try {
 			Procedure p = workspace.compileReporter("ticks"); // error because reset-ticks hasn't been called yet.

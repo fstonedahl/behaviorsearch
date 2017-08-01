@@ -128,7 +128,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private JScrollPane jScrollPane1;
 	private JTable jTableSearchMethodParams;
 	private JPanel jPanel1;
-	private JButton jButtonHelpSearchSpace;
+	private JButton jButtonHelpSearchSpace; 
 	private JLabel jLabelDerivWRT;
 	private JLabel jLabelDerivDELTA;
 	private JTextField jTextFieldFitnessDerivativeDelta;
@@ -137,7 +137,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private JCheckBox jCheckBoxFitnessDerivativeUseAbs;
 	private JPanel jPanelDeriv;
 	private JPanel jPanelDeriv2;
-	private JButton jButtonHelpSearchSpaceRepresentation;
+	private JButton jButtonHelpSearchSpaceRepresentation; 
 	private JSeparator jSeparator2;
 	private JMenuItem jMenuItemOpenExample;
 	private JMenuItem jMenuItemAbout;
@@ -146,9 +146,9 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 	private JTextField jTextFieldBestChecking;
 	private JLabel jLabel19;
 	private JCheckBox jCheckBoxCaching;
-	private JButton jButtonSuggestParamRanges;
-	private JButton jButtonHelpEvaluation;
-	private JButton jButtonHelpSearchMethod;
+	private JButton jButtonSuggestParamRanges; 
+	private JButton jButtonHelpEvaluation; 
+	private JButton jButtonHelpSearchMethod; 
 	private JTextField jTextFieldEvaluationLimit;
 	private JLabel jLabel18;
 	private JLabel jLabel9;
@@ -200,7 +200,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 			}
 		});
 	}
-
+	
   public static void initAppHandler(Object appHandler) {
     try {
       if (appHandler != null) {
@@ -954,6 +954,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 				model.addElement(spec.getParameterName());
 			}
 			model.addElement("@MUTATE@");
+			//TODO: Question: what if old choice not in new list of param
 			jComboBoxFitnessDerivativeParameter.setSelectedItem(oldChoice);
 		}
 		catch (Exception ex) {  }
@@ -1451,11 +1452,11 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		HelpAboutDialog.showAboutDialog(this);
 	}
 
-
-	private class UIConstraintException extends Exception
+	
+	public class UIConstraintException extends Exception
 	{
 		private String title;
-
+		
 		public UIConstraintException(String msg, String title) {
 			super(msg);
 			this.title = title;
@@ -1466,7 +1467,7 @@ public strictfp class BehaviorSearchGUI extends javax.swing.JFrame {
 		}
 		private static final long serialVersionUID = 1L;		
 	}
-
-
+		
+	
 	//$hide<<$
 }

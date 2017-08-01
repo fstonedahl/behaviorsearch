@@ -67,8 +67,8 @@
 </div>
 
 <div class="figure">
-<img src="img/gui_regions.png" width="350"/>
-<p>Figure 1: BehaviorSearch Experiment Editor GUI, <br/>color coded by the different functional areas of the interface.</p>
+<img src="img/guiFx_tabHighLight.png" width="400"/>
+<p>Figure 1: BehaviorSearch Experiment Editor GUI, <br/>highlighted some important functional areas of the interface.</p>
 </div>
 
 <p>When you first open BehaviorSearch, the window that appears is the BehaviorSearch Experiment Editor.
@@ -79,10 +79,9 @@ The BehaviorSearch GUI helps you create, open, modify, and save these experiment
 The experiment editor may feel daunting at first, with so many choices and options to be filled in.  However, it is organized in logical subsections, as shown in Figure 1.
 <ul>
 <li>The thin purple region at top specifies the NetLogo model you're working with. </li>
-<li>The blue region (upper left) specifies the parameters to vary, and valid ranges for each parameter.</li>
-<li>The green region (upper right) specifies how to run the model, what measure to collect, and when.</li>
-<li>The red region (lower right) specifies how many times to run the model, as well as how to take the data collected from the model runs and turn it into an objective function for the search method to minimize or maximize.</li>
-<li>The yellow region (lower left) specifies what search algorithm and search space encoding to use, as well as any additional parameters needed to configure the search algorithm.</li>
+<li>The Model tab in the red region specifies the parameters to vary, and valid ranges for each parameter on the left side of the tab. It also specifies how to run the model, what measure to collect, and when on the other side.</li>
+<li>The Search Objective tab in the red region specifies how many times to run the model, as well as how to take the data collected from the model runs and turn it into an objective function for the search method to minimize or maximize.</li>
+<li>The Search Method tab in the red region specifies what search algorithm and search space encoding to use, as well as any additional parameters needed to configure the search algorithm.</li>
 </ul>
 
 We will now discuss each of these regions in more detail, and how the various options affect the search process.
@@ -98,7 +97,7 @@ First, choose the model you are interested in exploring (with the "Browse for mo
 The next step is to specify settings, or ranges of settings, for each of the model's parameters.  The easiest way to get started is to click the "Load param ranges from model interface" button, which will automatically extract the parameters/ranges that are included in your model's interface tab (i.e. SLIDERS, CHOOSERS, and SWITCHES).  
 </p>
 <div class="figure">
-<img src="img/flocking_searchspec.png" class="withborder"/>
+<img src="img/flocking_searchspecFx.png" width="350" class="withborder"/>
 <p>Figure 2: An example search space specification for <br/> the Flocking model from NetLogo's models library.</p>
 </div>
 
@@ -170,7 +169,7 @@ Specifications for our example are shown in Figure 3; we will discuss them each 
 </p>
 
 <div class="figure">
-<img src="img/flocking_modelruninfo.png" class="withborder"/>
+<img src="img/flocking_modelruninfoFx.png" width="250"class="withborder"/>
 <p>Figure 3: Specifying how the model should be run, 
 <br/>what data to collect, and when to record it.</p>
 </div>
@@ -207,7 +206,7 @@ We know how to collect the data, but now we need to turn it into an objective fu
 </p>
 
 <div class="figure">
-<img src="img/flocking_fitnessspec.png" width=280 class="withborder"/>
+<img src="img/flocking_fitnessspecFx.png" width=280 class="withborder"/>
 <p>Figure 4: Specifying the search goal/task
 <br/>(the objective/fitness function)</p>
 </div>
@@ -240,11 +239,7 @@ The <strong>Take derivative?</strong> option allows you to maximize/minimize the
 	<li>This Flocking example does not use the derivative functionality, but the <i>Example Fire Derivative</i> example that comes with BehaviorSearch does.</li>
 </ul>
 </li>
-<li><strong>Evaluation limit:</strong> How many total model runs should the search process perform, before stopping?</li>
-<li><strong>BestChecking replicates:</strong> the number of additional replicate model runs that should be performed to get an unbiased estimate of the true objective function value, each time the search algorithm finds a new set of parameters that it thinks is "better" than any previous set.  
-<ul><li>The motivation for this is that ABMs are usually stochastic, and when sampling a measure a small/finite number of times (such as 5, in our example here), there is likely to still be some "noise" in the objective function.  Thus a search algorithm may appear to be making progress, finding better and better parameter settings, when in fact the better results are due to random noise.  Using <i>BestChecking</i> replicates can help you identify when this is the case.</li>
-<li>Also, since new "bests" are found relatively infrequently, you can usually afford to specify a higher number of BestChecking replicates than you can for normal sampling, yielding more statistically significant reading of the objective function as the best parameters that the search found.</li>
-<li>BestChecking replicates are not counted against the total "model run" limit for the search.  These replicates are extrinsic to the search process, but are included in the output results to evaluate the search performance, and verify the objective function values that are obtained. </li>
+
 </ul></li>
 </ul>
 
@@ -270,7 +265,7 @@ On the other hand, positive results tell you that the behavior does occur, and a
 </div>
 
 <div class="figure">
-<img src="img/flocking_searchalgorithmoptions.png" width=311 class="withborder"/>
+<img src="img/flocking_searchalgorithmoptionsFx.png" width="400" class="withborder"/>
 <p>Figure 5: Search algorithm options 
 <br/>and search space representation.</p>
 </div>
@@ -305,7 +300,7 @@ The search algorithm determines what order the different parameter settings will
 <li><strong>restart-after-stall-count:</strong> if the hill climber makes some number (<i>restart-after-stall-count</i>) of unsuccessful attempts to move to a random neighbor, it assumes it is trapped at a local optimum in the space, so it restarts by jumping to a new random location anywhere in the search space.</li>
 </ul>
 </li>
-<li><strong>SimualtedAnnealing</strong> This search algorithm is similar to a hill climbing approach, except that a downhill (inferior) move may also occur, but only with a certain probability based on the <i>temperature</i> of the system, which decreases over time.  Simulated annealing is inspired by the physical annealing process in metallurgy: heating followed by the controlled cooling of a material in order to increase crystal size.
+<li><strong>SimulatedAnnealing</strong> This search algorithm is similar to a hill climbing approach, except that a downhill (inferior) move may also occur, but only with a certain probability based on the <i>temperature</i> of the system, which decreases over time.  Simulated annealing is inspired by the physical annealing process in metallurgy: heating followed by the controlled cooling of a material in order to increase crystal size.
 <ul><li><strong>mutation-rate</strong>  how much mutation occurs when choosing a candidate location for moving.</li>
 <li><strong>restart-after-stall-count:</strong> if it doesn't manage to move to a new location after X attempts, reset the temperature, jump to a random location in the search space and try again.</li>
 <li><strong>initial-temperature</strong> the system's initial 'temperature' (a reasonable choice would be the average expected difference in the fitness function's value for two random points in the search space)</li>
@@ -321,6 +316,7 @@ Higher values cause more <I>selection pressure</I> which will push the GA popula
 <li><strong>population-model: </strong> 'generational', 'steady-state-replace-random', or 'steady-state-replace-worst'
 <ul><li><I>generational</I> means the whole population is replaced at once</li>
 <li><I>steady-state</I> means that only one single individual is replaced by reproduction each iteration.  The individual being replaced may be randomly-chosen, or the current worst.</li>
+
 </ul></li>
 </ul>
 </li>
@@ -346,12 +342,18 @@ For this model and search task, these choices were found to be effective (and fa
 However, we have not exhaustively tested combinations of search algorithms, search algorithm parameters, and encodings, so other choices might prove  to be more efficient.
 </p>
 
+<p><strong>Evaluation limit:</strong> How many total model runs should the search process perform, before stopping?</p>
+<p><strong>BestChecking replicates:</strong> the number of additional replicate model runs that should be performed to get an unbiased estimate of the true objective function value, each time the search algorithm finds a new set of parameters that it thinks is "better" than any previous set.  
+<ul><li>The motivation for this is that ABMs are usually stochastic, and when sampling a measure a small/finite number of times (such as 5, in our example here), there is likely to still be some "noise" in the objective function.  Thus a search algorithm may appear to be making progress, finding better and better parameter settings, when in fact the better results are due to random noise.  Using <i>BestChecking</i> replicates can help you identify when this is the case.</li>
+<li>Also, since new "bests" are found relatively infrequently, you can usually afford to specify a higher number of BestChecking replicates than you can for normal sampling, yielding more statistically significant reading of the objective function as the best parameters that the search found.</li>
+<li>BestChecking replicates are not counted against the total "model run" limit for the search.  These replicates are extrinsic to the search process, but are included in the output results to evaluate the search performance, and verify the objective function values that are obtained. </li>
+
 <!-- ------------  --> <br/><hr/><br/> <!-- ------------  -->
 <a name="results"></a>
 <h3>Running the search and examining the results</h3>
 
 <div class="figure">
-<img src="img/flocking_runoptionsdialog.png" width="318" />
+<img src="img/flocking_runoptionsdialogFx.png" width="318" />
 <p>Figure 6: Run options dialog.</p>
 </div>
 <br/>
@@ -380,7 +382,7 @@ Selecting this checkbox suppresses the creation of the two largest output files.
 </ul>
 
 <div class="figure">
-<a href="img/flocking_searchprogressplot.png"><img src="img/flocking_searchprogressplot.png" title="Click to enlarge" width=366/>
+<a href="img/flocking_searchprogressplotFx.png"><img src="img/flocking_searchprogressplotFx.png" title="Click to enlarge" width=375/>
 </a>
 <p>Figure 7: Search progress dialog.</p>
 </div>

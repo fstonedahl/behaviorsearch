@@ -9,17 +9,26 @@ Please see the main project website here:  http://www.behaviorsearch.org/
 INSTALLATION:
 =============
 
-On Mac/Linux:  Copy the contents of the zip archive into the "NetLogo" application folder.  Everthing should end up in the "behaviorsearch" subfolder, within the NetLogo folder.
-
-On Windows:  Run the installer, and choose to install BehaviorSearch into a subfolder of the NetLogo folder.  Otherwise you'll need to uninstall it and try again.
+BehaviorSearch is now bundled with NetLogo 6, so no installation necessary.
 
 RUNNING:
+=============
 
 Windows:  Run the shortcut on the Desktop, or Start Menu->NetLogo->BehaviorSearch
 Mac: Run the "behaviorsearch_gui.command" script in the "behaviorsearch" folder.
 Linux: Run the "behaviorsearch_gui.sh" script in the "behaviorsearch" folder.
 
+If you want to run behaviorsearch headlessly, you probably need to set the JAVA_HOME environment variable in your shell. 
+Then run the behaviorsearch_headless script in the "behaviorsearch" directory. 
+In Windows and Linux, the behaviorsearch directory is located inside the "app" folder within the NetLogo installation.
+
+Windows:  Run "app\behaviorsearch\behaviorsearch_headless.bat" (located in the NetLogo installation folder).
+Mac: Run "behaviorsearch/behaviorsearch_gui.command" (located in the NetLogo installation folder).
+Linux: Run "app/behaviorsearch/behaviorsearch_gui.sh" (located in the NetLogo installation folder).
+
+
 TROUBLESHOOTING:
+=============
 
 If you're having trouble running/using BehaviorSearch, feel free to contact us at feedback@behaviorsearch.org , and I'll try to help.
 

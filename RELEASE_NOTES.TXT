@@ -1,4 +1,7 @@
-NEW for Version 1.02:
+NEW for Version 1.10
+ * Migrated/modernized the UI from Swing to JavaFX (Thanks An Nguyen Dang!)
+
+Version 1.02:
  * Various updates and tweaks to interoperate (and be bundled) with NetLogo 6.
 
 Version 1.01:
