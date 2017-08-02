@@ -1,0 +1,42 @@
+{
+  "bsearchVersionNumber": 1.1,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "/home/forrest/prog/git/behaviorsearch/test/MiniFire.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "not any? turtles",
+    "measureIfReporter": "@DONE",
+    "maxModelSteps": 10000,
+    "measureReporters": {
+      "MEASURE1": "(burned-trees / initial-trees) * 100"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "last @{MEASURE1}"
+    }
+  },
+  "fitnessSamplingReplications": 5,
+  "paramSpecStrings": [
+    "[\"density\" [1 \"C\" 70]]"
+  ],
+  "objectives": [
+    {
+      "objectiveType": "MAXIMIZE",
+      "fitnessCombineReplications": "standard-deviation @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "MutationHillClimber",
+    "searchMethodParams": {
+      "mutation-rate": "1.0",
+      "restart-after-stall-count": "0"
+    },
+    "chromosomeType": "MixedTypeChromosome",
+    "caching": false,
+    "evaluationLimit": 500,
+    "bestCheckingNumReplications": 20
+  }
+}

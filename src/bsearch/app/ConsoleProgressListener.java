@@ -1,11 +1,15 @@
 package bsearch.app;
 
 import java.io.PrintStream;
+import java.util.LinkedHashMap;
 
 import bsearch.representations.Chromosome;
+import bsearch.space.SearchSpace;
+import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
-import bsearch.nlogolink.ModelRunResult;
+import bsearch.evaluation.SearchProgressStatsKeeper;
+import bsearch.nlogolink.SingleRunResult;
 
 public class ConsoleProgressListener implements ResultListener {
 	private String lastProgress;
@@ -18,10 +22,11 @@ public class ConsoleProgressListener implements ResultListener {
 		this.out = out;
 	}
 
-	public void modelRunOccurred(SearchManager manager, ModelRunResult result) 
+	@Override
+	public void modelRunOccurred(int searchID, int modelRunCounter, int modelRunRecheckingCounter, SingleRunResult result) 
 	{
-		String progress = String.format("Search %s: %.0f%%\n", manager.getSearchIDNumber(),
-				((double) manager.getEvaluationCount()) / totalEvals * 100);
+		String progress = String.format("Search %s: %.0f%%\n", searchID,
+				((double) modelRunCounter + modelRunRecheckingCounter) / (totalEvals + modelRunRecheckingCounter ) * 100);
 		if (!progress.equals(lastProgress))
 		{
 			out.print(progress);
@@ -29,32 +34,40 @@ public class ConsoleProgressListener implements ResultListener {
 		}
 	}
 
+	@Override
+	public void fitnessComputed(SearchProgressStatsKeeper statsKeeper, LinkedHashMap<String, Object> paramSettings,
+			double[] fitness) {
+		
+	}
 
-	public void fitnessComputed( SearchManager manager, Chromosome point, double fitness )
+	@Override
+	public void newBestFound(SearchProgressStatsKeeper statsKeeper)
 	{
 	}
 
-	public void newBestFound(SearchManager manager)
-	{
-	}
-
-	public void searchStarting(SearchManager manager)
+	@Override
+	public void searchStarting(SearchProgressStatsKeeper statsKeeper)
 	{
 		lastProgress = "N/A";
 	}
-	public void searchFinished(SearchManager manager)
+	@Override
+	public void searchFinished(SearchProgressStatsKeeper statsKeeper)
 	{
 	}
 
-	public void initListener(bsearch.space.SearchSpace space) {
+	@Override
+	public void initListener(SearchSpace space, SearchProtocolInfo protocol) {
 	}
 	
+	@Override
 	public void allSearchesFinished() {
 		out.printf("All searches completed.\n\n");
 	}
 	
+	@Override
 	public void searchesAborted() {
 		out.printf("Searches were aborted.\n\n");
 	}
+
 
 }

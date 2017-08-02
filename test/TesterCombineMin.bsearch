@@ -8,14 +8,14 @@
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
 <modelStepLimit>0</modelStepLimit>
-<modelMetricReporter>ellipsoid + random-normal 0 20</modelMetricReporter>
+<modelMetricReporter>0 - ellipsoid - random-normal 0 20</modelMetricReporter>
 <modelMeasureIf>true</modelMeasureIf>
 </modelInfo>
 <fitnessInfo>
-<fitnessMinimized>false</fitnessMinimized>
+<fitnessMinimized>true</fitnessMinimized>
 <fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
 <fitnessSamplingReplications>5</fitnessSamplingReplications>
-<fitnessCombineReplications>MIN</fitnessCombineReplications>
+<fitnessCombineReplications>MAX</fitnessCombineReplications>
 </fitnessInfo>
 <searchSpace>
 <paramSpec>["a" [-32 1 32]]</paramSpec>

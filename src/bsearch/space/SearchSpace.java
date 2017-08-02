@@ -3,9 +3,13 @@ package bsearch.space;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.moeaframework.core.variable.EncodingUtils;
+
+import java.util.LinkedHashMap;
+
 
 public strictfp class SearchSpace {
-	private final ArrayList<ParameterSpec> paramSpecs;
+	private final List<ParameterSpec> paramSpecs;
 
 	public SearchSpace(List<String> paramSpecStrings)
 	{
@@ -36,6 +40,18 @@ public strictfp class SearchSpace {
 		}
 		return vars;
 	}
+
+	public LinkedHashMap<String,Object> getParamSettingsFromMOEASolution(org.moeaframework.core.Solution solution) {
+		LinkedHashMap<String,Object> paramSettings = new LinkedHashMap<>();
+		for (int i = 0; i < paramSpecs.size(); i++) {
+			ParameterSpec paramSpec = paramSpecs.get(i);
+			Object val = paramSpec.getValueFromMOEAVariable(solution.getVariable(i));
+			paramSettings.put(paramSpec.getParameterName(), val);
+		}
+		return paramSettings;
+	}
+	
+
 
 	/**
 	 * @return the size of the search space, or -1 if the size is (nearly) infinite,

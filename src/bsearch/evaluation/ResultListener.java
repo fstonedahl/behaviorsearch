@@ -1,21 +1,24 @@
 package bsearch.evaluation;
 
-import bsearch.nlogolink.ModelRunResult;
-import bsearch.representations.Chromosome;
+import java.util.LinkedHashMap;
+
+import bsearch.datamodel.SearchProtocolInfo;
+import bsearch.nlogolink.SingleRunResult;
 import bsearch.space.SearchSpace;
 
 public interface ResultListener 
 {
-	public void initListener(SearchSpace space);
+	public void initListener(SearchSpace space, SearchProtocolInfo protocol);
 
-	public void modelRunOccurred(SearchManager manager, ModelRunResult result);
+	public void modelRunOccurred(int searchID, int modelRunCounter, int modelRunRecheckingCounter, SingleRunResult result);
 
-	public void fitnessComputed(SearchManager manager, Chromosome point, double fitness);
+	public void fitnessComputed(SearchProgressStatsKeeper statsKeeper, LinkedHashMap<String,Object> paramSettings, 
+			double[] fitness);
 
-	public void newBestFound(SearchManager manager);
+	public void newBestFound(SearchProgressStatsKeeper manager);
 
-	public void searchStarting(SearchManager manager);	
-	public void searchFinished(SearchManager manager);
+	public void searchStarting(SearchProgressStatsKeeper statsKeeper);	
+	public void searchFinished(SearchProgressStatsKeeper statsKeeper);
 
 	
 	public void allSearchesFinished();

@@ -1,0 +1,39 @@
+{
+  "bsearchVersionNumber": 1.1,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "/home/forrest/prog/git/behaviorsearch/test/MiniFire.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "",
+    "measureIfReporter": "true",
+    "maxModelSteps": 20,
+    "measureReporters": {
+      "MEASURE1": "burned-trees"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "variance @{MEASURE1}"
+    }
+  },
+  "fitnessSamplingReplications": 4,
+  "paramSpecStrings": [
+    "[\"density\" [1 \"C\" 100]]"
+  ],
+  "objectives": [
+    {
+      "objectiveType": "MAXIMIZE",
+      "fitnessCombineReplications": "max @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "RandomSearch",
+    "searchMethodParams": {},
+    "chromosomeType": "MixedTypeChromosome",
+    "caching": false,
+    "evaluationLimit": 500,
+    "bestCheckingNumReplications": 10
+  }
+}

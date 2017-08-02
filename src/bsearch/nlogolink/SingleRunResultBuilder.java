@@ -9,10 +9,10 @@ import org.nlogo.nvm.Procedure;
 /**
  * Class for building up results from a model run.  
  */
-public class ModelRunResultBuilder {
+public class SingleRunResultBuilder {
 	private LinkedHashMap<String,LogoListBuilder> measureResultsOverTimeBuilders = new LinkedHashMap<>(); 
 	
-	public ModelRunResultBuilder()
+	public SingleRunResultBuilder()
 	{
 	}
 	
@@ -37,10 +37,10 @@ public class ModelRunResultBuilder {
 		return measureResults;
 	}
 	
-	public ModelRunResult createModelRunResults(ModelRunSetupInfo runSetup,
+	public SingleRunResult createModelRunResults(ModelRunSetupInfo runSetup,
 			String[] originalCondenserCodes,
 			LinkedHashMap<String,Procedure> singleRunCondensers, 
-			HeadlessWorkspace workspace, JobOwner owner) throws NetLogoLinkException {
+			HeadlessWorkspace workspace, JobOwner owner, int stepCount) throws NetLogoLinkException {
 		
 		LinkedHashMap<String, LogoList> rawResults = getMeasureResults();
 
@@ -55,7 +55,7 @@ public class ModelRunResultBuilder {
 					varNames, varValues, workspace, owner);
 			condensedResults.put(condenserNames[i], condensedResult);
 		}
-		return new ModelRunResult(runSetup, rawResults, condensedResults);
+		return new SingleRunResult(runSetup, rawResults, condensedResults, stepCount);
 		
 	}
 	

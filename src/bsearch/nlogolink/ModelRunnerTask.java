@@ -2,21 +2,21 @@ package bsearch.nlogolink;
 
 
 
-public class ModelRunnerTask implements java.util.concurrent.Callable<ModelRunResult> {
+public class ModelRunnerTask implements java.util.concurrent.Callable<SingleRunResult> {
 	ModelRunSetupInfo runSetup;
-	ModelRunnerPool factory;
+	ModelRunnerPool pool;
 
-	public ModelRunnerTask(ModelRunnerPool factory, ModelRunSetupInfo runSetup) {
+	public ModelRunnerTask(ModelRunnerPool pool, ModelRunSetupInfo runSetup) {
 		super();
-		this.factory = factory;
+		this.pool = pool;
 		this.runSetup = runSetup;
 	}
 
-	public ModelRunResult call() throws NetLogoLinkException, ModelRunner.ModelRunnerException 
+	public SingleRunResult call() throws NetLogoLinkException, ModelRunner.ModelRunnerException 
 	{
-		ModelRunner runner = factory.acquireModelRunner();
-		ModelRunResult result = runner.doFullRun(runSetup);
-		factory.releaseModelRunner(runner);
+		ModelRunner runner = pool.acquireModelRunner();
+		SingleRunResult result = runner.doFullRun(runSetup);
+		pool.releaseModelRunner(runner);
 		return result;
 	}
 }

@@ -8,13 +8,13 @@
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>count turtles &gt; 1000</modelStopCondition>
 <modelStepLimit>0</modelStepLimit>
-<modelMetricReporter>ellipsoid-slow</modelMetricReporter>
+<modelMetricReporter>ellipsoid + random-normal 0 20 </modelMetricReporter>
 <modelMeasureIf>true</modelMeasureIf>
 </modelInfo>
 <fitnessInfo>
 <fitnessMinimized>true</fitnessMinimized>
 <fitnessCollecting>AT_FINAL_STEP</fitnessCollecting>
-<fitnessSamplingReplications>8</fitnessSamplingReplications>
+<fitnessSamplingReplications>2</fitnessSamplingReplications>
 <fitnessCombineReplications>MEAN</fitnessCombineReplications>
 </fitnessInfo>
 <searchSpace>
@@ -28,7 +28,7 @@
 <searchMethodParameter name="restart-after-stall-count" value="0"/>
 </searchMethod>
 <chromosomeRepresentation type="GrayBinaryChromosome"/>
-<caching>true</caching>
-<evaluationLimit>60</evaluationLimit>
-<bestCheckingNumReplications>5</bestCheckingNumReplications>
+<caching>false</caching>
+<evaluationLimit>1000</evaluationLimit>
+<bestCheckingNumReplications>10</bestCheckingNumReplications>
 </search>

@@ -34,6 +34,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
+import bsearch.datamodel.ObjectiveFunctionInfo.OBJECTIVE_TYPE;
 import bsearch.util.GeneralUtils;
 
 public strictfp class SearchProtocolInfo
@@ -70,7 +71,8 @@ public strictfp class SearchProtocolInfo
 	public SearchProtocolInfo(String modelFile, List<String> paramSpecStrings,
 			String modelStepCommands, String modelSetupCommands, String modelStopCondition,
 			int modelStepLimit, String modelMetricReporter, String modelMeasureIf, 
-			boolean fitnessMinimized,
+			String objectiveName,
+			OBJECTIVE_TYPE objectiveType,
 			int fitnessSamplingRepetitions,
 			String fitnessCollecting,
 			String fitnessCombineReplications,
@@ -98,7 +100,7 @@ public strictfp class SearchProtocolInfo
 
 		this.paramSpecStrings = paramSpecStrings;
 		this.objectives = new ArrayList<>();
-		this.objectives.add(new ObjectiveFunctionInfo(fitnessMinimized, fitnessCombineReplications, fitnessDerivativeParameter, fitnessDerivativeDelta, fitnessDerivativeUseAbs));
+		this.objectives.add(new ObjectiveFunctionInfo(objectiveName,objectiveType, fitnessCombineReplications, fitnessDerivativeParameter, fitnessDerivativeDelta, fitnessDerivativeUseAbs));
 		this.searchAlgorithmInfo = new SearchAlgorithmInfo(searchMethodType, searchMethodParams, chromosomeType, caching, evaluationLimit, bestCheckingNumReplications);
 	}
 	private static String loadOrGetDefault(XPath xpath, Document xmlDoc, String path, String defaultVal)
@@ -175,8 +177,6 @@ public strictfp class SearchProtocolInfo
 
 		condenserMeasures.put("CONDENSED1", condenseCode);
 
-		//TODO: Auto-convert "AT_FINAL_STEP" -> "last @{MEASURE1}", etc. ? 
-
 		this.modelDCInfo = new ModelDataCollectionInfo(modelFileName, maxModelSteps, setupCommands, stepCommands, stopCondition, measureIfReporter, rawMeasures, condenserMeasures);
 		fitnessSamplingReplications = loadOrGetDefaultInt(xpath,  xmlDoc, "/search/fitnessInfo/fitnessSamplingReplications/text()" , 10);
 		
@@ -192,7 +192,8 @@ public strictfp class SearchProtocolInfo
 		double fitnessDerivativeDelta = loadOrGetDefaultDouble(xpath, xmlDoc,"/search/fitnessInfo/fitnessDerivative/@delta" , 0.0); 
 		boolean fitnessDerivativeUseAbs = Boolean.valueOf(loadOrGetDefault(xpath,  xmlDoc, "/search/fitnessInfo/fitnessDerivative/@useabs" , "false").trim()); 
 		this.objectives = new ArrayList<>();
-		this.objectives.add(new ObjectiveFunctionInfo(fitnessMinimized, fitnessCombineReplications, fitnessDerivativeParameter, fitnessDerivativeDelta, fitnessDerivativeUseAbs));
+		OBJECTIVE_TYPE objectiveType = fitnessMinimized? OBJECTIVE_TYPE.MINIMIZE : OBJECTIVE_TYPE.MAXIMIZE;
+		this.objectives.add(new ObjectiveFunctionInfo("objective1", objectiveType, fitnessCombineReplications, fitnessDerivativeParameter, fitnessDerivativeDelta, fitnessDerivativeUseAbs));
 		
 		NodeList paramSpecNodes = (NodeList) xpath.evaluate("/search/searchSpace/paramSpec/text()" , xmlDoc , XPathConstants.NODESET );
 		paramSpecStrings = new LinkedList<String>();

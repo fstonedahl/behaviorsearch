@@ -10,6 +10,7 @@ import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.app.BehaviorSearchException;
 import bsearch.datamodel.SearchProtocolInfo;
+import bsearch.datamodel.ObjectiveFunctionInfo.OBJECTIVE_TYPE;
 import bsearch.evaluation.SearchManager;
 import bsearch.representations.Chromosome;
 import bsearch.representations.ChromosomeFactory;
@@ -53,7 +54,7 @@ public class BSProblem extends AbstractProblem {
 		} catch (BehaviorSearchException | InterruptedException e) {
 			e.printStackTrace();
 		}
-		if (!protocol.objectives.get(0).fitnessMinimized) {
+		if (protocol.objectives.get(0).objectiveType == OBJECTIVE_TYPE.MAXIMIZE) {
 			fitness *= -1; // invert fitness for maximization problems...
 		}		
 		solution.setObjective(0, fitness); 			

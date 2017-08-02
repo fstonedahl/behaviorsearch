@@ -7,10 +7,12 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import javax.swing.SwingUtilities;
 
@@ -20,6 +22,7 @@ import org.xml.sax.SAXException;
 import bsearch.algorithms.SearchMethod;
 import bsearch.algorithms.SearchMethodLoader;
 import bsearch.app.BehaviorSearch.RunOptions;
+import bsearch.datamodel.ObjectiveFunctionInfo.OBJECTIVE_TYPE;
 import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.app.BehaviorSearch;
 import bsearch.app.BehaviorSearchException;
@@ -158,7 +161,8 @@ public class MainController implements Initializable {
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		
 		// set up ChoiceBox in SO tab
-		SOGoalBox.setItems(FXCollections.observableArrayList("Minimize Fitness", "Maximize Fitness"));
+		List<String> goalChoices = Arrays.stream(OBJECTIVE_TYPE.values()).map(obj->obj.toString()).collect(Collectors.toList());
+		SOGoalBox.setItems(FXCollections.observableArrayList(goalChoices));
 		List<String> fitnessCollecting = new ArrayList<String>();
 		fitnessCollecting.add("last @{MEASURED1}");
 		SOFitnessCollectingBox.setItems(FXCollections.observableArrayList(fitnessCollecting));
@@ -451,7 +455,7 @@ public class MainController implements Initializable {
 		MModelStepLimitField.setText(Integer.toString(protocol.modelDCInfo.maxModelSteps));
 		MMeasureField.setText(protocol.modelDCInfo.measureReporters.values().toArray()[0].toString());
 		MMeasureIfField.setText(protocol.modelDCInfo.measureIfReporter);
-		SOGoalBox.setValue(protocol.objectives.get(0).fitnessMinimized ? "Minimize Fitness" : "Maximize Fitness");
+		SOGoalBox.setValue(protocol.objectives.get(0).objectiveType.toString());
 		SOFitnessCollectingBox.setValue(protocol.modelDCInfo.singleRunCondenserReporters.values().toArray()[0].toString());
 		SOFitnessSamplingRepetitionsField.setText(Integer.toString(protocol.fitnessSamplingReplications));
 		SOFixedSamplingBox
@@ -540,9 +544,10 @@ public class MainController implements Initializable {
 			}
 		}
 		SearchProtocolInfo protocol = new SearchProtocolInfo(browseField.getText(),
-				java.util.Arrays.asList(MParamSpecsArea.getText().split("\n")), MModelStepField.getText(),
+				Arrays.asList(MParamSpecsArea.getText().split("\n")), MModelStepField.getText(),
 				MModelSetupField.getText(), MModelStopConditionField.getText(), modelStepLimit, MMeasureField.getText(),
-				MMeasureIfField.getText(), SOGoalBox.getValue().toString().equals("Minimize Fitness"),
+				MMeasureIfField.getText(), "objective1",
+				OBJECTIVE_TYPE.valueOf(SOGoalBox.getValue().toString()),
 				fitnessSamplingRepetitions,
 				SOFitnessCollectingBox.getValue().toString(),
 				SOCombineReplicatesBox.getValue().toString(),

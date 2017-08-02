@@ -194,7 +194,7 @@ public strictfp class ModelRunner {
 			// (which is seeded by a random number that depends on the random seed for this model run,
 			//  so that the results are deterministic/repeatable, but will generate an independent 
 			// stream of random numbers that does not affect the main NetLogo world's RNG.)
-			// This approach should allow the user to recreate a run by setting RANDOM-SEED XXX
+			// This approach should allow the user to recreate a run by setting RANDOM-SEED X
 			// and running SETUP followed by GO, without worrying about all of the additional conditions
 			// and reporters affecting the state of the RNG and changing the outcome of the run...
 			mainJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Main", workspace.mainRNG(), org.nlogo.core.AgentKindJ.Observer());
@@ -293,7 +293,7 @@ public strictfp class ModelRunner {
 		}
 		return 	(Boolean) obj;		
 	}
-	private void conditionallyRecordResults(ModelRunResultBuilder resultBuilder, boolean isAfterFinalStep) throws NetLogoLinkException
+	private void conditionallyRecordResults(SingleRunResultBuilder resultBuilder, boolean isAfterFinalStep) throws NetLogoLinkException
 	{
 		if (extraJobOwner == null)
 		{
@@ -309,10 +309,10 @@ public strictfp class ModelRunner {
 		}		
 	}
 		
-	public ModelRunResult doFullRun(ModelRunSetupInfo runSetup) throws ModelRunnerException
+	public SingleRunResult doFullRun(ModelRunSetupInfo runSetup) throws ModelRunnerException
 	{
 		try {
-			ModelRunResultBuilder resultBuilder = new ModelRunResultBuilder();
+			SingleRunResultBuilder resultBuilder = new SingleRunResultBuilder();
 			setup(runSetup.getSeed(), runSetup.getParameterSettings());
 			
 			int steps;
@@ -323,8 +323,9 @@ public strictfp class ModelRunner {
 			}
 			conditionallyRecordResults(resultBuilder,true);
 			String[] originalCondenserCodes = modelDCInfo.singleRunCondenserReporters.values().toArray(new String[0]);
+
 			return resultBuilder.createModelRunResults(runSetup, originalCondenserCodes, 
-					singleRunCondenserReporterProcs, workspace, extraJobOwner);
+					singleRunCondenserReporterProcs, workspace, extraJobOwner, steps);
 		}
 		catch (Exception ex)  {		
 			throw new ModelRunnerException(runSetup, ex);
@@ -338,7 +339,7 @@ public strictfp class ModelRunner {
 	
 	// After multiple runs are done, then this method will get called on (an arbitrary) ModelRunner
 	// to combine the results across runs.
-	public List<Object> evaluateCombineReplicateReporters(List<ModelRunResult> replicateRunsResults)
+	public List<Object> evaluateCombineReplicateReporters(List<SingleRunResult> replicateRunsResults)
 			throws NetLogoLinkException {
 		String[] condensedVarNames =  modelDCInfo.singleRunCondenserReporters.keySet().toArray(new String[0]);
 		
@@ -346,16 +347,17 @@ public strictfp class ModelRunner {
 
 		for (int i = 0; i < condensedVarNames.length; i++) { 
 			LogoListBuilder builder = new LogoListBuilder();
-			for (ModelRunResult runResult : replicateRunsResults) {
+			for (SingleRunResult runResult : replicateRunsResults) {
 				builder.add(runResult.getCondensedResultMap().get(condensedVarNames[i]));
 			}
 			condensedVarValues[i] = builder.toLogoList();
 		}
 		
+		SimpleJobOwner tempJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Combiner", workspace.mainRNG().clone(), org.nlogo.core.AgentKindJ.Observer());
 		List<Object> combinedResults = new ArrayList<Object>();
 		for (int i = 0; i < multipleRunCombinerProcs.size(); i++) {
 			combinedResults.add(NLogoUtils.evaluateNetLogoWithSubstitution(multipleRunCombinerSourceCodes.get(i),
-					multipleRunCombinerProcs.get(i), condensedVarNames, condensedVarValues, workspace, extraJobOwner));
+					multipleRunCombinerProcs.get(i), condensedVarNames, condensedVarValues, workspace, tempJobOwner));
 		}
 		return combinedResults;
 	}

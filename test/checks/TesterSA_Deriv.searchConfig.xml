@@ -1,37 +1,47 @@
-<?xml version="1.0" encoding="us-ascii"?>
-<!DOCTYPE search SYSTEM "behaviorsearch.dtd">
-<search>
-<bsearchVersionNumber>1.10</bsearchVersionNumber>
-<modelInfo>
-<modelFile>Tester.nlogo</modelFile>
-<modelSetupCommands>setup</modelSetupCommands>
-<modelStepCommands>go</modelStepCommands>
-<modelStopCondition>count turtles &gt; 1000</modelStopCondition>
-<modelStepLimit>0</modelStepLimit>
-<modelMetricReporter>ellipsoid</modelMetricReporter>
-<modelMeasureIf>true</modelMeasureIf>
-</modelInfo>
-<fitnessInfo>
-<fitnessMinimized>false</fitnessMinimized>
-<fitnessCollecting>last @{MEASURE1}</fitnessCollecting>
-<fitnessSamplingReplications>1</fitnessSamplingReplications>
-<fitnessCombineReplications>MEAN</fitnessCombineReplications>
-<fitnessDerivative parameter="a" delta="1.0" useabs="true"/>
-</fitnessInfo>
-<searchSpace>
-<paramSpec>["a" [-32 1 32]]</paramSpec>
-<paramSpec>["b" [-32 1 32]]</paramSpec>
-<paramSpec>["c" [-32 1 32]]</paramSpec>
-<paramSpec>["d" [-32 1 32]]</paramSpec>
-</searchSpace>
-<searchMethod type="SimulatedAnnealing">
-<searchMethodParameter name="mutation-rate" value="0.05"/>
-<searchMethodParameter name="temperature-change-factor" value="0.99"/>
-<searchMethodParameter name="initial-temperature" value="1.0"/>
-<searchMethodParameter name="restart-after-stall-count" value="0"/>
-</searchMethod>
-<chromosomeRepresentation type="MixedTypeChromosome"/>
-<caching>true</caching>
-<evaluationLimit>400</evaluationLimit>
-<bestCheckingNumReplications>1</bestCheckingNumReplications>
-</search>
+{
+  "bsearchVersionNumber": 0.72,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "Tester.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "count turtles \u003e 1000",
+    "measureIfReporter": "@DONE",
+    "maxModelSteps": 0,
+    "measureReporters": {
+      "MEASURE1": "ellipsoid"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "last @{MEASURE1}"
+    }
+  },
+  "fitnessSamplingReplications": 1,
+  "paramSpecStrings": [
+    "[\"a\" [-32 1 32]]",
+    "[\"b\" [-32 1 32]]",
+    "[\"c\" [-32 1 32]]",
+    "[\"d\" [-32 1 32]]"
+  ],
+  "objectives": [
+    {
+      "objectiveType": "MAXIMIZE",
+      "fitnessCombineReplications": "mean @{CONDENSED1}",
+      "fitnessDerivativeParameter": "a",
+      "fitnessDerivativeDelta": 1.0,
+      "fitnessDerivativeUseAbs": true
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "SimulatedAnnealing",
+    "searchMethodParams": {
+      "mutation-rate": "0.05",
+      "temperature-change-factor": "0.99",
+      "initial-temperature": "1.0",
+      "restart-after-stall-count": "0"
+    },
+    "chromosomeType": "MixedTypeChromosome",
+    "caching": true,
+    "evaluationLimit": 400,
+    "bestCheckingNumReplications": 1
+  }
+}

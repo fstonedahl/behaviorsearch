@@ -16,9 +16,7 @@ import bsearch.algorithms.SearchMethod;
 import bsearch.algorithms.SearchMethodLoader;
 import bsearch.algorithms.SearchParameterException;
 import bsearch.datamodel.SearchProtocolInfo;
-import bsearch.evaluation.DerivativeFitnessFunction;
-import bsearch.evaluation.StandardFitnessFunction;
-import bsearch.evaluation.FitnessFunction;
+import bsearch.evaluation.ObjectiveEvaluator;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
 import bsearch.nlogolink.BatchRunner;
@@ -42,7 +40,7 @@ public strictfp class BehaviorSearch {
 		SearchSpace space = new SearchSpace(protocol.paramSpecStrings);
 
     	for (ResultListener listener : listeners) {
-			listener.initListener(space);
+			listener.initListener(space, protocol);
 		} 
 
     	for (int searchNumber = firstSearchNumber; searchNumber < numSearches + firstSearchNumber; searchNumber++)
@@ -77,20 +75,14 @@ public strictfp class BehaviorSearch {
         }        
 		searcher.setSearchParams(searchParams);
 
-		FitnessFunction ffun;
+		ObjectiveEvaluator ffun;
 		if (protocol.fitnessSamplingReplications == 0 && !searcher.supportsAdaptiveSampling())
 		{
 			throw new BehaviorSearchException("Error: " + searcher.getName() + " does not support adaptive fitness sampling!");
         }
 		else
 		{
-			if (protocol.objectives.get(0).fitnessDerivativeParameter.length() > 0)
-			{
-				ffun = new DerivativeFitnessFunction(protocol.objectives.get(0));
-			}
-			else {
-				ffun = new StandardFitnessFunction(protocol.objectives.get(0)) ;
-			}
+			ffun = new ObjectiveEvaluator(protocol.objectives);
 		}
 
 		SearchManager manager = new SearchManager(searchIDNumber, batchRunner, protocol, ffun);
@@ -104,11 +96,11 @@ public strictfp class BehaviorSearch {
 		ChromosomeFactory cFactory = ChromosomeTypeLoader.createFromName(protocol.searchAlgorithmInfo.chromosomeType);
 		try {
         	for (ResultListener listener : listeners) {
-    			listener.searchStarting(manager);
+    			listener.searchStarting(manager.getStatsKeeper());
     		} 
 			searcher.search( space , cFactory, protocol, manager, rng );			
 	    	for (ResultListener listener : listeners) {
-				listener.searchFinished(manager);
+				listener.searchFinished(manager.getStatsKeeper());
 			} 
 		}
 		catch (NetLogoLinkException ex)
@@ -152,13 +144,6 @@ public strictfp class BehaviorSearch {
 		@Option(name="-q",aliases={"--quiet"},usage="suppress printing progress to stdout")
 		boolean quiet = false;
 		
-		//TODO: Decide if --shorten option is even worthwhile... sort of doubtful, since in the most general case, each
-		// fitness evaluation may take an arbitrary number of model runs, meaning that whatever shorten factor you use,
-		// you can't guarantee it'll work out nicely to get every Nth one - you might just get some of the Nth ones.  
-		// ~Forrest (12/23/2009)
-		@Option(name="--shorten",usage="only print information to the .objectiveFunctionHistory.csv after every Nth model run.")
-		int shortenOutputFactor = 1;
-
 		@Option(name="-b", aliases={"--brief-output"},usage="shorthand flag for suppressing model-run-history and objective-function-history output, since these are the largest output files.")
 		public	boolean briefOutput = false;
 
@@ -290,7 +275,7 @@ public strictfp class BehaviorSearch {
     	}
 
         ArrayList<ResultListener> listeners = new ArrayList<ResultListener>();
-    	listeners.add(new CSVLoggerListener(protocol, runOptions.outputStem, !runOptions.suppressModelRunHistory, !runOptions.suppressObjectiveFunctionHistory, !runOptions.suppressBestHistory, true, runOptions.shortenOutputFactor));
+    	listeners.add(new CSVLoggerListener(protocol, runOptions.outputStem, !runOptions.suppressModelRunHistory, !runOptions.suppressObjectiveFunctionHistory, !runOptions.suppressBestHistory, true));
 
     	if (!runOptions.quiet)
     	{

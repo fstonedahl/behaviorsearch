@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<!DOCTYPE search SYSTEM "behaviorsearch.dtd">
+<search>
+<bsearchVersionNumber>1.10</bsearchVersionNumber>
+<modelInfo>
+<modelFile>/home/forrest/prog/git/behaviorsearch/test/MiniFire.nlogo</modelFile>
+<modelSetupCommands>setup if (random 8 = 0) [ wait 0.5 ]</modelSetupCommands>
+<modelStepCommands>go</modelStepCommands>
+<modelStopCondition/>
+<modelStepLimit>100</modelStepLimit>
+<modelMetricReporter>burned-trees</modelMetricReporter>
+<modelMeasureIf/>
+</modelInfo>
+<fitnessInfo>
+<fitnessMinimized>true</fitnessMinimized>
+<fitnessCollecting>MEAN_ACROSS_STEPS</fitnessCollecting>
+<fitnessSamplingReplications>2</fitnessSamplingReplications>
+<fitnessCombineReplications>MEDIAN</fitnessCombineReplications>
+</fitnessInfo>
+<searchSpace>
+<paramSpec>["density" [1 "C" 100]]</paramSpec>
+</searchSpace>
+<searchMethod type="RandomSearch"/>
+<chromosomeRepresentation type="MixedTypeChromosome"/>
+<caching>false</caching>
+<evaluationLimit>100</evaluationLimit>
+<bestCheckingNumReplications>3</bestCheckingNumReplications>
+</search>

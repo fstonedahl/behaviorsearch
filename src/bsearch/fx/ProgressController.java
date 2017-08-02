@@ -2,6 +2,7 @@ package bsearch.fx;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.FutureTask;
@@ -10,7 +11,8 @@ import bsearch.app.BehaviorSearch;
 import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
-import bsearch.nlogolink.ModelRunResult;
+import bsearch.evaluation.SearchProgressStatsKeeper;
+import bsearch.nlogolink.SingleRunResult;
 import bsearch.nlogolink.ModelRunner.ModelRunnerException;
 import bsearch.representations.Chromosome;
 import bsearch.space.SearchSpace;
@@ -157,21 +159,20 @@ public class ProgressController {
 		}
 
 		@Override
-		public void initListener(SearchSpace space) {
-			
+		public void initListener(SearchSpace space, SearchProtocolInfo protocol) {		
 
 		}
 
 		@Override
-		public void modelRunOccurred(SearchManager manager,  ModelRunResult result) {
+		public void modelRunOccurred(int searchID, int modelRunCounter, int modelRunRecheckingCounter, SingleRunResult result) {
 
 			long currentTime = System.currentTimeMillis();
 			long elapsed = currentTime - taskStartTime;
 			String elapsedStr = GeneralUtils.formatTimeNicely(elapsed);
-			int searchesCompleted = (manager.getSearchIDNumber() - runOptions.firstSearchNumber);
+			int searchesCompleted = (searchID - runOptions.firstSearchNumber);
 			int totalSearches = runOptions.numSearches;
-			double runsCompleted = manager.getEvaluationCount() + manager.getAuxilliaryEvaluationCount();
-			double totalRuns = protocol.searchAlgorithmInfo.evaluationLimit + manager.getAuxilliaryEvaluationCount();
+			double runsCompleted = modelRunCounter + modelRunRecheckingCounter;
+			double totalRuns = protocol.searchAlgorithmInfo.evaluationLimit + modelRunRecheckingCounter;
 			double searchProgress = (searchesCompleted + runsCompleted / totalRuns) / totalSearches;
 
 			long remaining = (long) (elapsed / searchProgress - elapsed); // in
@@ -188,12 +189,14 @@ public class ProgressController {
 		}
 
 		@Override
-		public void fitnessComputed(SearchManager manager, Chromosome point, double fitness) {
-			final int searchNumber = manager.getSearchIDNumber();
-			final double bestFitnessSoFar = protocol.searchAlgorithmInfo.useBestChecking() ? manager.getCurrentBestFitnessCheckedEstimate()
-					: manager.getCurrentBestFitness();
+		public void fitnessComputed(SearchProgressStatsKeeper statsKeeper, LinkedHashMap<String,Object> paramSettings, 
+										double[] fitness) {
+			final int searchNumber = statsKeeper.getSearchIDNumber();
+			final double[] bestFitnessSoFarArray = protocol.searchAlgorithmInfo.useBestChecking() ? statsKeeper.reportCurrentBestCheckedFitness()
+					: statsKeeper.reportCurrentBestFitness();
+			final double bestFitnessSoFar = bestFitnessSoFarArray[0]; //TODO: fix for Multiobj 
 
-			final int evaluationCount = manager.getEvaluationCount();
+			final int evaluationCount = statsKeeper.getModelRunCounter();
 
 			Platform.runLater(new Runnable() {
 				@SuppressWarnings("unchecked")
@@ -240,11 +243,11 @@ public class ProgressController {
 		}
 
 		@Override
-		public void newBestFound(SearchManager manager) {
+		public void newBestFound(SearchProgressStatsKeeper statsKeeper) {
 
-			updateInfoText("In Search #" + manager.getSearchIDNumber() + ":",
-			manager.getCurrentBest(), manager.getCurrentBestFitness(),
-			manager.getCurrentBestFitnessCheckedEstimate());
+			updateInfoText("In Search #" + statsKeeper.getSearchIDNumber() + ":",
+			statsKeeper.getCurrentBest(), statsKeeper.reportCurrentBestFitness(),
+			statsKeeper.reportCurrentBestCheckedFitness());
 
 		}
 
@@ -259,22 +262,25 @@ public class ProgressController {
 		}
 
 		@Override
-		public void searchStarting(SearchManager manager) {
-			updateGUIForNextSearch(manager.getSearchIDNumber());
+		public void searchStarting(SearchProgressStatsKeeper statsKeeper) {
+			updateGUIForNextSearch(statsKeeper.getSearchIDNumber());
 
 		}
 
+		//TODO: Move this stuff into SearchProgressStatsKeeper, and extend it to go more than one search???
 		Chromosome overallBest = null;
-		double overallBestFitness;
-		double overallBestFitnessChecked;
+		double[] overallBestFitness;
+		double[] overallBestFitnessChecked;
 
-		public void searchFinished(SearchManager manager) {
-			double bestFitness = manager.getCurrentBestFitness();
-			if (overallBest == null || manager.fitnessStrictlyBetter(bestFitness, overallBestFitness)) {
-				overallBest = manager.getCurrentBest();
+		public void searchFinished(SearchProgressStatsKeeper statsKeeper) {
+			
+			double[] bestFitness = statsKeeper.reportCurrentBestFitness();
+//			if (overallBest == null || statsKeeper.fitnessStrictlyBetter(bestFitness, overallBestFitness)) {
+			if (overallBest == null || bestFitness[0] < overallBestFitness[0]) { // TODO: FIX THIS -- wrong unless minimizing.
+				overallBest = statsKeeper.getCurrentBest();
 				overallBestFitness = bestFitness;
 				if (protocol.searchAlgorithmInfo.useBestChecking()) {
-					overallBestFitnessChecked = manager.getCurrentBestFitnessCheckedEstimate();
+					overallBestFitnessChecked = statsKeeper.reportCurrentBestCheckedFitness();
 				}
 			}
 		}
@@ -318,7 +324,7 @@ public class ProgressController {
 			});
 		}
 
-		private void updateInfoText(String title, Chromosome c, double fitness, double checkedFitness) {
+		private void updateInfoText(String title, Chromosome c, double fitness[], double checkedFitness[]) {
 			String bestText = GeneralUtils.getParamSettingsTextHTML(c.getParamSettings());
 			StringBuilder sb = new StringBuilder();
 			sb.append("<p>");
@@ -326,11 +332,11 @@ public class ProgressController {
 			sb.append("<BR><BR><B>Best found so far:</B><BR>");
 			sb.append(bestText);
 			sb.append("<BR><B>Fitness</B>=");
-			sb.append(String.format("%10.6g", fitness));
+			sb.append(String.format("%10.6g", fitness[0])); // TODO multiobj
 			sb.append("<BR>");
 			if (protocol.searchAlgorithmInfo.useBestChecking()) {
 				sb.append("<B>(re-checked)</B>=");
-				sb.append(String.format("%10.6g", checkedFitness));
+				sb.append(String.format("%10.6g", checkedFitness[0])); // TODO multiobj
 				sb.append("<BR>");
 			}
 			sb.append("</p>");

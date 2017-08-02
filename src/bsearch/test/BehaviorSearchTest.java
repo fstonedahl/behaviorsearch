@@ -35,7 +35,7 @@ import bsearch.app.BehaviorSearchException;
 import bsearch.app.BehaviorSearch.RunOptions;
 import bsearch.datamodel.ModelDataCollectionInfo;
 import bsearch.datamodel.SearchProtocolInfo;
-import bsearch.nlogolink.ModelRunResult;
+import bsearch.nlogolink.SingleRunResult;
 import bsearch.nlogolink.ModelRunSetupInfo;
 import bsearch.nlogolink.ModelRunner;
 import bsearch.nlogolink.NLogoUtils;
@@ -86,7 +86,7 @@ public strictfp class BehaviorSearchTest
         params.put("density", 61.0);
         ModelRunSetupInfo runSetup = new ModelRunSetupInfo(0, params);
 
-        ModelRunResult runResult = runner.doFullRun( runSetup );
+        SingleRunResult runResult = runner.doFullRun( runSetup );
         LogoList resultList= (LogoList) runResult.getRawMeasureData("M1");
         Assert.assertEquals(5, resultList.size()); // 5 because we only get to tick 37, due to the stop condition.
         Assert.assertEquals(3002.0, ((Double) resultList.get(resultList.size() - 1)).doubleValue(), 0.00001);
@@ -97,7 +97,7 @@ public strictfp class BehaviorSearchTest
 
         // Now do a second run with a different random seed
         ModelRunSetupInfo runSetup2 = new ModelRunSetupInfo(1, params);
-        ModelRunResult runResult2 = runner.doFullRun( runSetup2 );
+        SingleRunResult runResult2 = runner.doFullRun( runSetup2 );
         LogoList resultList2= (LogoList) runResult2.getRawMeasureData("M1");
         Assert.assertEquals(6, resultList2.size()); // because we only get to tick 46, due to the stop condition.
         Assert.assertEquals(2687.0, ((Double) resultList2.get(resultList2.size() - 1)).doubleValue(), 0.00001);
@@ -289,10 +289,13 @@ public strictfp class BehaviorSearchTest
 //		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 1 -n 1 --randomseed 123 --quiet");
 		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 5 -n 1 --randomseed 123 --quiet");
 		scenarios.put("TesterCombineMin","-p test/TesterCombineMin.bsearch -o test/tmp/TesterCombineMin -t 2 -n 1 --randomseed 1234 --quiet");
+		scenarios.put("MiniFireVariance","-p test/MiniFireVariance.bsearch -o test/tmp/MiniFireVariance -t 1 -n 1 --randomseed 1 --quiet");
+		scenarios.put("MiniFireOverTime","-p test/MiniFireOverTime.bsearch -o test/tmp/MiniFireOverTime -t 1 -n 1 --randomseed 1 --quiet");
 		
 		List<String> outputExtensions = Arrays.asList(//".searchConfig.xml", //TODO: switch to check JSON?
 				".modelRunHistory.csv", 
-				".objectiveFunctionHistory.csv",  ".bestHistory.csv", ".finalBests.csv", ".finalCheckedBests.csv"); 
+				".objectiveFunctionHistory.csv",  ".bestHistory.csv", 
+				".finalBests.csv", ".finalCheckedBests.csv"); 
 		
 		List<String> failedList = new ArrayList<String>();
 		for (String key: scenarios.keySet())

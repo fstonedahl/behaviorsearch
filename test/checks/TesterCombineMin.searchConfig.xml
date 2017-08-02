@@ -6,10 +6,10 @@
     "setupCommands": "setup",
     "stepCommands": "go",
     "stopCondition": "count turtles \u003e 1000",
-    "measureIfReporter": "true",
+    "measureIfReporter": "@DONE",
     "maxModelSteps": 0,
     "measureReporters": {
-      "MEASURE1": "ellipsoid + random-normal 0 20"
+      "MEASURE1": "0 - ellipsoid - random-normal 0 20"
     },
     "singleRunCondenserReporters": {
       "CONDENSED1": "last @{MEASURE1}"
@@ -24,8 +24,8 @@
   ],
   "objectives": [
     {
-      "fitnessMinimized": false,
-      "fitnessCombineReplications": "MIN",
+      "objectiveType": "MINIMIZE",
+      "fitnessCombineReplications": "max @{CONDENSED1}",
       "fitnessDerivativeParameter": "",
       "fitnessDerivativeDelta": 0.0,
       "fitnessDerivativeUseAbs": false

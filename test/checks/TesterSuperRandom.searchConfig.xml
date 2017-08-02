@@ -1,31 +1,42 @@
-<?xml version="1.0" encoding="us-ascii"?>
-<!DOCTYPE search SYSTEM "behaviorsearch.dtd">
-<search>
-<bsearchVersionNumber>1.10</bsearchVersionNumber>
-<modelInfo>
-<modelFile>Tester.nlogo</modelFile>
-<modelSetupCommands>clear-all reset-ticks</modelSetupCommands>
-<modelStepCommands>ask one-of patches [ set pcolor random 100 ] tick</modelStepCommands>
-<modelStopCondition>ticks &gt; 20 and random-float 1.0 &gt; 0.7 </modelStopCondition>
-<modelStepLimit>60</modelStepLimit>
-<modelMetricReporter>random 10000</modelMetricReporter>
-<modelMeasureIf>random-float 1.0 &lt; 0.5 </modelMeasureIf>
-</modelInfo>
-<fitnessInfo>
-<fitnessMinimized>false</fitnessMinimized>
-<fitnessCollecting>sum @{MEASURE1}</fitnessCollecting>
-<fitnessSamplingReplications>5</fitnessSamplingReplications>
-<fitnessCombineReplications>MEAN</fitnessCombineReplications>
-</fitnessInfo>
-<searchSpace>
-<paramSpec>["a" [-32 1 32]]</paramSpec>
-<paramSpec>["b" [-32 1 32]]</paramSpec>
-<paramSpec>["c" [-32 1 32]]</paramSpec>
-<paramSpec>["d" [-32 1 32]]</paramSpec>
-</searchSpace>
-<searchMethod type="RandomSearch"/>
-<chromosomeRepresentation type="GrayBinaryChromosome"/>
-<caching>false</caching>
-<evaluationLimit>200</evaluationLimit>
-<bestCheckingNumReplications>2</bestCheckingNumReplications>
-</search>
+{
+  "bsearchVersionNumber": 1.0,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "Tester.nlogo",
+    "setupCommands": "clear-all reset-ticks",
+    "stepCommands": "ask one-of patches [ set pcolor random 100 ] tick",
+    "stopCondition": "ticks \u003e 20 and random-float 1.0 \u003e 0.7 ",
+    "measureIfReporter": "random-float 1.0 \u003c 0.5 ",
+    "maxModelSteps": 60,
+    "measureReporters": {
+      "MEASURE1": "random 10000"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "sum @{MEASURE1}"
+    }
+  },
+  "fitnessSamplingReplications": 5,
+  "paramSpecStrings": [
+    "[\"a\" [-32 1 32]]",
+    "[\"b\" [-32 1 32]]",
+    "[\"c\" [-32 1 32]]",
+    "[\"d\" [-32 1 32]]"
+  ],
+  "objectives": [
+    {
+      "objectiveType": "MAXIMIZE",
+      "fitnessCombineReplications": "mean @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "RandomSearch",
+    "searchMethodParams": {},
+    "chromosomeType": "GrayBinaryChromosome",
+    "caching": false,
+    "evaluationLimit": 200,
+    "bestCheckingNumReplications": 2
+  }
+}

@@ -6,16 +6,19 @@ import org.nlogo.core.LogoList;
 /**
  * Class for storing results from a model run.  It can store multiple measures. 
  */
-public class ModelRunResult {
+public class SingleRunResult {
 	private final ModelRunSetupInfo runSetup;
 	private final LinkedHashMap<String,Object> condensedResultMap; 
 	private final LinkedHashMap<String,LogoList> rawResults; 
+	private final int stepCount;
 	
-	public ModelRunResult(ModelRunSetupInfo runSetup, LinkedHashMap<String,LogoList> fullResults, LinkedHashMap<String,Object> condensedResults)
+	public SingleRunResult(ModelRunSetupInfo runSetup, LinkedHashMap<String,LogoList> fullResults, 
+			LinkedHashMap<String,Object> condensedResults, int stepCount)
 	{
 		this.runSetup = runSetup;
 		this.rawResults = fullResults;
 		this.condensedResultMap = condensedResults;
+		this.stepCount = stepCount;
 	}
 	public String[] getRawMeasureNames()
 	{
@@ -28,22 +31,13 @@ public class ModelRunResult {
 	public LinkedHashMap<String,Object> getCondensedResultMap() {
 		return condensedResultMap;
 	}
-	/*public String[] getCondensedMeasureNames()
-	{
-		return condensedResultMap.keySet().toArray(new String[0]);
-	}
-	public Object getCondensedMeasureData(String measure)
-	{
-		return condensedResultMap.get(measure);
-	}
-	public Object getPrimaryCondensedResult()
-	{
-		return getCondensedMeasureData(getCondensedMeasureNames()[0]);
-	}*/
 	
 	public ModelRunSetupInfo getModelRunSetupInfo()
 	{
 		return runSetup;
+	}
+	public int getStepCount() {
+		return stepCount;
 	}
 	
 }

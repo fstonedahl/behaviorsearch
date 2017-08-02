@@ -12,17 +12,20 @@ import org.xml.sax.SAXException;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import bsearch.app.BehaviorSearchException;
+import bsearch.app.CSVLoggerListener;
 import bsearch.datamodel.SearchProtocolInfo;
+import bsearch.evaluation.ObjectiveEvaluator;
+import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
-import bsearch.evaluation.StandardFitnessFunction;
 import bsearch.nlogolink.BatchRunner;
 import bsearch.nlogolink.NLogoUtils;
-import bsearch.nlogolink.NetLogoLinkException;
+import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
 
 public class RunBSProblem {
 
-	public static void main(String[] args) throws IOException, SAXException, NetLogoLinkException {
+	public static void main(String[] args) throws IOException, SAXException, BehaviorSearchException {
 //		Instrumenter instrumenter = new Instrumenter()
 //				.withProblemClass(SchafferProblem.class)
 //				.withFrequency(1000)
@@ -33,25 +36,16 @@ public class RunBSProblem {
 		GeneralUtils.updateProtocolFolder(FILENAME);
 
 		SearchProtocolInfo protocol = SearchProtocolInfo.loadOldXMLBasedFile( FILENAME ) ;
-		//Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		Gson gson = new GsonBuilder().create();
-		String json = gson.toJson(protocol);
-		System.out.println(json);
-		json = "{\"bsearchVersionNumber\":0.72,\"modelFile\":\"TesterMOEA.nlogo\",\"modelStepCommands\":\"go\",\"modelSetupCommands\":\"setup\",\"modelStopCondition\":\"count turtles \\u003e 1000\",\"modelStepLimit\":0,\"modelMetricReporter\":\"ellipsoid-slow\",\"modelMeasureIf\":\"true\",\"paramSpecStrings\":[\"[\\\"a\\\" [-32 1 32]]\",\"[\\\"b\\\" [-32 1 32]]\",\"[\\\"c\\\" [-32 1 32]]\",\"[\\\"d\\\" [-32 1 32]]\"],\"fitnessMinimized\":true,\"fitnessSamplingReplications\":8,\"fitnessCollecting\":\"last @{MEASURE1}\",\"fitnessCombineReplications\":\"MEAN\",\"fitnessDerivativeParameter\":\"\",\"fitnessDerivativeDelta\":0.0,\"fitnessDerivativeUseAbs\":false,\"searchMethodType\":\"MutationHillClimber\",\"searchMethodParams\":{\"mutation-rate\":\"0.05\",\"restart-after-stall-count\":\"0\"},\"chromosomeType\":\"GrayBinaryChromosome\",\"caching\":true,\"evaluationLimit\":60,\"bestCheckingNumReplications\":5}";
-		SearchProtocolInfo protocol2 = gson.fromJson(json,SearchProtocolInfo.class);
-		System.out.println(gson.toJson(protocol2));
-		
-
-		//protocol2.save(new FileWriter(GeneralUtils.attemptResolvePathFromBSearchRoot("test/TesterMOEA.bsearch2")));
-		
-		System.exit(0);
-		
-		
-    	int numEvaluationThreads = 1;
+				
+		int numEvaluationThreads = 4;
 		BatchRunner batchRunner = new BatchRunner(numEvaluationThreads,protocol);
 
-		SearchManager manager = new SearchManager(0, batchRunner, protocol, new StandardFitnessFunction(protocol.objectives.get(0)));
-
+		SearchManager manager = new SearchManager(0, batchRunner, protocol, new ObjectiveEvaluator(protocol.objectives));
+		ResultListener csvListener = new CSVLoggerListener(protocol, "test/tmptmp/TesterMOEA", true, true, true, true);
+		manager.addResultsListener(csvListener);
+		csvListener.initListener(new SearchSpace(protocol.paramSpecStrings), protocol);
+		csvListener.searchStarting(manager.getStatsKeeper());
+		
 		Plot plot = new Plot();
 
 		ProgressListener progListener = new ProgressListener() {			
@@ -83,12 +77,14 @@ public class RunBSProblem {
 		long startTime = System.currentTimeMillis();
 		NondominatedPopulation result = new Executor().withAlgorithm("GA")
 				.withProblem(new BSProblem(protocol,manager))
-				.withProperty("populationSize", 20)
+				.withProperty("populationSize", 10)
 //				.withInstrumenter(instrumenter)
 				.withMaxEvaluations(protocol.searchAlgorithmInfo.evaluationLimit)
-				.distributeOn(1)
+				.distributeOn(6)
 				.withProgressListener(progListener)
 				.run();
+		csvListener.searchFinished(manager.getStatsKeeper());
+		csvListener.allSearchesFinished();
 		long endTime = System.currentTimeMillis();
 		//System.out.println(endTime-startTime);
 		plot.show();

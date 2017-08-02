@@ -1,6 +1,9 @@
 package bsearch.nlogolink;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+
 import org.nlogo.agent.BooleanConstraint;
 import org.nlogo.agent.ChooserConstraint;
 import org.nlogo.agent.SliderConstraint;
@@ -10,6 +13,9 @@ import org.nlogo.api.LogoException;
 import org.nlogo.core.CompilerException;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.Procedure;
+
+import bsearch.representations.Chromosome;
+import bsearch.util.GeneralUtils;
 
 public strictfp class NLogoUtils {
 	public static final long MIN_EXACT_NETLOGO_INT = -9007199254740992L;
@@ -76,24 +82,28 @@ public strictfp class NLogoUtils {
 			for (int i = 0; i < varNames.length; i++) { 
 				workspace.world().getOrCreateTurtle(i).setTurtleOrLinkVariable("LABEL", varValues[i]);
 			}
-//			if (originalReporterBeforeSub.equals("min @{CONDENSED1}")) {
+//			if (originalReporterBeforeSub.contains("@{CONDENSED1}")) {
 //
 //				GeneralUtils.debug("num turtles: " + workspace.world().turtles().count());
 //				GeneralUtils.debug("originalReporter: " + originalReporterBeforeSub);
 //				GeneralUtils.debug("proc: " + reporterContainingSubstitutions.displayName());
-//			}			
-//			GeneralUtils.debug("turtle 0 label: " + workspace.world().getTurtle(0).getTurtleOrLinkVariable("LABEL"));
-
+//				GeneralUtils.debug("turtle 0 label: " + workspace.world().getTurtle(0).getTurtleOrLinkVariable("LABEL"));
+//			}
 		
 			Object retVal = workspace.runCompiledReporter(owner, reporterContainingSubstitutions);
+			if (retVal instanceof Exception) {
+				throw (Exception) retVal;
+			}
 			return retVal;
 			
 		} catch (Exception ex)
 		{
+//			GeneralUtils.debug("turtle 0 label: " + workspace.world().getTurtle(0).getTurtleOrLinkVariable("LABEL"));
+//			GeneralUtils.debug(Arrays.toString(varValues));
 			ex.printStackTrace();
 			throw new NetLogoLinkException("Problem evaluating NetLogo code '"+originalReporterBeforeSub + "'.\n" 
-					+ "(NOTE: the following error message may be confusing since BehaviorSearch substituted\n" 
-					+"([LABEL] OF TURTLE X) for each @{VAR} variable behind the scenes.)\n" 
+//					+ "(NOTE: the following error message may be confusing since BehaviorSearch substituted\n" 
+//					+"([LABEL] OF TURTLE X) for each @{VAR} variable behind the scenes.)\n" 
 					+ ex.getMessage());
 		}
 	}		
@@ -191,5 +201,18 @@ public strictfp class NLogoUtils {
 		} catch (InterruptedException e) {
 		}
 	    return sb.toString();
+	}
+
+	public static String buildNetLogoCommandCenterString(LinkedHashMap<String,Object> paramSettings) {
+		StringBuilder sb = new StringBuilder();
+		for (String param : paramSettings.keySet()) {
+			Object val = paramSettings.get(param);
+			sb.append("set ");
+			sb.append(param);
+			sb.append(" ");
+			sb.append(org.nlogo.api.Dump.logoObject(val, true, false));
+			sb.append(" ");
+		}
+		return sb.toString().trim();		
 	}			
 }

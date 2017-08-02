@@ -6,8 +6,6 @@ import org.nlogo.api.MersenneTwisterFast ;
 
 import bsearch.space.SearchSpace;
 
-//TODO: make a CrossNet chromosome sometime? ~Forrest 3/28/09
-
 /**
  * NOTE:
  * Implementing classes should also override equals(Object) and hashCode(),

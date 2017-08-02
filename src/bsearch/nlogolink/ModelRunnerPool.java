@@ -3,48 +3,42 @@ package bsearch.nlogolink;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.BlockingDeque;
 
+import bsearch.app.BehaviorSearchException;
 import bsearch.datamodel.ModelDataCollectionInfo;
 import bsearch.util.GeneralUtils;
 
 public class ModelRunnerPool {
 	private List<ModelRunner> allModelRunners = Collections.synchronizedList(new java.util.LinkedList<ModelRunner>());
-	private Queue<ModelRunner> unusedModelRunners = new java.util.concurrent.ConcurrentLinkedQueue<ModelRunner>();
-	private ModelDataCollectionInfo modelDCInfo;
-	List<String> combineReporterSourceCodes;
+	private BlockingDeque<ModelRunner> availableModelRunners;
 	
-	public ModelRunnerPool(ModelDataCollectionInfo modelDCInfo, List<String> combineReporterSourceCodes) {
-		this.modelDCInfo = modelDCInfo;		
-		this.combineReporterSourceCodes = combineReporterSourceCodes;
+	public ModelRunnerPool(ModelDataCollectionInfo modelDCInfo, List<String> combineReporterSourceCodes, int fixedCapacity) throws NetLogoLinkException {
+		this.availableModelRunners = new java.util.concurrent.LinkedBlockingDeque<ModelRunner>(fixedCapacity);
+
+		for (int i = 0; i < fixedCapacity; i++) {
+			allModelRunners.add(new ModelRunner(modelDCInfo, combineReporterSourceCodes));
+		}
+		availableModelRunners.addAll(allModelRunners);
+		
 	}
-	/** Either creates a new one, or recycles a ModelRunner that has been released again into the pool */
+	/** Either returns an available ModelRunner, or waits (blocks) until it can do so 
+	 * @throws NetLogoLinkException */
 	public ModelRunner acquireModelRunner() throws NetLogoLinkException 
 	{
-		ModelRunner runner = unusedModelRunners.poll();
-		if (runner != null)
-		{
-			return runner;
-		}
-		else
-		{
-			return newModelRunner();
+		try {
+			return availableModelRunners.take();
+		} catch (InterruptedException ex) {
+			throw new NetLogoLinkException("Thread was interrupted while trying to acquire NetLogo ModelRunner from Pool.");
 		}
 	}
 	public void releaseModelRunner(ModelRunner runner)
 	{
-		unusedModelRunners.add(runner);
+		availableModelRunners.add(runner);
 	}
 	
-	private ModelRunner newModelRunner() throws NetLogoLinkException
-	{
-		ModelRunner runner = new ModelRunner(modelDCInfo, combineReporterSourceCodes);
 		
-		allModelRunners.add(runner);
-		GeneralUtils.debug("allModelRunners.size()== " + allModelRunners.size());
-		return runner;			
-	}
-		
-	/** This method should only be called after you are done using this Factory, and all the ModelRunners created by it.
+	/** This method should only be called after you are done using this Pool, and all the ModelRunners created by it.
 	 * It disposes the ModelRunners (and their corresponding NetLogo workspaces), and attempting to use them after this
 	 * will result in errors.
 	 * */

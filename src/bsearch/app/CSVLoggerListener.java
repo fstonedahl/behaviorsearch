@@ -1,27 +1,33 @@
 package bsearch.app;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 import bsearch.representations.Chromosome;
 import bsearch.space.ParameterSpec;
+import bsearch.space.SearchSpace;
+import bsearch.datamodel.ObjectiveFunctionInfo;
 import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.ResultListener;
-import bsearch.evaluation.SearchManager;
-import bsearch.nlogolink.ModelRunResult;
+import bsearch.evaluation.SearchProgressStatsKeeper;
+import bsearch.nlogolink.SingleRunResult;
+import bsearch.nlogolink.CSVHelper;
 import bsearch.nlogolink.ModelRunSetupInfo;
+import bsearch.nlogolink.NLogoUtils;
 
 public class CSVLoggerListener implements ResultListener {
 	
 	private SearchProtocolInfo protocol;
 	private PrintWriter modelHistoryOut = null;
 	private PrintWriter fitnessOut = null;
-	private int shortenOutputFactor = 1;
 	private PrintWriter bestOut = null;
 	private PrintWriter finalBestOut = null;
 	private PrintWriter finalCheckedBestOut = null;
@@ -37,262 +43,209 @@ public class CSVLoggerListener implements ResultListener {
 	 * @throws IOException
 	 * @throws BehaviorSearchException 
 	 */
-	public CSVLoggerListener(SearchProtocolInfo protocol, String fileNameStem, boolean logAllModelRuns, boolean logAllFitnessEvals, boolean logBests, boolean logFinalBests, int shortenOutputFactor) throws IOException, BehaviorSearchException 
+	public CSVLoggerListener(SearchProtocolInfo protocol, String fileNameStem, boolean logAllModelRuns, boolean logAllFitnessEvals, boolean logBests, boolean logFinalBests) throws IOException, BehaviorSearchException 
 	{
 		this.protocol = protocol;		
-		this.shortenOutputFactor = shortenOutputFactor;
 		if (logAllModelRuns)
 		{
-			modelHistoryOut = new java.io.PrintWriter(new java.io.BufferedWriter(new java.io.FileWriter(fileNameStem + ".modelRunHistory.csv")));
+			modelHistoryOut = new PrintWriter(new BufferedWriter(new FileWriter(fileNameStem + ".modelRunHistory.csv")));
 		}
 		if (logAllFitnessEvals)
 		{
-			fitnessOut = new java.io.PrintWriter(new java.io.BufferedWriter(new java.io.FileWriter(fileNameStem + ".objectiveFunctionHistory.csv")));			
+			fitnessOut = new PrintWriter(new BufferedWriter(new FileWriter(fileNameStem + ".objectiveFunctionHistory.csv")));			
 		}
 		if (logBests)
 		{
-			bestOut = new java.io.PrintWriter(new java.io.BufferedWriter(new java.io.FileWriter(fileNameStem + ".bestHistory.csv")));
+			bestOut = new PrintWriter(new BufferedWriter(new FileWriter(fileNameStem + ".bestHistory.csv")));
 		}
 		if (logFinalBests)
 		{
-			finalBestOut = new java.io.PrintWriter(new java.io.BufferedWriter(new java.io.FileWriter(fileNameStem + ".finalBests.csv")));
+			finalBestOut = new PrintWriter(new BufferedWriter(new FileWriter(fileNameStem + ".finalBests.csv")));
 			if (protocol.searchAlgorithmInfo.useBestChecking())
 			{
-				finalCheckedBestOut = new java.io.PrintWriter(new java.io.BufferedWriter(new java.io.FileWriter(fileNameStem + ".finalCheckedBests.csv")));	
+				finalCheckedBestOut = new PrintWriter(new BufferedWriter(new FileWriter(fileNameStem + ".finalCheckedBests.csv")));	
 			}
 		}
 		
 		// Also output a copy of the protocol that was used for this search.  
-		// It's the same format as the .bsearch files, but we use the .xml suffix
-		// to differentiate it from the .bsearch file which was actually run.
+		// It's the same format as the .bsearch2 files, but we use the .json suffix
+		// to differentiate it from the .bsearch2 file which was actually run.
 		try { 
-			protocol.save(fileNameStem + ".searchConfig.xml");
+			protocol.save(fileNameStem + ".searchConfig.json");
 		} catch (java.io.IOException ex)
 		{
-			throw new BehaviorSearchException("File I/O error attempting to create or write to file: '" + fileNameStem + ".searchConfig.xml'", ex);
+			throw new BehaviorSearchException("File I/O error attempting to create or write to file: '" + fileNameStem + ".searchConfig.json'", ex);
 		}
 
 	}
 
-	public void initListener(bsearch.space.SearchSpace space)
+	@Override
+	public void initListener(SearchSpace space, SearchProtocolInfo protocol)
 	{
-		if (modelHistoryOut != null)
-		{
-			List<String> headerList = new LinkedList<String>();
-			headerList.add("search-number");
-			headerList.add("evaluation");
-			headerList.add("evals-requested-so-far");
-			for (ParameterSpec p : space.getParamSpecs())
-			{
-				headerList.add(p.getParameterName() + "*");
-			}
-			headerList.add("random-seed");
-			headerList.add("min-result");
-			headerList.add("max-result");
-			headerList.add("mean-result");
-			headerList.add("stdev-result");
-			headerList.add("final-step-result");			
-			modelHistoryOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerList));
-		}
-		if (fitnessOut != null)
-		{
-			List<String> headerList = new LinkedList<String>();
-			headerList.add("search-number");
-			headerList.add("evaluation");
-			for (ParameterSpec p : space.getParamSpecs())
-			{
-				headerList.add(p.getParameterName() + "*");
-			}
-			headerList.add("fitness");
-			headerList.add("num-replicates");
-			headerList.add("best-fitness-so-far");
-			if (protocol.searchAlgorithmInfo.useBestChecking())
-			{
-				headerList.add("best-fitness-rechecked");
-			}
-			fitnessOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerList));					
-		}
-
-		List<String> headerList = new LinkedList<String>();
-		headerList.add("search-number");
-		headerList.add("evaluation");
+		List<String> paramNames = new LinkedList<String>();
 		for (ParameterSpec p : space.getParamSpecs())
 		{
-			headerList.add(p.getParameterName() + "*");
+			paramNames.add(p.getParameterName());
 		}
-		headerList.add("num-replicates");
-		headerList.add("best-fitness-so-far");
+
+		if (modelHistoryOut != null)
+		{
+			List<String> headerList = new LinkedList<>();
+			headerList.add("[search-number]");
+			headerList.add("[evaluation-number]");
+			headerList.add("[random-seed]");
+			headerList.addAll(paramNames);
+			headerList.add("[step]");
+			for (String name : protocol.modelDCInfo.singleRunCondenserReporters.keySet()) {
+				headerList.add(name);
+			}
+			modelHistoryOut.println(CSVHelper.headerRow(headerList));
+		}
+
+		List<String> headerCommon = new LinkedList<>();
+		headerCommon.add("[search-number]");
+		headerCommon.add("[evaluation-number]");
+		headerCommon.addAll(paramNames);
+
+		for (ObjectiveFunctionInfo objInfo : protocol.objectives) {
+			headerCommon.add(objInfo.name);
+		}
+
+		if (fitnessOut != null)
+		{
+			fitnessOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerCommon));					
+		}
+		
 		if (protocol.searchAlgorithmInfo.useBestChecking())
 		{
-			headerList.add("recheck-replications");
-			headerList.add("best-fitness-rechecked");
+			for (ObjectiveFunctionInfo objInfo : protocol.objectives) {
+				headerCommon.add(objInfo.name + "-rechecked");
+			}
 		}
-//		headerList.add("trials-mean");
-//		headerList.add("trials-variance");
-//		headerList.add("trial-list-all");
 		if (bestOut != null)
 		{
-			bestOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerList));
+			bestOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerCommon));
 		}
+		headerCommon.add("[NetLogo-command-center-copy-paste-shortcut]");
 		if (finalBestOut != null)
 		{
-			finalBestOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerList));
+			finalBestOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerCommon));
 		}
 		if (finalCheckedBestOut != null)
 		{
-			finalCheckedBestOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerList));
-			//TODO: should we use headerList here, since it will contain recheck-replications slot?
-			// perhaps we should tailor it to this file more specifically?
+			finalCheckedBestOut.println(bsearch.nlogolink.CSVHelper.headerRow(headerCommon));
 		}
-		
 	}
 
-
-	public void modelRunOccurred(SearchManager manager, ModelRunResult result) 
+	@Override
+	public void modelRunOccurred(int searchID, int modelRunCounter, int modelRunRecheckingCounter, SingleRunResult result) 
 	{
 		if (modelHistoryOut == null)
 		{
 			return;
 		}
 		ModelRunSetupInfo runSetup = result.getModelRunSetupInfo();
-		//TODO: add in field for "[ticks]" ?
+
 		List<Object> dataList = new LinkedList<Object>();
-		dataList.add(manager.getSearchIDNumber());
-		dataList.add(manager.getEvaluationCount());
-		dataList.add(manager.getEvaluationsRequestedCount());
+		dataList.add(searchID);
+		dataList.add(modelRunCounter);
+		dataList.add(runSetup.getSeed()); 
 		
-		for (Object val : result.getModelRunSetupInfo().getParameterSettings().values()) {
-			dataList.add(val);
+		for (Object paramVal : result.getModelRunSetupInfo().getParameterSettings().values()) {
+			dataList.add(paramVal);
 		}
-		dataList.add(Long.toString(runSetup.getSeed())); 
-		//TODO: Remove this max/min junk, and just save all the condensed result values...
-		AbstractSequentialList<Object> resultTimeSeriesObj = result.getRawMeasureData(result.getRawMeasureNames()[0]).toJava() ;
-		LinkedList<Double> resultTimeSeries = new LinkedList<Double>();
-		for (Object obj : resultTimeSeriesObj) {
-			resultTimeSeries.add((Double)obj);
-		}
+		dataList.add(result.getStepCount()); 
 		
-		dataList.add(Collections.min(resultTimeSeries)); 
-		dataList.add(Collections.max(resultTimeSeries)); 		
-		dataList.add(bsearch.util.Stats.mean(resultTimeSeries)); 
-		dataList.add(bsearch.util.Stats.stdev(resultTimeSeries)); 
-		dataList.add(resultTimeSeries.getLast());
+		for (Object condensedVal: result.getCondensedResultMap().values()) {
+			dataList.add(condensedVal);
+		}
 		modelHistoryOut.println(bsearch.nlogolink.CSVHelper.dataRow(dataList));
 	}
 
-	public void fitnessComputed(SearchManager manager, Chromosome point, double fitness)
+	@Override
+	public void fitnessComputed(SearchProgressStatsKeeper statsKeeper, LinkedHashMap<String,Object> paramSettings, 
+			double[] objectiveVals)
 	{
 		if (fitnessOut == null)
 		{
 			return;
 		}
-		if (manager.getEvaluationCount() % shortenOutputFactor != 0)
-		{
-			return;
-		}
 		List<Object> dataList = new LinkedList<Object>();
-		dataList.add(manager.getSearchIDNumber());
-		dataList.add(manager.getEvaluationCount());
+		dataList.add(statsKeeper.getSearchIDNumber());
+		dataList.add(statsKeeper.getModelRunCounter());
+		for (Object paramVal : paramSettings.values())
+		{
+			dataList.add(paramVal);
+		}
+		for (double objVal : objectiveVals)
+		{
+			dataList.add(objVal);
+		}
+		
+		fitnessOut.println(bsearch.nlogolink.CSVHelper.dataRow(dataList));
+	}
+
+	private List<Object> makeRowDataFor(SearchProgressStatsKeeper statsKeeper, Chromosome point, double[] objValues, double[] objValuesRechecked)
+	{
+		List<Object> dataList = new ArrayList<Object>();
+		dataList.add(statsKeeper.getSearchIDNumber());
+		dataList.add(statsKeeper.getModelRunCounter());
+		
 		for (ParameterSpec p : point.getSearchSpace().getParamSpecs())
 		{
 			dataList.add(point.getParamSettings().get(p.getParameterName()));
 		}
-		dataList.add(fitness);
-		List<ModelRunResult> allTrials = manager.getCachedResults(point);		
-		dataList.add(allTrials.size());
-		dataList.add(manager.getCurrentBestFitness());
+		for (double d: objValues) {
+			dataList.add(d);
+		}
 		if (protocol.searchAlgorithmInfo.useBestChecking())
-		{
-			dataList.add(manager.getCurrentBestFitnessCheckedEstimate());
+		{			
+			for (double d: objValuesRechecked) {
+				dataList.add(d);
+			}
 		}
-		fitnessOut.println(bsearch.nlogolink.CSVHelper.dataRow(dataList));
-	}
-
-	private List<Object> getRowDataForNewBest(SearchManager manager)
-	{
-		List<Object> dataList = new ArrayList<Object>();
-		dataList.add(manager.getSearchIDNumber());
-		dataList.add(manager.getEvaluationCount());
-		Chromosome newBest = manager.getCurrentBest();
-		for (ParameterSpec p : newBest.getSearchSpace().getParamSpecs())
-		{
-			dataList.add(newBest.getParamSettings().get(p.getParameterName()));
-		}
-		List<ModelRunResult> allTrials = manager.getCachedResults(newBest);		
-		dataList.add(allTrials.size());
-		dataList.add(manager.getCurrentBestFitness());
-		if (protocol.searchAlgorithmInfo.useBestChecking())
-		{
-			dataList.add(manager.getBestFitnessCheckingReplications());
-			dataList.add(manager.getCurrentBestFitnessCheckedEstimate());
-		}
-
-		//TODO: put some more stats back in?
-		/* 
-		dataList.add(bsearch.util.Stats.mean(allTrials));
-		dataList.add(bsearch.util.Stats.variance(allTrials));
-		StringBuilder sb = new StringBuilder(); 
-		sb.append("[");
-		for (Double d: allTrials)
-		{
-			sb.append(d);
-			sb.append(" ");
-		}
-		sb.setCharAt(sb.length() - 1, ']');
-		dataList.add(sb.toString());		
-		*/
 		return dataList;		
 	}
 	
-	private List<Object> lastBestRowData;
-	private List<Object> checkedBestRowData;
-	private double bestCheckedFitness;
 	
-	public void newBestFound(SearchManager manager)
+	@Override
+	public void newBestFound(SearchProgressStatsKeeper statsKeeper)
 	{
-		lastBestRowData = getRowDataForNewBest(manager);
-		if (protocol.searchAlgorithmInfo.useBestChecking())
-		{
-			double checkedFitness = manager.getCurrentBestFitnessCheckedEstimate();
-			if (checkedBestRowData == null || manager.fitnessStrictlyBetter(checkedFitness,bestCheckedFitness))
-			{
-				checkedBestRowData = new ArrayList<Object>(lastBestRowData);
-				bestCheckedFitness = checkedFitness;
-			}
-		}
+		List<Object> rowData = makeRowDataFor(statsKeeper, statsKeeper.getCurrentBest(), statsKeeper.reportCurrentBestFitness(),
+													statsKeeper.reportCurrentBestCheckedFitness());
+		
 		if (bestOut != null)
 		{
-			bestOut.println(bsearch.nlogolink.CSVHelper.dataRow(lastBestRowData));	
+			bestOut.println(bsearch.nlogolink.CSVHelper.dataRow(rowData));	
 		}
 	}
-	public void searchStarting(SearchManager manager)
+	@Override
+	public void searchStarting(SearchProgressStatsKeeper statsKeeper)
 	{
-		lastBestRowData = null;
-		checkedBestRowData = null;
 	}
-	public void searchFinished(SearchManager manager)
+	@Override
+	public void searchFinished(SearchProgressStatsKeeper statsKeeper)
 	{
 		if (finalBestOut != null)
 		{
-			//TODO: Note that here we only update the evaluationCount -- other than that, it's the exact
-			// same output as the final row of the .bestHistory file.  This may possibly be wrong, since
-			// the number of replications may also have changed, if the point got evaluated more since then
-			// (adaptive sampling?)...
-			// The reason we use the stored data row, instead of asking for all fresh data from the SearchManager,
-			// is because if we weren't caching, then the exact data that created the best will have been thrown away...
-			// (in particular, we lost the # of replications, which is probably constant and unchanging...)
-			lastBestRowData.set(1, manager.getEvaluationCount());
-			finalBestOut.println(bsearch.nlogolink.CSVHelper.dataRow(lastBestRowData));
+			List<Object> rowData = makeRowDataFor(statsKeeper, statsKeeper.getCurrentBest(), statsKeeper.reportCurrentBestFitness(),
+													statsKeeper.reportCurrentBestCheckedFitness());
+			String nlogoCmd = NLogoUtils.buildNetLogoCommandCenterString(statsKeeper.getCurrentBest().getParamSettings());
+			nlogoCmd.replace("\"", "\"\"");
+			finalBestOut.println(bsearch.nlogolink.CSVHelper.dataRow(rowData)+",\""+nlogoCmd+"\"");
 		}
 		if (finalCheckedBestOut != null)
 		{
-			// See comment above...
-			checkedBestRowData.set(1, manager.getEvaluationCount());
-			finalCheckedBestOut.println(bsearch.nlogolink.CSVHelper.dataRow(checkedBestRowData));
+			List<Object> rowData = makeRowDataFor(statsKeeper, statsKeeper.getCurrentCheckedBest(), 
+										statsKeeper.reportCurrentCheckedBestFitness(), 
+										statsKeeper.reportCurrentCheckedBestCheckedFitness());
+			rowData.add(NLogoUtils.buildNetLogoCommandCenterString(statsKeeper.getCurrentCheckedBest().getParamSettings()));
+			finalCheckedBestOut.println(bsearch.nlogolink.CSVHelper.dataRow(rowData));
 		}
 		
 	}
 
+	@Override
 	public void allSearchesFinished() {
 		if (modelHistoryOut != null)
 		{
@@ -321,6 +274,7 @@ public class CSVLoggerListener implements ResultListener {
 		}
 	}
 
+	@Override
 	public void searchesAborted() {
 		// for now, handle aborted runs the same way as if it completed successfully.
 		allSearchesFinished();
