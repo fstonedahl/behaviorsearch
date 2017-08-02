@@ -109,7 +109,7 @@ public class RunOptionDialogController {
 
 		}
 
-		File selectedFile = fileChooser.showOpenDialog(getMainWindow());
+		File selectedFile = fileChooser.showSaveDialog(getMainWindow());
 		if (selectedFile != null) {
 			outputPathTextField.setText(selectedFile.getPath());
 		}
