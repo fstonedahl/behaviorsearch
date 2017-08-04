@@ -1,8 +1,9 @@
 package bsearch.datamodel;
 
-
-
 public class ObjectiveFunctionInfo {
+
+	public static enum OBJECTIVE_TYPE { MINIMIZE, MAXIMIZE, LOG_ONLY }; // , NOVELTY};
+
 	public final String name;	
 	public final OBJECTIVE_TYPE objectiveType;
 	public final String fitnessCombineReplications;
@@ -34,8 +35,5 @@ public class ObjectiveFunctionInfo {
 	public boolean useDerivative() {
 		return this.fitnessDerivativeParameter.length() > 0;
 	}
-	
-
-	public static enum OBJECTIVE_TYPE { MINIMIZE, MAXIMIZE, LOG_ONLY, NOVELTY};
-	
+		
 }

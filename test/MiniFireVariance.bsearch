@@ -8,7 +8,7 @@
 <modelStepCommands>go</modelStepCommands>
 <modelStopCondition>not any? turtles</modelStopCondition>
 <modelStepLimit>10000</modelStepLimit>
-<modelMetricReporter>(burned-trees / initial-trees) * 100</modelMetricReporter>
+<modelMetricReporter>ifelse-value (initial-trees = 0) [ 0 ] [(burned-trees / initial-trees) * 100]</modelMetricReporter>
 <modelMeasureIf>true</modelMeasureIf>
 </modelInfo>
 <fitnessInfo>

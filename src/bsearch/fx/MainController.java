@@ -156,6 +156,10 @@ public class MainController implements Initializable {
 	private String lastSavedText;
 	protected RunOptions runOptions;
 	Image icon = new Image(GeneralUtils.getResource("icon_behaviorsearch.png").toURI().toString());
+	private static ExtensionFilter[] BROWSE_EXTENSION_FILTERS = new ExtensionFilter[] {
+			new ExtensionFilter("BSsearch v2.x File (*.bsearch2,*.json)", "*.bsearch2", "*.json"),
+			new ExtensionFilter("BSsearch v1.x File (*.bsearch,*.xml)", "*.bsearch", "*.xml")
+	};
 	
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
@@ -164,7 +168,7 @@ public class MainController implements Initializable {
 		List<String> goalChoices = Arrays.stream(OBJECTIVE_TYPE.values()).map(obj->obj.toString()).collect(Collectors.toList());
 		SOGoalBox.setItems(FXCollections.observableArrayList(goalChoices));
 		List<String> fitnessCollecting = new ArrayList<String>();
-		fitnessCollecting.add("last @{MEASURED1}");
+		fitnessCollecting.add("last @{MEASURE1}");
 		SOFitnessCollectingBox.setItems(FXCollections.observableArrayList(fitnessCollecting));
 		SOFixedSamplingBox.setItems(FXCollections.observableArrayList("Fixed Sampling"));
 		List<String> combineReplication = new ArrayList<String>();
@@ -176,16 +180,12 @@ public class MainController implements Initializable {
 		// set up ChoiceBox in SA tab
 		try {
 			SASearchMethodBox.setItems(FXCollections.observableArrayList(SearchMethodLoader.getAllSearchMethodNames()));
-		} catch (BehaviorSearchException e) {
-			handleError(e.getMessage());
-		}
-		try {
+		
 			for (String name : SearchMethodLoader.getAllSearchMethodNames()) {
 				searchMethodChoices.put(name, SearchMethodLoader.createFromName(name));
-
 			}
-		} catch (BehaviorSearchException e1) {
-			handleError(e1.getMessage());
+		} catch (BehaviorSearchException e) {
+			handleError("Error loading Search Methods", e.getMessage(), e);
 		}
 		SASearchMethodBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
 
@@ -202,7 +202,7 @@ public class MainController implements Initializable {
 			SAChromosomeTypeBox
 					.setItems(FXCollections.observableArrayList(ChromosomeTypeLoader.getAllChromosomeTypes()));
 		} catch (BehaviorSearchException e) {
-			handleError(e.getMessage());
+			handleError("Error loading chromosome types", e.getMessage(), e);
 		}
 
 		// set up field that not in GUI
@@ -210,10 +210,12 @@ public class MainController implements Initializable {
 			defaultProtocolXMLForNewSearch = GeneralUtils
 					.stringContentsOfFile(GeneralUtils.getResource("defaultNewSearch.xml"));
 		} catch (java.io.FileNotFoundException ex) {
-			handleError("Cannot find defaultNewSearch.xml",null);
+			handleError("Error: file missing!","Cannot find defaultNewSearch.xml", null);
 			System.exit(1);
 		}
 		actionNew();
+
+		Platform.runLater( () -> openFile(new File("test/MiniFireVariance.bsearch")));
 
 	}
 
@@ -249,9 +251,8 @@ public class MainController implements Initializable {
 			ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(chromosomeType);
 			
 			helpDialog("Help about " + chromosomeType, factory.getHTMLHelpText() + "<BR><BR>");
-		} catch (BehaviorSearchException ex)
-		{
-			handleError(ex.toString());
+		} catch (BehaviorSearchException ex) {
+			handleError("Error loading Chomosome", ex.toString(), ex);
 		}
 	}
 	
@@ -382,12 +383,9 @@ public class MainController implements Initializable {
 
 		if (currentFile != null) {
 			chooser.setInitialDirectory(currentFile.getParentFile());
-			;
-
 		}
 		
-		chooser.getExtensionFilters().addAll(new ExtensionFilter("bsearch File", "*.bsearch"),
-				new ExtensionFilter("XML File", "*.xml"));
+		chooser.getExtensionFilters().addAll(BROWSE_EXTENSION_FILTERS);
 
 		File selectedFile = chooser.showOpenDialog(null);
 		if (selectedFile != null) {
@@ -405,12 +403,10 @@ public class MainController implements Initializable {
 			chooser.setInitialDirectory(new File(GeneralUtils.attemptResolvePathFromBSearchRoot("examples")));
 		} catch (Exception e) {
 			
-			handleError("Error: cannot find Example folder", e);
+			handleError("Error: missing folder!", "Error: cannot find Example folder", e);
 		}
 		
-		
-		chooser.getExtensionFilters().addAll(new ExtensionFilter("bsearch File", "*.bsearch"),
-				new ExtensionFilter("XML File", "*.xml"));
+		chooser.getExtensionFilters().addAll(BROWSE_EXTENSION_FILTERS);
 
 		File selectedFile = chooser.showOpenDialog(null);
 		
@@ -419,24 +415,28 @@ public class MainController implements Initializable {
 		}
 	}
 	
-	public void actionOpenTest() {
-		File selectedFile = new File("C:/Users/AnNguyen/Google Drive/behaviorsearch/behaviorsearch/examples/TestForFX.bsearch"
-);
+	private void actionOpenTest() {
+		File selectedFile = new File("C:/Users/AnNguyen/Google Drive/behaviorsearch/behaviorsearch/examples/TestForFX.bsearch");
 		openFile(selectedFile);
 	}
 
 	private void openFile(File fProtocol) {
 		try {
-			SearchProtocolInfo protocol = SearchProtocolInfo.loadOldXMLBasedFile(fProtocol.getPath());
+			SearchProtocolInfo protocol;
+			if (fProtocol.getName().endsWith(".bsearch") || fProtocol.getName().endsWith(".xml")) {
+				protocol = SearchProtocolInfo.loadOldXMLBasedFile(fProtocol.getPath());
+			} else {
+				protocol = SearchProtocolInfo.loadFromFile(fProtocol.getPath());				
+			}
 
 			currentFile = fProtocol;
 			loadProtocol(protocol);
 			updateWindowTitle(currentFile.getName());
 		} catch (IOException e) {
-			handleError("IO Error occurred attempting to load file: " + fProtocol.getPath(),null);
+			handleError("Error loading", "I/O error occurred attempting to load file: " + fProtocol.getPath(),null);
 			e.printStackTrace();
 		} catch (SAXException e) {
-			handleError("XML Parsing error occurred attempting to load file: " + fProtocol.getPath(),null);
+			handleError("Error loading", "XML Parsing error occurred attempting to load file: " + fProtocol.getPath(),null);
 			e.printStackTrace();
 		}
 	}
@@ -456,11 +456,15 @@ public class MainController implements Initializable {
 		MMeasureField.setText(protocol.modelDCInfo.measureReporters.values().toArray()[0].toString());
 		MMeasureIfField.setText(protocol.modelDCInfo.measureIfReporter);
 		SOGoalBox.setValue(protocol.objectives.get(0).objectiveType.toString());
-		SOFitnessCollectingBox.setValue(protocol.modelDCInfo.singleRunCondenserReporters.values().toArray()[0].toString());
-		SOFitnessSamplingRepetitionsField.setText(Integer.toString(protocol.fitnessSamplingReplications));
+		String collectorFromProtocol = protocol.modelDCInfo.singleRunCondenserReporters.values().toArray()[0].toString();
+		SOFitnessCollectingBox.getItems().add(collectorFromProtocol);
+		SOFitnessCollectingBox.setValue(collectorFromProtocol);
+		SOFitnessSamplingRepetitionsField.setText(Integer.toString(protocol.modelDCInfo.fitnessSamplingReplications));
 		SOFixedSamplingBox
-				.setValue((protocol.fitnessSamplingReplications != 0) ? "Fixed Sampling" : "Adaptive Sampling");
-		SOCombineReplicatesBox.setValue(protocol.objectives.get(0).fitnessCombineReplications.toString());
+				.setValue((protocol.modelDCInfo.fitnessSamplingReplications != 0) ? "Fixed Sampling" : "Adaptive Sampling");
+		String combinerFromProtocol = protocol.objectives.get(0).fitnessCombineReplications.toString();
+		SOCombineReplicatesBox.getItems().add(combinerFromProtocol);
+		SOCombineReplicatesBox.setValue(combinerFromProtocol);
 		SOTakeDerivativeCheckBox.setSelected(protocol.objectives.get(0).fitnessDerivativeParameter.length() > 0);
 		SOFitnessDerivativeUseAbsCheckBox.setSelected(protocol.objectives.get(0).fitnessDerivativeUseAbs);
 		takeDerivativeAction(new ActionEvent());
@@ -470,7 +474,7 @@ public class MainController implements Initializable {
 		SAChromosomeTypeBox.setValue(protocol.searchAlgorithmInfo.chromosomeType);
 		updateSearchMethodParamTable(searchMethodChoices.get(protocol.searchAlgorithmInfo.searchMethodType), protocol.searchAlgorithmInfo.searchMethodParams);
 		SACachingCheckBox.setSelected(protocol.searchAlgorithmInfo.caching);
-		SABestCheckingField.setText(Integer.toString(protocol.searchAlgorithmInfo.bestCheckingNumReplications));
+		SABestCheckingField.setText(Integer.toString(protocol.modelDCInfo.bestCheckingNumReplications));
 		SAEvaluationLimitField.setText(Integer.toString(protocol.searchAlgorithmInfo.evaluationLimit));
 		lastSavedText = protocol.toJSONString(); 
 		runOptions = null; 
@@ -603,10 +607,9 @@ public class MainController implements Initializable {
 			protocol.save(currentFile.getAbsolutePath());
 			lastSavedText = protocol.toJSONString();
 		} catch (IOException ex) {
-			handleError("IO Error occurred attempting to save file: " + currentFile.getPath(),ex);
+			handleError("Error Saving", "Error occurred attempting to save file: " + currentFile.getPath(),ex);
 		} catch (UIConstraintException ex) {
-			System.out.println(ex.getMessage());
-			
+			handleError(ex.getTitle(), "Error saving: " + ex.getMessage());
 		}
 	}
 	
@@ -666,7 +669,6 @@ public class MainController implements Initializable {
 			for (ParameterSpec spec : ss.getParamSpecs()) {
 				wrt.add(spec.getParameterName());
 			}
-			wrt.add("@MUTATE@");
 			this.SOWrtBox.setItems(FXCollections.observableArrayList(wrt));
 
 		} else {
@@ -681,17 +683,14 @@ public class MainController implements Initializable {
 		try {
 			this.MParamSpecsArea.setText(bsearch.nlogolink.NLogoUtils.getDefaultConstraintsText(this.browseField.getText()));
 		} catch (NetLogoLinkException e) {
-			handleError(e.getMessage(), e);
+			handleError("Error", e.getMessage(), e);
 		}
 	}
 
 	public void actionRunNow(ActionEvent event) {
 		
-		
-		
 		if (runOptions == null)
 		{
-			
 			runOptions = new BehaviorSearch.RunOptions();
 			//suggest a filename stem for output files, which users can change.
 			if (currentFile != null)
@@ -727,15 +726,19 @@ public class MainController implements Initializable {
 			stage.showAndWait();
 			
 		} catch (IOException e) {
-			handleError("Required file not found: RunOptionDialog.fxml \nThe program will not run properly");
+			handleError("Error", "Problem loading RunOptionDialog.fxml", e);
 		}
 	}		
 	
-	public static void handleError(String msg1, Throwable e) {
+	public static void handleError(String title, String msg1, Throwable e) {
+		if (e!=null) {
+			e.printStackTrace();
+		}
+		
 		Platform.runLater(new Runnable() {
 			public void run() {
 				Alert alert = new Alert(AlertType.ERROR);
-				alert.setTitle("Exception Dialog");
+				alert.setTitle(title);
 				alert.setContentText(msg1);
 				if (e!=null) {
 					// Create expandable Exception.
@@ -764,16 +767,20 @@ public class MainController implements Initializable {
 
 	}
 	
-	public static void handleError(String msg1) {
-		handleError(msg1, null);
+	public static void handleError(String title, String msg1) {
+		handleError(title, msg1, null);
 	}
+	public static void handleError(Throwable e) {
+		handleError("Error", e.getMessage(), e);
+	}
+
 	public void displayProgressDialog(){
 		SearchProtocolInfo protocol;
 		
 		try {
 			protocol = createProtocolFromFormData();
 		} catch (UIConstraintException e) {
-			handleError("Error creating SearchProtocol: " + e.getMessage(),null);			
+			handleError(e.getTitle(), "Error creating SearchProtocol: " + e.getMessage());			
 			return;
 		}
 		Stage stage = new Stage();
@@ -791,7 +798,7 @@ public class MainController implements Initializable {
 			stage.show();
 			
 		} catch (IOException e) {
-			handleError("Required file not found: ProgressDialog.fxml \nThe program will not run properly");
+			handleError("Error", "Problem loading ProgressDialog.fxml", e);
 		}
 		
 	}

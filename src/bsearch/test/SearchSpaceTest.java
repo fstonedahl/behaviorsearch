@@ -2,7 +2,6 @@ package bsearch.test;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,8 +14,6 @@ import org.moeaframework.core.Solution;
 import org.moeaframework.core.Variable;
 import org.moeaframework.core.variable.EncodingUtils;
 
-import bsearch.nlogolink.CSVHelper;
-import bsearch.nlogolink.NLogoUtils;
 import bsearch.space.ParameterSpec;
 import bsearch.space.SearchSpace;
 
@@ -88,14 +85,7 @@ public class SearchSpaceTest {
 		LinkedHashMap<String,Object> paramSettings = space.getParamSettingsFromMOEASolution(solution);
 		Assert.assertEquals("{discrete1to4=3.0, continuous0to1.5=1.25, categorical=banana, const=25.0, discretedecimal=-0.83}",
 				paramSettings.toString());
-
-		
-		List<Object> list = new ArrayList<Object>();
-		list.add(5);
-		list.add(NLogoUtils.buildNetLogoCommandCenterString(paramSettings));
-		list.add("stuff,");
-		System.out.println(CSVHelper.dataRow(list));
-		
+				
 	}
 
 }

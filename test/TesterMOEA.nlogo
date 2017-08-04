@@ -30,6 +30,26 @@ end
 to-report doubleit [ n ]
   report n * 2
 end
+
+
+to-report schaeffer [ objNum ]
+  if objNum = 0 [ report a ^ 2 ]
+  if objNum = 1 [ report (a - 2) ^ 2 ]
+end
+
+to-report binh [ objNum ]
+  if objNum = 0 [ report a ^ 2 + b ^ 2]
+  if objNum = 1 [ report (a - 5) ^ 2 + (b - 5) ^ 2 ]
+end
+
+to-report fonseca2 [ objNum ]
+  if objNum = 0 [
+    report 1 - exp (0 - ((a - 1 / (sqrt 3)) ^ 2 + (b - 1 / (sqrt 3)) ^ 2 + (c - 1 / (sqrt 3)) ^ 2))
+  ]
+  if objNum = 1 [
+    report 1 - exp (0 - ((a + 1 / (sqrt 3)) ^ 2 + (b + 1 / (sqrt 3)) ^ 2 + (c + 1 / (sqrt 3)) ^ 2))
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 205

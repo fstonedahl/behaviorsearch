@@ -1,6 +1,6 @@
 package bsearch.evaluation;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -8,13 +8,14 @@ import java.util.Map;
 
 import org.nlogo.api.MersenneTwisterFast;
 
-
+import bsearch.MOEAlink.MOEASolutionWrapper;
 import bsearch.app.BehaviorSearchException;
 import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.nlogolink.SingleRunResult;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.nlogolink.ModelRunner.ModelRunnerException;
 import bsearch.nlogolink.ModelRunningService;
+import bsearch.nlogolink.MultipleRunResult;
 import bsearch.representations.Chromosome;
 
 
@@ -22,145 +23,133 @@ public class SearchManager
 {
 	private final ModelRunningService modelRunningService;
 	private final SearchProtocolInfo protocol;  
-	private final ObjectiveEvaluator fitnessFunction;
+	private final ObjectiveEvaluator objectiveEvaluator;
 	
 	private final SearchProgressStatsKeeper statsKeeper;
 	
 	private Map<Chromosome, List<Object>> objectivesCache;
-
-	private List<ResultListener> resultListeners = new ArrayList<ResultListener>();
 	
 	public SearchManager(int searchIDNumber, ModelRunningService runner, SearchProtocolInfo protocol, 
-			ObjectiveEvaluator fitnessFunction )
+			ObjectiveEvaluator fitnessFunction,  SearchProgressStatsKeeper statsKeeper)
 	{
 		this.modelRunningService = runner;
 		this.protocol = protocol;
-		this.fitnessFunction = fitnessFunction;
-		this.objectivesCache = new LinkedHashMap<Chromosome,List<Object>>();
+		this.objectiveEvaluator = fitnessFunction;
+		this.statsKeeper = statsKeeper;
 
-		this.statsKeeper = new SearchProgressStatsKeeper(searchIDNumber,0,0,protocol.objectives);
+		//TODO: If cache size is limited, use LRUCache in place of LinkedHashMap there...
+		this.objectivesCache = Collections.synchronizedMap(new LinkedHashMap<Chromosome,List<Object>>());
 	}
 
-	public void addResultsListener(ResultListener listener)
+	@Deprecated
+	public double computeFitnessSingleLegacy(Chromosome point, int numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, BehaviorSearchException, InterruptedException
 	{
-		resultListeners.add(listener);
+		MOEASolutionWrapper dummyWrapper = MOEASolutionWrapper.getDummySolutionWrapper(point, protocol.objectives);
+		computeFitnessSingle(dummyWrapper, numReplicationsDesired, rng);
+		return dummyWrapper.getSolution().getObjective(0);
 	}
 
-	/**
-	 * Note that this method *will* affect the state of the RNG, so you may wish to pass in a cloned copy of your RNG, 
-	 *  or a brand new RNG, rather than an RNG that you are using for other purposes...
-	 * @param pointOfInterest
-	 * @param numReplicationsDesired
-	 * @param rng 
-	 * @return
-	 * @throws ModelRunnerException
-	 * @throws BehaviorSearchException
-	 * @throws InterruptedException
-	 */
-	private List<Object> computeFitnessWithoutSideEffects(Chromosome pointOfInterest, int numReplicationsDesired, MersenneTwisterFast rng) 
-		throws ModelRunnerException, NetLogoLinkException, InterruptedException, BehaviorSearchException
-	{
-		HashMap<Chromosome, Integer> desiredRuns = fitnessFunction.getRunsNeeded(pointOfInterest, numReplicationsDesired);
-
-		Map<Chromosome,List<SingleRunResult>> resultsMap = modelRunningService.doBatchRun(desiredRuns,rng);
-		statsKeeper.setModelRunRecheckingCounter(statsKeeper.getModelRunRecheckingCounter() + numReplicationsDesired*resultsMap.size()); 
-		
-		return fitnessFunction.evaluateAllObjectives(pointOfInterest, resultsMap, modelRunningService);
+	@Deprecated
+	public double[] computeFitnessBatchLegacy(Chromosome[] points, int numReplicationsDesired, MersenneTwisterFast rng)
+			throws ModelRunnerException, NetLogoLinkException, InterruptedException, BehaviorSearchException {
+		double[] firstObjectiveVals = new double[points.length];
+		for (int i = 0; i < points.length; i++) {
+			firstObjectiveVals[i] = computeFitnessSingleLegacy(points[i], numReplicationsDesired, rng);
+		}
+		return firstObjectiveVals;
 	}
 
-	public double computeFitnessSingle(Chromosome point, int numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, BehaviorSearchException, InterruptedException
-	{
-		Chromosome[] points = new Chromosome[] { point };
-		return computeFitnessBatch(points, numReplicationsDesired, rng)[0];
-	}
 	/**
 	 * In addition to computing the fitness for this point, this method also checks if it's the best so far,
 	 * in which case it's stored as the current best.
 	 */
-	public double[] computeFitnessBatch(Chromosome[] points, int numReplicationsDesired, MersenneTwisterFast rng) 
-		throws ModelRunnerException, NetLogoLinkException, InterruptedException, BehaviorSearchException
+	public void computeFitnessSingle(MOEASolutionWrapper solutionWrapper, int numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, BehaviorSearchException, InterruptedException
 	{
-		HashMap<Chromosome, Integer> allDesiredRuns = new LinkedHashMap<Chromosome,Integer>();
-		
-		// as we add replications to be evaluated, keep track of how many are added for each point that we're 
-		// computing fitness for.
-		int[] numReplicationsNeeded = new int[points.length];
-		
-		for (int i = 0; i < points.length; i++)
-		{
-			if (this.objectivesCache.containsKey(points[i])) {
-				numReplicationsNeeded[i] = 0; // use cached objectives...
-			} else {
-				HashMap<Chromosome, Integer> desiredRuns = fitnessFunction.getRunsNeeded(points[i], numReplicationsDesired);
-				allDesiredRuns.putAll(desiredRuns);
-				numReplicationsNeeded[i] = desiredRuns.values().stream().mapToInt(num -> num.intValue()).sum();				
-			}
+		Chromosome point = solutionWrapper.getPoint();
+		List<Object> cachedResult = this.objectivesCache.get(point);
+		if (cachedResult != null) {
+			solutionWrapper.setObjectivesOnSolution(cachedResult);
+			return;
 		}
 
-		Map<Chromosome,List<SingleRunResult>> resultsMap = modelRunningService.doBatchRun(allDesiredRuns,rng);
+		HashMap<Chromosome, Integer> desiredRuns = objectiveEvaluator.getRunsNeeded(point, numReplicationsDesired);
+
+		Map<Chromosome,MultipleRunResult> resultsMap = modelRunningService.doBatchRun(desiredRuns,rng);
+		List<Object> objectiveValsForThisPoint = objectiveEvaluator.evaluateAllObjectives(point, resultsMap);
+		if (protocol.searchAlgorithmInfo.caching) {
+			// NOTE: There is a race condition where two threads could both enter this method before the point is cached 
+			// both call evaluateAllObjectives, and both attempt to store their in the cache.
+			// In this case, since we use putIfAbsent, the cache will simply hold the first value that was stored. 
+			// The second evaluation was wasted effort, but this is unlikely to occur often, and the alternative of 
+			// synchronizing over this whole section of code would defeat the gains from parallel evaluation. 
+			objectivesCache.putIfAbsent(point, objectiveValsForThisPoint);
+		}
+		solutionWrapper.setObjectivesOnSolution(objectiveValsForThisPoint);
+		// at this point, we're done with evaluation as far as MOEA is concerned, 
+		// but we need to handle logging, tracking the best found, and best "rechecking" 
 		
-		// temporarily count up model run counter for notifying modelRun listeners
-		// then we'll count it up again (using statsKeeper) below for the objective listeners
-		int tempModelRunCounter = statsKeeper.getModelRunCounter() ;
-		for (Chromosome point : resultsMap.keySet()) {
-			for (SingleRunResult runResult : resultsMap.get(point)) {
-				tempModelRunCounter++;
-				for (ResultListener listener : resultListeners) {
-					listener.modelRunOccurred(statsKeeper.getSearchIDNumber(), tempModelRunCounter, 
-									statsKeeper.getModelRunRecheckingCounter(), runResult);
+		// get a new solution with a new wrapper, so that nothing we do below will impact the original solution that MOEA uses
+		solutionWrapper = solutionWrapper.copy(); 
+		
+		boolean newBest = false;
+		int modelRunCount = 0;
+		
+		synchronized (statsKeeper) {
+			modelRunCount = statsKeeper.getModelRunCounter();
+			newBest = statsKeeper.maybeUpdateBest(solutionWrapper.getSolution());
+
+			for (Chromosome runPoint : resultsMap.keySet()) {
+				for (SingleRunResult runResult : resultsMap.get(runPoint).getSingleRuns()) {
+					statsKeeper.modelRunEvent(runResult, false);
+					modelRunCount++;
 				}
 			}
+			solutionWrapper.setSearchID(statsKeeper.getSearchID());
+			solutionWrapper.setModelRunCounter(modelRunCount);
+			statsKeeper.fitnessComputedEvent(solutionWrapper);
+			if (newBest && !protocol.modelDCInfo.useBestChecking()){
+				statsKeeper.newBestEvent(solutionWrapper);
+			}
 		}
 
+		if (newBest && protocol.modelDCInfo.useBestChecking()) {
+			MOEASolutionWrapper recheckedSolutionWrapper = solutionWrapper.copy();
+			computeFitnessForRechecking(recheckedSolutionWrapper, protocol.modelDCInfo.bestCheckingNumReplications, rng);
+			// pair these two wrappers, so we can access the other when we need to get stats on them much later.
+			solutionWrapper.setCheckingPairWrapper(recheckedSolutionWrapper); 
+			recheckedSolutionWrapper.setCheckingPairWrapper(solutionWrapper);
+			
+			synchronized (statsKeeper) {
+				statsKeeper.maybeUpdateCheckedBest(recheckedSolutionWrapper.getSolution());
+				statsKeeper.newBestEvent(solutionWrapper);
+			}			
+		}
+	}
+	
+	private void computeFitnessForRechecking(MOEASolutionWrapper solutionWrapper, int numReplicationsDesired, MersenneTwisterFast rng) 
+		throws ModelRunnerException, NetLogoLinkException, InterruptedException, BehaviorSearchException
+	{
 		// We create an auxilliaryRNG to use for "best-checking", so that the number of best-checking
 		// replicates doesn't affect the search process at all. 
 		MersenneTwisterFast auxilliaryRNG = new MersenneTwisterFast(rng.clone().nextInt());
 
-		double[] firstSlotFitnesses = new double[points.length]; 
-		for (int i = 0; i < points.length; i++)
-		{
-			List<Object> fitnessObj = objectivesCache.get(points[i]);
-			if (fitnessObj == null) { // if not in cache, evaluate objectives (and store for later, if caching turned on)
-				fitnessObj = fitnessFunction.evaluateAllObjectives(points[i], resultsMap, modelRunningService);
-				if (protocol.searchAlgorithmInfo.caching) {
-					objectivesCache.put(points[i], fitnessObj);
+		Chromosome pointOfInterest = solutionWrapper.getPoint();
+		HashMap<Chromosome, Integer> desiredRuns = objectiveEvaluator.getRunsNeeded(pointOfInterest, numReplicationsDesired);
+
+		Map<Chromosome,MultipleRunResult> resultsMap = modelRunningService.doBatchRun(desiredRuns,auxilliaryRNG);
+				
+		solutionWrapper.setObjectivesOnSolution(objectiveEvaluator.evaluateAllObjectives(pointOfInterest, resultsMap));
+
+		
+		synchronized (statsKeeper) {
+			for (Chromosome runPoint : resultsMap.keySet()) {
+				for (SingleRunResult runResult : resultsMap.get(runPoint).getSingleRuns()) {
+					statsKeeper.modelRunEvent(runResult, true);
 				}
 			}
-			//TODO: FIXME for MOEA
-			double[] fitness = toPrimitiveDoubleArray(fitnessObj);
-			firstSlotFitnesses[i] = fitness[0];
-			statsKeeper.setModelRunCounter(statsKeeper.getModelRunCounter() + numReplicationsNeeded[i]);
-			
-			if (statsKeeper.checkIfNewBest(points[i],fitness))
-			{
-				if (protocol.searchAlgorithmInfo.useBestChecking())
-				{
-					List<Object> bestCheckedObj = computeFitnessWithoutSideEffects(points[i], protocol.searchAlgorithmInfo.bestCheckingNumReplications, auxilliaryRNG);
-					double[] bestChecked = toPrimitiveDoubleArray(bestCheckedObj);
-					statsKeeper.setCurrentBestFitnessCheckedEstimate(bestChecked); 
-				}
-				for (ResultListener listener : resultListeners)
-				{
-					listener.newBestFound(this.statsKeeper);
-				}
-			}
-			if (numReplicationsNeeded[i] > 0) // i.e. we have new information
-			{
-				for (ResultListener listener : resultListeners)
-				{
-					listener.fitnessComputed(this.statsKeeper, points[i].getParamSettings(), fitness);
-				}
-			}
+
 		}
-		return firstSlotFitnesses;
-	}
-	
-	private static double[] toPrimitiveDoubleArray(List<Object> list) {
-		double[] nums = new double[list.size()];
-		for (int i = 0; i < list.size(); i++) {
-			nums[i] = (double) list.get(i);
-		}
-		return nums;
+
 	}
 	
 	public boolean searchFinished()
@@ -173,9 +162,9 @@ public class SearchManager
 		return protocol.searchAlgorithmInfo.evaluationLimit - statsKeeper.getModelRunCounter();
 	}
 	 
-	public ObjectiveEvaluator getFitnessFunction()
+	public ObjectiveEvaluator getObjectiveEvaluator()
 	{
-		return fitnessFunction;
+		return objectiveEvaluator;
 	}
 	public SearchProgressStatsKeeper getStatsKeeper() {
 		return statsKeeper;
@@ -183,7 +172,7 @@ public class SearchManager
 
 	public boolean fitnessStrictlyBetter(double f1, double f2)
 	{
-		return fitnessFunction.strictlyBetterThan(f1, f2);
+		return objectiveEvaluator.strictlyBetterThan(f1, f2);
 	}	
 	
 
@@ -207,11 +196,11 @@ public class SearchManager
 		}
 		
 		int bestIndex = -1;
-		double bestFitness = fitnessFunction.getWorstConceivableFitnessValue() ;
+		double bestFitness = objectiveEvaluator.getWorstConceivableFitnessValue() ;
 		for (i = 0 ; i < randomIndices.length; i++)
 		{
 			double f = fitness[randomIndices[i]];
-			if (fitnessFunction.strictlyBetterThan(f,bestFitness))
+			if (objectiveEvaluator.strictlyBetterThan(f,bestFitness))
 			{
 				bestIndex = randomIndices[i];
 				bestFitness = f;

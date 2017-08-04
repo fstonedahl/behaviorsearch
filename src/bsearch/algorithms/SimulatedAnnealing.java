@@ -78,7 +78,7 @@ public strictfp class SimulatedAnnealing extends AbstractSearchMethod {
     	while (!manager.searchFinished())
     	{
     		Chromosome current = cFactory.createChromosome(space, rng);
-    		double currentFitness = manager.computeFitnessSingle(current, protocol.fitnessSamplingReplications, rng);
+    		double currentFitness = manager.computeFitnessSingleLegacy(current, protocol.modelDCInfo.fitnessSamplingReplications, rng);
 
     		int stallCount = 0;
         	while (!manager.searchFinished())
@@ -96,7 +96,7 @@ public strictfp class SimulatedAnnealing extends AbstractSearchMethod {
         			throw new BehaviorSearchException("An extremely large number of mutation attempts all resulted in no mutation - perhaps your mutation-rate is too low?");
         		}
 
-            	double candidateFitness = manager.computeFitnessSingle(candidate, protocol.fitnessSamplingReplications, rng);
+            	double candidateFitness = manager.computeFitnessSingleLegacy(candidate, protocol.modelDCInfo.fitnessSamplingReplications, rng);
             	
             	if (acceptChange(currentFitness, candidateFitness, temperature, manager, rng))
             	{

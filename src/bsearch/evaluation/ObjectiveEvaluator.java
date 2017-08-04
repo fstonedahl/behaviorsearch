@@ -9,8 +9,7 @@ import java.util.Map;
 import bsearch.app.BehaviorSearchException;
 import bsearch.datamodel.ObjectiveFunctionInfo;
 import bsearch.datamodel.ObjectiveFunctionInfo.OBJECTIVE_TYPE;
-import bsearch.nlogolink.SingleRunResult;
-import bsearch.nlogolink.ModelRunningService;
+import bsearch.nlogolink.MultipleRunResult;
 import bsearch.representations.Chromosome;
 import bsearch.representations.DummyChromosome;
 
@@ -83,11 +82,9 @@ public strictfp class ObjectiveEvaluator
 		return maxNeeded;
 	}
 	
-	// TODO: change this to take in a MOEA Solution parameter, and set objectives on it??? Also set novelty behaviors?
-	public List<Object> evaluateAllObjectives(Chromosome point, Map<Chromosome,List<SingleRunResult>> resultsMap, ModelRunningService runService) throws BehaviorSearchException
+	public List<Object> evaluateAllObjectives(Chromosome point, Map<Chromosome,MultipleRunResult> resultsMap) throws BehaviorSearchException
 	{	
-		List<SingleRunResult> pointResults = resultsMap.get( point );
-		List<Object> combinedValsAtPoint = runService.getCombinedResultsForEachObjective(pointResults);
+		List<Object> combinedValsAtPoint = resultsMap.get(point).getCombinedMeasures();
 		
 		for (int i = 0; i < objectiveFunctions.size(); i++) {
 			ObjectiveFunctionInfo objInfo = objectiveFunctions.get(i);
@@ -96,15 +93,15 @@ public strictfp class ObjectiveEvaluator
 			Object objValAtPoint = combinedValsAtPoint.get(i);
 			if ((objInfo.objectiveType == OBJECTIVE_TYPE.MINIMIZE || objInfo.objectiveType == OBJECTIVE_TYPE.MAXIMIZE)
 					&& (!(objValAtPoint instanceof Double))) {
-				throw new BehaviorSearchException("Objective function " + objInfo.name + " must report a number, but reported " + objValAtPoint + " instead!");
+				throw new BehaviorSearchException("Objective " + objInfo.name + " must report a number, but reported " + objValAtPoint + " instead!");
 			}
+			// possibly check NOVELTY here to make sure it's a double[] array?
 			
 			if (objInfo.useDerivative()) {
 				double pointVal = (double)objValAtPoint;
 				Chromosome neighbor = getNeighborDeltaAway( point, objInfo );
-				
-				List<SingleRunResult> neighborResults = resultsMap.get( neighbor );	
-				List<Object> combinedValsAtNeighbor = runService.getCombinedResultsForEachObjective(neighborResults);
+					
+				List<Object> combinedValsAtNeighbor = resultsMap.get( neighbor ).getCombinedMeasures();
 				double neighborPointVal = (double) combinedValsAtNeighbor.get(i);
 				double denominator = objInfo.fitnessDerivativeDelta;
 				double derivObjectiveVal = (pointVal - neighborPointVal) / denominator;
@@ -112,9 +109,6 @@ public strictfp class ObjectiveEvaluator
 					derivObjectiveVal = StrictMath.abs(derivObjectiveVal);
 				}
 				combinedValsAtPoint.set(i, derivObjectiveVal);
-			}
-			if (objInfo.objectiveType == OBJECTIVE_TYPE.MAXIMIZE) {
-				combinedValsAtPoint.set(i, (double) combinedValsAtPoint.get(i) * -1);
 			}
 		}
 		

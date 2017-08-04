@@ -1,125 +1,144 @@
 package bsearch.evaluation;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+import org.moeaframework.core.NondominatedPopulation;
+import org.moeaframework.core.Solution;
+
+import bsearch.MOEAlink.MOEASolutionWrapper;
 import bsearch.datamodel.ObjectiveFunctionInfo;
-import bsearch.datamodel.ObjectiveFunctionInfo.OBJECTIVE_TYPE;
-import bsearch.representations.Chromosome;
+import bsearch.nlogolink.SingleRunResult;
 
+/** WARNING: Although individual methods are marked synchronized, 
+ *   do not be under any illusion that this class is thread-safe! 
+ * Client code must carefully synchronize (on their instance of this class) 
+ * when performing any operations with this class. 
+ */
 public class SearchProgressStatsKeeper {
-	private final int searchIDNumber;	
+	private int searchID;	
 	private int modelRunCounter;	
 	private int modelRunRecheckingCounter;	
 	
-	private Chromosome currentBest; 
-	private double[] currentBest_Fitness; 
-	private double[] currentBest_CheckedFitness;
-	
-	private Chromosome currentCheckedBest;
-	private double[] currentCheckedBest_Fitness; 
-	private double[] currentCheckedBest_CheckedFitness; 
- 
-	private List<ObjectiveFunctionInfo> objectiveInfos;
+	// keep track of the bests within one search
+	private NondominatedPopulation currentBests; 
+	private NondominatedPopulation currentCheckedBests;
+
+	// keep track of the best over all searches
+	private NondominatedPopulation overallBests; 		
+	private NondominatedPopulation overallCheckedBests;
+ 	
+	private List<ResultListener> resultListeners;
 	
 	public SearchProgressStatsKeeper(int searchIDNumber, int modelRunCounter,
-			int modelRunRecheckingCounter, List<ObjectiveFunctionInfo> objInfos) {
-		this.searchIDNumber = searchIDNumber;
+			int modelRunRecheckingCounter, List<ObjectiveFunctionInfo> objInfos, 
+			List<ResultListener> resultListeners) {
+		this.searchID = searchIDNumber;
 		this.modelRunCounter = modelRunCounter;
 		this.modelRunRecheckingCounter = modelRunRecheckingCounter;
-		this.objectiveInfos = objInfos.stream().filter(oi -> oi.objectiveType != OBJECTIVE_TYPE.NOVELTY).collect(Collectors.toList());
 		
-		this.currentBest = null;
+		this.currentBests = new NondominatedPopulation();
+		this.currentCheckedBests = new NondominatedPopulation();
+		this.overallBests = new NondominatedPopulation();
+		this.overallCheckedBests = new NondominatedPopulation();
 		
-		this.currentBest_Fitness = new double[objInfos.size()]; 
-		Arrays.fill(currentBest_Fitness, Double.POSITIVE_INFINITY);
-		this.currentBest_CheckedFitness = new double[objInfos.size()]; 
-		Arrays.fill(currentBest_CheckedFitness, Double.POSITIVE_INFINITY);
-
-		this.currentCheckedBest = null;
-		this.currentCheckedBest_Fitness = new double[objInfos.size()]; 
-		Arrays.fill(currentCheckedBest_Fitness, Double.POSITIVE_INFINITY); 
+		this.resultListeners = resultListeners;
+		
 	}
 	
-	private double[] selectivelyInvert(double input[]) {
-		double[] retVal = input.clone();
-		for (int i = 0; i < retVal.length; i++) {
-			if (objectiveInfos.get(i).objectiveType==OBJECTIVE_TYPE.MAXIMIZE) {
-				retVal[i] *= -1;
-			}
-		}
-		return retVal;
+	/** tests whether solution is best (or non-dominated for multi-obj),
+	 *    and if so keeps track of it.
+	 * @param candidate
+	 * @return true if the candidate is "best" (non-dominated)
+	 */
+	synchronized boolean maybeUpdateBest(Solution candidate) {
+		return currentBests.add(candidate);
+	}
+
+	/** test whether this (re-checked) solution is best (or non-dominated for multi-obj),
+	 *    among re-checked solutions so far, and if so keeps track of it.
+	 * @param candidate
+	 * @return true if the candidate is "best" (non-dominated)
+	 */
+	synchronized boolean maybeUpdateCheckedBest(Solution candidate) {
+		return currentCheckedBests.add(candidate);
 	}
 	
-	public double[] reportCurrentBestFitness() {
-		return selectivelyInvert(currentBest_Fitness);
+	synchronized int getSearchID() {
+		return searchID;
 	}
 
-	double[] getCurrentBestFitnessCheckedEstimate() {
-		return currentBest_CheckedFitness;
-	}
-	public double[] reportCurrentBestCheckedFitness() {
-		return selectivelyInvert(currentBest_CheckedFitness);
-	}
-
-	public Chromosome getCurrentCheckedBest() {
-		return currentCheckedBest;
-	}
-
-	public double[] reportCurrentCheckedBestFitness() {
-		return selectivelyInvert(currentCheckedBest_Fitness);
-	}
-	public double[] reportCurrentCheckedBestCheckedFitness() {
-		return selectivelyInvert(currentCheckedBest_CheckedFitness);
-	}
-
-	synchronized void setCurrentBestFitnessCheckedEstimate(double[] currentBestFitnessCheckedEstimate) {
-		this.currentBest_CheckedFitness = currentBestFitnessCheckedEstimate;
-		
-		if (currentBestFitnessCheckedEstimate[0] < currentCheckedBest_Fitness[0]) { // update to track the best "re-checked" one.
-			currentCheckedBest = currentBest;
-			currentCheckedBest_Fitness = currentBest_Fitness; 
-			currentCheckedBest_CheckedFitness = currentBestFitnessCheckedEstimate;
-		}
-	}
-
-	synchronized boolean checkIfNewBest(Chromosome point, double[] objectiveVals) 
-	{ 
-		// TODO: Fix this to handle multi-objective CORRECTLY using pareto-dominance (perhaps by using MOEA Solutions & Non-Dominated-pop?)
-		 
-		if (objectiveVals[0] < currentBest_Fitness[0]) {		
-			currentBest = point;
-			currentBest_Fitness = objectiveVals;
-			return true;
-		}
-		return false;
-	}
-	
-	public Chromosome getCurrentBest() 
-	{
-		return currentBest;
-	}
-
-	public int getSearchIDNumber() {
-		return searchIDNumber;
-	}
-
-	public int getModelRunCounter() {
+	synchronized int getModelRunCounter() {
 		return modelRunCounter;
 	}
-
-	void setModelRunCounter(int evaluationCounter) {
-		this.modelRunCounter = evaluationCounter;
+	synchronized void incrementModelRunCounter(int numNewRuns) {
+		modelRunCounter += numNewRuns;
 	}
 
-	public int getModelRunRecheckingCounter() {
+	synchronized int getModelRunRecheckingCounter() {
 		return modelRunRecheckingCounter;
 	}
-
-	void setModelRunRecheckingCounter(int auxilliaryEvaluationCounter) {
-		this.modelRunRecheckingCounter = auxilliaryEvaluationCounter;
+	
+	synchronized void incrementModelRunRecheckingCounter(int numAdditionalRuns) {
+		this.modelRunRecheckingCounter += numAdditionalRuns;
 	}
 	
+	public synchronized void searchStartingEvent(int searchID) {
+		this.searchID = searchID;
+		this.modelRunCounter=0;
+		this.modelRunRecheckingCounter=0;
+		currentBests.clear();
+		currentCheckedBests.clear();
+		for (ResultListener listener : resultListeners) {
+			listener.searchStarting(this.searchID);
+		}
+	}
+	public synchronized void modelRunEvent(SingleRunResult runResult, boolean isRecheckingRun) {
+		if (isRecheckingRun) {
+			modelRunRecheckingCounter++;
+		} else {
+			modelRunCounter++;
+		}
+		for (ResultListener listener : resultListeners) {
+			listener.modelRunOccurred(getSearchID(), modelRunCounter, modelRunRecheckingCounter, isRecheckingRun, runResult);
+		}
+	}
+	public synchronized void fitnessComputedEvent(MOEASolutionWrapper solutionWrapper) {
+		for (ResultListener listener : resultListeners) {
+			listener.fitnessComputed(solutionWrapper);
+		}
+	}
+
+	public synchronized void newBestEvent(MOEASolutionWrapper newBest) {
+		for (ResultListener listener : resultListeners) {
+			listener.newBestFound(newBest);
+		}
+	}
+	public synchronized void  searchFinishedEvent() {
+		overallBests.addAll(currentBests);
+		overallCheckedBests.addAll(currentCheckedBests);
+		
+		List<MOEASolutionWrapper> currentBestsList = populationToList(currentBests);
+		List<MOEASolutionWrapper> currentCheckedBestsList = populationToList(currentCheckedBests);
+
+		for (ResultListener listener : resultListeners) {
+			listener.searchFinished(searchID, currentBestsList, currentCheckedBestsList);
+		}
+	}
+	
+	public synchronized void allSearchesFinishedEvent() {
+		List<MOEASolutionWrapper> overallBestsList = populationToList(overallBests);
+		List<MOEASolutionWrapper> overallCheckedBestsList = populationToList(overallCheckedBests);
+		for (ResultListener listener : resultListeners) {
+			listener.allSearchesFinished(overallBestsList, overallCheckedBestsList);
+		}		
+	}
+	
+	// helper function to convert populations to lists, so we don't have to expose so much MOEA to listeners.. 
+	private static List<MOEASolutionWrapper> populationToList(NondominatedPopulation pop) {
+		return StreamSupport.stream(pop.spliterator(), false)
+					.map(sol -> MOEASolutionWrapper.getWrapperFor(sol)).collect(Collectors.toList());
+	}
+
 }

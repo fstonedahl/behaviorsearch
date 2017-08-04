@@ -19,6 +19,7 @@ import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.ObjectiveEvaluator;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
+import bsearch.evaluation.SearchProgressStatsKeeper;
 import bsearch.nlogolink.BatchRunner;
 import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.nlogolink.NLogoUtils;
@@ -35,32 +36,44 @@ import bsearch.util.GeneralUtils;
  */
 public strictfp class BehaviorSearch {
 
-	public static void runMultipleSearches(SearchProtocolInfo protocol, int numSearches, int firstSearchNumber, String fnameStem, List<ResultListener> listeners, int numThreads, int firstRandomSeed) throws BehaviorSearchException, InterruptedException, SearchParameterException
-	{
-		SearchSpace space = new SearchSpace(protocol.paramSpecStrings);
+	public static void runMultipleSearches(SearchProtocolInfo protocol, List<ResultListener> listeners, RunOptions runOptions)
+			throws BehaviorSearchException, InterruptedException, SearchParameterException {
 
-    	for (ResultListener listener : listeners) {
+    	BatchRunner batchRunner = new BatchRunner(runOptions.numThreads, protocol, runOptions.verboseModelOutput);
+
+		
+		SearchSpace space = new SearchSpace(protocol.paramSpecStrings);
+		for (ResultListener listener : listeners) {
 			listener.initListener(space, protocol);
 		} 
 
-    	for (int searchNumber = firstSearchNumber; searchNumber < numSearches + firstSearchNumber; searchNumber++)
+		SearchProgressStatsKeeper statsKeeper = new SearchProgressStatsKeeper(runOptions.firstSearchNumber,0,0,protocol.objectives,listeners);
+		
+    	int endSearchNumber = runOptions.firstSearchNumber + runOptions.numSearches;
+    	for (int searchNumber = runOptions.firstSearchNumber; searchNumber < endSearchNumber; searchNumber++)
     	{
-    		MersenneTwisterFast rng = new MersenneTwisterFast(firstRandomSeed + (searchNumber - firstSearchNumber));
-       		BehaviorSearch.runProtocol(protocol, space, searchNumber, numThreads, rng, listeners) ;
+    		int randomSeed = runOptions.randomSeed + (searchNumber - runOptions.firstSearchNumber);
+    		MersenneTwisterFast rng = new MersenneTwisterFast(randomSeed);
+    		
+    		statsKeeper.searchStartingEvent(searchNumber);
+       		BehaviorSearch.runProtocol(protocol, space, searchNumber, runOptions.numThreads, rng, 
+       				batchRunner, statsKeeper) ;
+       		statsKeeper.searchFinishedEvent();
     	}
+  		
+    	statsKeeper.allSearchesFinishedEvent();
 
-    	for (ResultListener listener : listeners) {
-			listener.allSearchesFinished();
-		}      		
-
+    	try {
+			batchRunner.dispose();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public static SearchManager runProtocol(SearchProtocolInfo protocol, SearchSpace space, int searchIDNumber, int numEvaluationThreads,  MersenneTwisterFast rng, List<ResultListener> listeners) throws SearchParameterException, BehaviorSearchException,  InterruptedException
-	{
+	private static void runProtocol(SearchProtocolInfo protocol, SearchSpace space, int searchIDNumber, int numEvaluationThreads,
+			MersenneTwisterFast rng, BatchRunner batchRunner, SearchProgressStatsKeeper statsKeeper)
+			throws SearchParameterException, BehaviorSearchException, InterruptedException {		
 		
-		
-    	BatchRunner batchRunner = new BatchRunner(numEvaluationThreads, protocol);
-    	
         SearchMethod searcher = SearchMethodLoader.createFromName(protocol.searchAlgorithmInfo.searchMethodType);
 
         //if the search method in the protocol is missing some parameters, fill them in with defaults
@@ -76,7 +89,7 @@ public strictfp class BehaviorSearch {
 		searcher.setSearchParams(searchParams);
 
 		ObjectiveEvaluator ffun;
-		if (protocol.fitnessSamplingReplications == 0 && !searcher.supportsAdaptiveSampling())
+		if (protocol.modelDCInfo.fitnessSamplingReplications == 0 && !searcher.supportsAdaptiveSampling())
 		{
 			throw new BehaviorSearchException("Error: " + searcher.getName() + " does not support adaptive fitness sampling!");
         }
@@ -85,38 +98,12 @@ public strictfp class BehaviorSearch {
 			ffun = new ObjectiveEvaluator(protocol.objectives);
 		}
 
-		SearchManager manager = new SearchManager(searchIDNumber, batchRunner, protocol, ffun);
-		
-		for (ResultListener listener: listeners)
-		{
-			manager.addResultsListener(listener);
-		}
-        	
-
+		SearchManager manager = new SearchManager(searchIDNumber, batchRunner, protocol, ffun, statsKeeper);
+		        	
 		ChromosomeFactory cFactory = ChromosomeTypeLoader.createFromName(protocol.searchAlgorithmInfo.chromosomeType);
-		try {
-        	for (ResultListener listener : listeners) {
-    			listener.searchStarting(manager.getStatsKeeper());
-    		} 
-			searcher.search( space , cFactory, protocol, manager, rng );			
-	    	for (ResultListener listener : listeners) {
-				listener.searchFinished(manager.getStatsKeeper());
-			} 
-		}
-		catch (NetLogoLinkException ex)
-		{
-			System.err.println("***" + ex.getMessage() + "***");
-			throw new BehaviorSearchException(ex.getMessage());
-		}
-		finally {
-			try {
-				batchRunner.dispose();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+
+		searcher.search( space , cFactory, protocol, manager, rng );			
 	
-		return manager;
 	}
 	
 
@@ -147,17 +134,26 @@ public strictfp class BehaviorSearch {
 		@Option(name="-b", aliases={"--brief-output"},usage="shorthand flag for suppressing model-run-history and objective-function-history output, since these are the largest output files.")
 		public	boolean briefOutput = false;
 
-		@Option(name="--suppress-model-run-history",usage="don't create the .modelRunHistory.csv file")
-		boolean suppressModelRunHistory = false;
+		@Option(name="--verbose-model-output", usage="enables logging of all the raw model measurements (EVERY model step that gets recorded).  This is likely too much data for most use cases, but could be useful in some situations, or for debugging.")
+		public	boolean verboseModelOutput = false;
 
-		@Option(name="--suppress-objective-function-history",usage="don't create the .objectiveFunctionHistory.csv file")
-		boolean suppressObjectiveFunctionHistory = false;
+		@Option(name="--suppress-model-run-history",usage="don't create the .modelRuns.csv file")
+		public boolean suppressModelRunHistory = false;
+
+		@Option(name="--suppress-objective-function-history",usage="don't create the .objectiveHistory.csv file")
+		public boolean suppressObjectiveFunctionHistory = false;
 
 		@Option(name="--suppress-best-history",usage="don't create the .bestHistory.csv file")
-		boolean suppressBestHistory = false;
+		public boolean suppressBestHistory = false;
+
+		@Option(name="--suppress-search-bests",usage="don't create the .searchBests.csv file")
+		public boolean suppressSearchBests = false;
+
+		@Option(name="--suppress-netlogo-shortcut",usage="don't create output column with the quick copy/paste text for recreating the parameter settings in NetLogo")
+		public boolean suppressNetLogoCommandCenterColumn = false;
 
 		@Option(name="-v", aliases={"--version"},usage="print version number and exit")
-		boolean printVersion = false;
+		public boolean printVersion = false;
 
     @Option(name="--override-parameter-spec",usage="override the parameter spec/range given in the .bsearch file, using usual syntax (e.g. [\"population\" 100 200 400] (NOTE: you may need to \\ escape the quotes in your shell)", multiValued=true)
 		List<String> overrideParameters = new java.util.LinkedList<String>();
@@ -246,6 +242,7 @@ public strictfp class BehaviorSearch {
 			runOptions.protocolFilename = GeneralUtils.attemptResolvePathFromStartupFolder(runOptions.protocolFilename);
 			runOptions.outputStem = GeneralUtils.attemptResolvePathFromStartupFolder(runOptions.outputStem);
 			protocol = SearchProtocolInfo.loadOldXMLBasedFile(runOptions.protocolFilename);
+			//protocol = SearchProtocolInfo.loadFromFile(runOptions.protocolFilename + "2");
 		}
 		GeneralUtils.updateProtocolFolder(runOptions.protocolFilename);
         
@@ -275,7 +272,8 @@ public strictfp class BehaviorSearch {
     	}
 
         ArrayList<ResultListener> listeners = new ArrayList<ResultListener>();
-    	listeners.add(new CSVLoggerListener(protocol, runOptions.outputStem, !runOptions.suppressModelRunHistory, !runOptions.suppressObjectiveFunctionHistory, !runOptions.suppressBestHistory, true));
+    	listeners.add(new CSVLoggerListener(protocol, runOptions));
+    	
 
     	if (!runOptions.quiet)
     	{
@@ -286,9 +284,7 @@ public strictfp class BehaviorSearch {
     		listeners.addAll(additionalListeners);
     	}
 
-    	BehaviorSearch.runMultipleSearches(protocol, runOptions.numSearches, runOptions.firstSearchNumber, 
-    			runOptions.outputStem,
-    			listeners, runOptions.numThreads, runOptions.randomSeed );
+    	BehaviorSearch.runMultipleSearches(protocol, listeners, runOptions );
 		
 	}
 }

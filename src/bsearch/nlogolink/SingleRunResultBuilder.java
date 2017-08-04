@@ -40,7 +40,8 @@ public class SingleRunResultBuilder {
 	public SingleRunResult createModelRunResults(ModelRunSetupInfo runSetup,
 			String[] originalCondenserCodes,
 			LinkedHashMap<String,Procedure> singleRunCondensers, 
-			HeadlessWorkspace workspace, JobOwner owner, int stepCount) throws NetLogoLinkException {
+			HeadlessWorkspace workspace, JobOwner owner, int stepCount,
+			boolean includeRawResults) throws NetLogoLinkException {
 		
 		LinkedHashMap<String, LogoList> rawResults = getMeasureResults();
 
@@ -55,7 +56,11 @@ public class SingleRunResultBuilder {
 					varNames, varValues, workspace, owner);
 			condensedResults.put(condenserNames[i], condensedResult);
 		}
-		return new SingleRunResult(runSetup, rawResults, condensedResults, stepCount);
+		if (includeRawResults) {
+			return new SingleRunResult(runSetup, rawResults, condensedResults, stepCount);
+		} else {
+			return new SingleRunResult(runSetup, null, condensedResults, stepCount);
+		}
 		
 	}
 	

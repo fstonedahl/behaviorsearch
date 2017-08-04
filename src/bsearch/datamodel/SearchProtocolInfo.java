@@ -39,11 +39,13 @@ import bsearch.util.GeneralUtils;
 
 public strictfp class SearchProtocolInfo
 {
+	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
+	
 	//TODO: Add a "documentation" field to store text/comments about the search protocol.
 	public final double bsearchVersionNumber;
 	public final String infoTab;
 	public final ModelDataCollectionInfo modelDCInfo;
-	public final int fitnessSamplingReplications ;
 	
 	public final List<String> paramSpecStrings;
 	
@@ -59,7 +61,6 @@ public strictfp class SearchProtocolInfo
 		this.infoTab = "MOOSE";
 		this.modelDCInfo = null;
 		this.paramSpecStrings = new LinkedList<String>();;
-		this.fitnessSamplingReplications = 10;
 		this.objectives = null;
 		this.searchAlgorithmInfo = null;
 	}
@@ -95,13 +96,13 @@ public strictfp class SearchProtocolInfo
 		condenserMeasures.put("CONDENSED1", fitnessCollecting);
 		
 		this.modelDCInfo = new ModelDataCollectionInfo(modelFile, modelStepLimit, modelSetupCommands, modelStepCommands,
-				modelStopCondition, modelMeasureIf, rawMeasures, condenserMeasures);
-		this.fitnessSamplingReplications = fitnessSamplingRepetitions;
+				modelStopCondition, modelMeasureIf, rawMeasures, condenserMeasures,fitnessSamplingRepetitions,
+				bestCheckingNumReplications);
 
 		this.paramSpecStrings = paramSpecStrings;
 		this.objectives = new ArrayList<>();
 		this.objectives.add(new ObjectiveFunctionInfo(objectiveName,objectiveType, fitnessCombineReplications, fitnessDerivativeParameter, fitnessDerivativeDelta, fitnessDerivativeUseAbs));
-		this.searchAlgorithmInfo = new SearchAlgorithmInfo(searchMethodType, searchMethodParams, chromosomeType, caching, evaluationLimit, bestCheckingNumReplications);
+		this.searchAlgorithmInfo = new SearchAlgorithmInfo(searchMethodType, searchMethodParams, chromosomeType, caching, evaluationLimit);
 	}
 	private static String loadOrGetDefault(XPath xpath, Document xmlDoc, String path, String defaultVal)
 	{
@@ -177,8 +178,12 @@ public strictfp class SearchProtocolInfo
 
 		condenserMeasures.put("CONDENSED1", condenseCode);
 
-		this.modelDCInfo = new ModelDataCollectionInfo(modelFileName, maxModelSteps, setupCommands, stepCommands, stopCondition, measureIfReporter, rawMeasures, condenserMeasures);
-		fitnessSamplingReplications = loadOrGetDefaultInt(xpath,  xmlDoc, "/search/fitnessInfo/fitnessSamplingReplications/text()" , 10);
+		int fitnessSamplingReplications = loadOrGetDefaultInt(xpath,  xmlDoc, "/search/fitnessInfo/fitnessSamplingReplications/text()" , 10);
+		int bestCheckingNumReplications = loadOrGetDefaultInt(xpath,  xmlDoc, "/search/bestCheckingNumReplications/text()" , 0);
+
+		this.modelDCInfo = new ModelDataCollectionInfo(modelFileName, maxModelSteps, setupCommands, stepCommands, stopCondition, measureIfReporter, 
+				rawMeasures, condenserMeasures, fitnessSamplingReplications, bestCheckingNumReplications);
+		
 		
 		boolean fitnessMinimized = Boolean.valueOf(loadOrGetDefault(xpath,  xmlDoc, "/search/fitnessInfo/fitnessMinimized/text()" , "false").trim()); 
 		String fitnessCombineReplications = loadOrGetDefault(xpath, xmlDoc,"/search/fitnessInfo/fitnessCombineReplications/text()" , "MEAN");
@@ -215,9 +220,8 @@ public strictfp class SearchProtocolInfo
 		String chromosomeType = loadOrGetDefault(xpath,  xmlDoc, "/search/chromosomeRepresentation/@type" , "MixedTypeChromosome" );
 		boolean caching = Boolean.valueOf(loadOrGetDefault(xpath,  xmlDoc, "/search/caching/text()" , "true"));
 		int evaluationLimit = loadOrGetDefaultInt(xpath,  xmlDoc, "/search/evaluationLimit/text()" , 300);		
-		int bestCheckingNumReplications = loadOrGetDefaultInt(xpath,  xmlDoc, "/search/bestCheckingNumReplications/text()" , 0);
 		
-		this.searchAlgorithmInfo = new SearchAlgorithmInfo(searchMethodType, searchMethodParams, chromosomeType, caching, evaluationLimit, bestCheckingNumReplications);
+		this.searchAlgorithmInfo = new SearchAlgorithmInfo(searchMethodType, searchMethodParams, chromosomeType, caching, evaluationLimit);
 		
 	}
 	
@@ -230,8 +234,7 @@ public strictfp class SearchProtocolInfo
 	
 	public String toJSONString()
 	{
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		return gson.toJson(this);
+		return GSON.toJson(this);
 	}
 	
 	public static SearchProtocolInfo loadFromFile(String fullPathFilename) throws JsonSyntaxException, JsonIOException, FileNotFoundException {
@@ -241,8 +244,7 @@ public strictfp class SearchProtocolInfo
 		return loadFromJSONString(GeneralUtils.stringContentsOfFile(file));
 	}
 	public static SearchProtocolInfo loadFromJSONString(String json) {
-		Gson gson = new Gson();
-		return gson.fromJson(json, SearchProtocolInfo.class);
+		return GSON.fromJson(json, SearchProtocolInfo.class);
 	}
 	
 	

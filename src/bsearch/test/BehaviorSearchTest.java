@@ -79,7 +79,8 @@ public strictfp class BehaviorSearchTest
 		LinkedHashMap<String,String> singleRunCondenserReporters = new LinkedHashMap<>();
 		singleRunCondenserReporters.put("C1", "mean @{M1}");
 		ModelDataCollectionInfo modelDCInfo = new ModelDataCollectionInfo(sampleModelsPath() + "Earth Science/Fire.nlogo", 100,
-				"setup", "go", "burned-trees > 3000", "ticks mod 10 = 0 or ticks = 37", resultReporters, singleRunCondenserReporters);
+				"setup", "go", "burned-trees > 3000", "ticks mod 10 = 0 or ticks = 37", resultReporters, singleRunCondenserReporters,
+				1,1);
     	ModelRunner runner = bsearch.nlogolink.ModelRunner.createModelRunnerForTesting(modelDCInfo,Arrays.asList("mean @{C1}"));
 
 		LinkedHashMap<String,Object> params= new LinkedHashMap<String, Object>();
@@ -301,7 +302,8 @@ public strictfp class BehaviorSearchTest
 		for (String key: scenarios.keySet())
 		{
         	RunOptions clOptions = new RunOptions();
-        	CmdLineParser parser = new CmdLineParser(clOptions);        	
+        	CmdLineParser parser = new CmdLineParser(clOptions); 
+        	clOptions.suppressNetLogoCommandCenterColumn=true;
         	parser.parseArgument(scenarios.get(key).split("\\s"));
 			BehaviorSearch.runWithOptions(clOptions);
 

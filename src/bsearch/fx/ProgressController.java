@@ -2,16 +2,15 @@ package bsearch.fx;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.FutureTask;
+
+import bsearch.MOEAlink.MOEASolutionWrapper;
 import bsearch.algorithms.SearchParameterException;
 import bsearch.app.BehaviorSearch;
 import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.ResultListener;
-import bsearch.evaluation.SearchManager;
-import bsearch.evaluation.SearchProgressStatsKeeper;
 import bsearch.nlogolink.SingleRunResult;
 import bsearch.nlogolink.ModelRunner.ModelRunnerException;
 import bsearch.representations.Chromosome;
@@ -63,7 +62,7 @@ public class ProgressController {
 	}
 
 	public void startSearchTask(SearchProtocolInfo protocol, BehaviorSearch.RunOptions runOptions) {
-		labelMessage.setText("Search 0 of " + runOptions.numSearches);
+		labelMessage.setText("Loading BehaviorSearch engine...");
 
 		taskStartTime = System.currentTimeMillis();
 		BSearchTaskWorker insideTask = new BSearchTaskWorker(protocol, runOptions);
@@ -73,61 +72,36 @@ public class ProgressController {
 
 			@Override
 			public void run() {
-
 				try {
-
 					task.run();
-
 					task.get();
 
-					// check fatal exception field and re-throw it, and handle
-					// that below 
-					
-						
-        			if (insideTask.fatalException != null)
-        			{
+					// check fatal exception field and re-throw it, and handle that below 
+        			if (insideTask.fatalException != null) {
        					throw insideTask.fatalException;
         			}
         		} catch (CancellationException e){
-        			Platform.runLater(new Runnable() {
-						public void run() {
-		        			Alert alert = new Alert(AlertType.WARNING);
-							alert.setTitle("Cancelled");
-							
-							alert.setContentText("You canceled the search.  \nPartial results may have been saved to output files.");
-							alert.showAndWait();
-						}
-        			});
-				}
-        		catch (ModelRunnerException e) {
-        			e.printStackTrace();
-        			MainController.handleError("Error running the model:\n" +e.getMessage(), e);			
+        			Platform.runLater( () -> showCancelledAlert());
+				} catch (ModelRunnerException e) {
+        			MainController.handleError("Model error","Error running the model:\n" +e.getMessage(), e);			
         		} catch (SearchParameterException e) {
-        			e.printStackTrace();
-        			MainController.handleError("Error setting search method parameters:\n" +e.getMessage(), e);						
-        		}
-        		catch (IOException e) {
-        			MainController.handleError("Error reading or writing files:\n" +e.getMessage(), e);						
-        			e.printStackTrace();
+        			MainController.handleError("Parameter problems?", "Error setting search method parameters:\n" +e.getMessage(), e);						
+        		} catch (IOException e) {
+        			MainController.handleError("File I/O error", "Error reading or writing files:\n" +e.getMessage(), e);						
         		} catch (Exception e) {
-        			e.printStackTrace();
-        			
-        			MainController.handleError(e.getMessage() , e);						
+        			MainController.handleError("Error!", e.getMessage() , e);						
         		} catch (Throwable e) {
-        			e.printStackTrace();
-        			MainController.handleError("Serious Error: " + e.getMessage(), e);						
+        			MainController.handleError("Serious Error!", e.getMessage(), e);						
+        		} finally {
+        			if (!done) {
+        				done = true;
+        				Platform.runLater( () -> cancelAndDoneButton.setText("Close"));        				
+        			}
         		}
-
-				
-				
-				
-
 			}
 		}).start();
 
 	}
-
-
 
 	public void doCancel(ActionEvent event) {
 		
@@ -142,6 +116,12 @@ public class ProgressController {
 			done = true;
 		}
 	}
+	public void showCancelledAlert() {
+		Alert alert = new Alert(AlertType.WARNING);
+		alert.setTitle("Cancelled");
+		alert.setContentText("You canceled the search.  \nPartial results may have been saved to output files.");
+		alert.showAndWait();
+	}
 
 	
 	class BSearchTaskWorker implements Runnable, ResultListener {
@@ -155,7 +135,6 @@ public class ProgressController {
 			this.protocol = protocol;
 			this.runOptions = runOptions;
 			this.evaluationLimit = protocol.searchAlgorithmInfo.evaluationLimit;
-			
 		}
 
 		@Override
@@ -164,136 +143,120 @@ public class ProgressController {
 		}
 
 		@Override
-		public void modelRunOccurred(int searchID, int modelRunCounter, int modelRunRecheckingCounter, SingleRunResult result) {
+		public void searchStarting(int searchID) {	
+			updateGUIForNextSearch(searchID);
+		}
+
+
+		@Override
+		public void modelRunOccurred(int searchID, int modelRunCounter, int recheckingRunCounter, boolean isRecheckingRun,
+				SingleRunResult result) {
 
 			long currentTime = System.currentTimeMillis();
 			long elapsed = currentTime - taskStartTime;
-			String elapsedStr = GeneralUtils.formatTimeNicely(elapsed);
 			int searchesCompleted = (searchID - runOptions.firstSearchNumber);
 			int totalSearches = runOptions.numSearches;
-			double runsCompleted = modelRunCounter + modelRunRecheckingCounter;
-			double totalRuns = protocol.searchAlgorithmInfo.evaluationLimit + modelRunRecheckingCounter;
-			double searchProgress = (searchesCompleted + runsCompleted / totalRuns) / totalSearches;
 
-			long remaining = (long) (elapsed / searchProgress - elapsed); // in
-																			// milliseconds
-			String remainingStr = GeneralUtils.formatTimeNicely(remaining);
+			int runsCompleted = modelRunCounter + recheckingRunCounter;
+			int totalRuns = protocol.searchAlgorithmInfo.evaluationLimit + recheckingRunCounter;
+			double currentSearchFraction =  (double) runsCompleted / totalRuns;
+			double overallSearchFraction = (searchesCompleted + currentSearchFraction ) / totalSearches;
+
+			long remaining = (long) (elapsed / overallSearchFraction - elapsed); // in milliseconds
+
+			String timeElapsedText = GeneralUtils.formatTimeNicely(elapsed);
+			String timeRemainingText = GeneralUtils.formatTimeNicely(remaining);
 			
-			Platform.runLater(new Runnable() {
-				
-				public void run() {
-					labelTimeRemaining.setText(" (" + elapsedStr + " elapsed - " + remainingStr + " remaining)");
-				}
-			});
+			Platform.runLater(() -> {
+					labelTimeRemaining.setText(" (" + timeElapsedText + " elapsed - " + timeRemainingText + " remaining)");
+					progressBar.setProgress((double) currentSearchFraction);
+				});
 
 		}
 
 		@Override
-		public void fitnessComputed(SearchProgressStatsKeeper statsKeeper, LinkedHashMap<String,Object> paramSettings, 
-										double[] fitness) {
-			final int searchNumber = statsKeeper.getSearchIDNumber();
-			final double[] bestFitnessSoFarArray = protocol.searchAlgorithmInfo.useBestChecking() ? statsKeeper.reportCurrentBestCheckedFitness()
-					: statsKeeper.reportCurrentBestFitness();
-			final double bestFitnessSoFar = bestFitnessSoFarArray[0]; //TODO: fix for Multiobj 
+		public void fitnessComputed(MOEASolutionWrapper computedWrapper) {
+			//TODO: fix for Multiobj, and fix for bestChecking 
+			//TODO: AND fix the issue that this is just the current fitness, not the "best"... (move code to bestFound???)
 
-			final int evaluationCount = statsKeeper.getModelRunCounter();
-
-			Platform.runLater(new Runnable() {
-				@SuppressWarnings("unchecked")
-				public void run() {
-
-					progressBar.setProgress((double) evaluationCount / evaluationLimit);
-
-					if (searchNumber - runOptions.firstSearchNumber + 1 > progressLineChart.getData().size()) {
-						XYChart.Series series = new XYChart.Series();
-						series.setName("Search " + searchNumber);
-						
-						progressLineChart.getData().addAll(series);
-
-					}
-					XYChart.Series series = progressLineChart.getData()
-							.get(searchNumber - runOptions.firstSearchNumber);
-					int itemCount = series.getData().size();
-
-					if (itemCount == 0) {
-						series.getData().add(new Data<Number, Number>(evaluationCount, bestFitnessSoFar));
-					} else {
-						Data<Number, Number> lastPoint = (Data<Number, Number>) series.getData().get(itemCount - 1);
-						if (evaluationCount > lastPoint.getXValue().intValue()
-								|| (bestFitnessSoFar != lastPoint.getYValue().doubleValue())) {
-							// This is a preventive measure to not bog down
-							// real-time graphing in FXChart:
-							// if the fitness is on a plateau, we don't need a
-							// million XY data points to show a flat line
-							// we can use just 2 points (one at the beginning of
-							// the plateau, and one at the end)
-							if (itemCount > 1 && lastPoint.getYValue().doubleValue() == bestFitnessSoFar
-									&& ((Data<Number, Number>) series.getData().get(itemCount - 2)).getYValue()
-											.doubleValue() == bestFitnessSoFar) {
-								series.getData().remove(itemCount - 1);
-							}
-							series.getData().add(new Data<Number, Number>(evaluationCount, bestFitnessSoFar));
-
-						}
-					}
-
-				}
-			});
-
+			final int searchNumber = computedWrapper.getSearchID();
+			final double currentFitness = computedWrapper.getNumericOptimizationObjectiveValues().get(0);  
+			final int modelRunCount = computedWrapper.getModelRunCounter();
+			Platform.runLater( () -> extendChartSeries(searchNumber, modelRunCount, currentFitness) );
 		}
 
+		public void extendChartSeries(int searchNumber, int modelRunCount, double fitness) {
+			if (searchNumber - runOptions.firstSearchNumber + 1 > progressLineChart.getData().size()) {
+				XYChart.Series<Number,Number> series = new XYChart.Series<>();
+				series.setName("Search " + searchNumber);
+				progressLineChart.getData().add(series);
+			}
+			XYChart.Series<Number,Number> series = progressLineChart.getData().get(searchNumber - runOptions.firstSearchNumber);
+			int dataPointCount = series.getData().size();
+
+			if (dataPointCount == 0) {
+				series.getData().add(new Data<Number, Number>(modelRunCount, fitness));
+			} else {
+				Data<Number,Number> lastPoint = series.getData().get(dataPointCount - 1);
+				double lastPointY = lastPoint.getYValue().doubleValue();
+				if (dataPointCount > 1 && (lastPointY == series.getData().get(dataPointCount - 2).getYValue().doubleValue())) {
+					lastPoint.setXValue(modelRunCount);
+				} else {
+					series.getData().add(new Data<Number,Number>(modelRunCount,lastPointY));
+				}
+			}
+		}		
+			
 		@Override
-		public void newBestFound(SearchProgressStatsKeeper statsKeeper) {
+		public void newBestFound(MOEASolutionWrapper bestSolution) {
+			final int searchNumber = bestSolution.getSearchID();
+			final double bestFitnessSoFar = bestSolution.getNumericOptimizationObjectiveValues().get(0);  
+			final int modelRunCount = bestSolution.getModelRunCounter();
+			
+			Platform.runLater( () -> {
+				XYChart.Series<Number,Number> series = progressLineChart.getData().get(searchNumber - runOptions.firstSearchNumber);
+				// the last point should have just been extended in the x direction by the fitness computed event...
+				series.getData().get(series.getData().size()-1).setYValue(bestFitnessSoFar);
+			});
 
-			updateInfoText("In Search #" + statsKeeper.getSearchIDNumber() + ":",
-			statsKeeper.getCurrentBest(), statsKeeper.reportCurrentBestFitness(),
-			statsKeeper.reportCurrentBestCheckedFitness());
-
+			
+			if (protocol.modelDCInfo.useBestChecking()) {
+				updateInfoText("In Search #" + bestSolution.getSearchID() + ":",
+						bestSolution.getPoint(), bestSolution.getNumericOptimizationObjectiveValues().get(0),
+						bestSolution.getCheckingPairWrapper().getNumericOptimizationObjectiveValues().get(0));
+			} else {
+				updateInfoText("In Search #" + bestSolution.getSearchID() + ":",
+						bestSolution.getPoint(), bestSolution.getNumericOptimizationObjectiveValues().get(0),
+						0);
+			}
 		}
 
 		private void updateGUIForNextSearch(final int searchNum) {
 			Platform.runLater(new Runnable() {
 				public void run() {
 					labelMessage.setText("Performing search " + (searchNum - runOptions.firstSearchNumber + 1) + " of " + runOptions.numSearches + ":  ");
-		            
 				}
 			});
 
 		}
 
 		@Override
-		public void searchStarting(SearchProgressStatsKeeper statsKeeper) {
-			updateGUIForNextSearch(statsKeeper.getSearchIDNumber());
-
+		public void searchFinished(int searchID, List<MOEASolutionWrapper> bestsFromSearch, List<MOEASolutionWrapper> checkedBestsFromSearch) {
 		}
 
-		//TODO: Move this stuff into SearchProgressStatsKeeper, and extend it to go more than one search???
-		Chromosome overallBest = null;
-		double[] overallBestFitness;
-		double[] overallBestFitnessChecked;
-
-		public void searchFinished(SearchProgressStatsKeeper statsKeeper) {
+		@Override
+		public void allSearchesFinished(List<MOEASolutionWrapper> bestsFromAllSearches, 
+										List<MOEASolutionWrapper> checkedBestsFromAllSearches) {
 			
-			double[] bestFitness = statsKeeper.reportCurrentBestFitness();
-//			if (overallBest == null || statsKeeper.fitnessStrictlyBetter(bestFitness, overallBestFitness)) {
-			if (overallBest == null || bestFitness[0] < overallBestFitness[0]) { // TODO: FIX THIS -- wrong unless minimizing.
-				overallBest = statsKeeper.getCurrentBest();
-				overallBestFitness = bestFitness;
-				if (protocol.searchAlgorithmInfo.useBestChecking()) {
-					overallBestFitnessChecked = statsKeeper.reportCurrentBestCheckedFitness();
-				}
+			if (checkedBestsFromAllSearches.isEmpty()) {
+				MOEASolutionWrapper oneOfBest = bestsFromAllSearches.get(0);
+				updateInfoText("From all searches:", oneOfBest.getPoint(), oneOfBest.getNumericOptimizationObjectiveValues().get(0),0);
+			} else {
+				MOEASolutionWrapper oneOfBest = checkedBestsFromAllSearches.get(0);
+				MOEASolutionWrapper checked = oneOfBest.getCheckingPairWrapper();
+				updateInfoText("From all searches:", oneOfBest.getPoint(), oneOfBest.getNumericOptimizationObjectiveValues().get(0),
+						checked.getNumericOptimizationObjectiveValues().get(0));				
 			}
-		}
-
-		@Override
-		public void allSearchesFinished() {
-			updateInfoText("From all searches:", overallBest,
-			overallBestFitness, overallBestFitnessChecked);
-		}
-
-		@Override
-		public void searchesAborted() {
-			// do nothing
 		}
 
 		@Override
@@ -324,7 +287,7 @@ public class ProgressController {
 			});
 		}
 
-		private void updateInfoText(String title, Chromosome c, double fitness[], double checkedFitness[]) {
+		private void updateInfoText(String title, Chromosome c, double fitness, double checkedFitness) {
 			String bestText = GeneralUtils.getParamSettingsTextHTML(c.getParamSettings());
 			StringBuilder sb = new StringBuilder();
 			sb.append("<p>");
@@ -332,21 +295,17 @@ public class ProgressController {
 			sb.append("<BR><BR><B>Best found so far:</B><BR>");
 			sb.append(bestText);
 			sb.append("<BR><B>Fitness</B>=");
-			sb.append(String.format("%10.6g", fitness[0])); // TODO multiobj
+			sb.append(String.format("%10.6g", fitness)); // TODO multiobj
 			sb.append("<BR>");
-			if (protocol.searchAlgorithmInfo.useBestChecking()) {
+			if (protocol.modelDCInfo.useBestChecking()) {
 				sb.append("<B>(re-checked)</B>=");
-				sb.append(String.format("%10.6g", checkedFitness[0])); // TODO multiobj
+				sb.append(String.format("%10.6g", checkedFitness)); // TODO multiobj
 				sb.append("<BR>");
 			}
 			sb.append("</p>");
 			String text = sb.toString();
-			Platform.runLater(new Runnable() {
-				public void run() {
-					infoTextWebView.getEngine().loadContent(text);
-				}
-			});
-
+			
+			Platform.runLater( () -> infoTextWebView.getEngine().loadContent(text) );
 		}
 	
 	}

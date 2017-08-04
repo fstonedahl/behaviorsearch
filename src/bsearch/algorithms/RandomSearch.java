@@ -43,7 +43,7 @@ public strictfp class RandomSearch extends AbstractSearchMethod {
 			SearchManager manager, MersenneTwisterFast rng ) throws BehaviorSearchException, NetLogoLinkException, InterruptedException
 	{
 		final int BATCH_SIZE = 16;  // processing model runs in batches allows us to take advantage of multi-threading/multi-processors 
-		int maxRunsForBatch = BATCH_SIZE * manager.getFitnessFunction().getMaximumRunsThatCouldBeNeeded(protocol.fitnessSamplingReplications);
+		int maxRunsForBatch = BATCH_SIZE * manager.getObjectiveEvaluator().getMaximumRunsThatCouldBeNeeded(protocol.modelDCInfo.fitnessSamplingReplications);
 		if (maxRunsForBatch == 0)  // assume some sort of adaptive sampling, so we don't really know
 		{
 			maxRunsForBatch = Integer.MAX_VALUE;  // turn off batching, to be safe.
@@ -60,13 +60,13 @@ public strictfp class RandomSearch extends AbstractSearchMethod {
 	   			}
 	   			
 	   			// Note that the archive automatically tracks the best found so far, so all we have to do is evaluate...
-	   			manager.computeFitnessBatch(points, protocol.fitnessSamplingReplications, rng);
+	   			manager.computeFitnessBatchLegacy(points, protocol.modelDCInfo.fitnessSamplingReplications, rng);
     		}
     		else
     		{
 	   			Chromosome point = cFactory.createChromosome(space, rng);
 	   			// Note that the archive automatically tracks the best found so far, so all we have to do is evaluate...
-	   			manager.computeFitnessSingle(point, protocol.fitnessSamplingReplications, rng);
+	   			manager.computeFitnessSingleLegacy(point, protocol.modelDCInfo.fitnessSamplingReplications, rng);
     		}
     	}            
 	}

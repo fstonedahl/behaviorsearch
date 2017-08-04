@@ -2,22 +2,19 @@ package bsearch.nlogolink;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.BlockingDeque;
 
-import bsearch.app.BehaviorSearchException;
 import bsearch.datamodel.ModelDataCollectionInfo;
-import bsearch.util.GeneralUtils;
 
 public class ModelRunnerPool {
 	private List<ModelRunner> allModelRunners = Collections.synchronizedList(new java.util.LinkedList<ModelRunner>());
 	private BlockingDeque<ModelRunner> availableModelRunners;
 	
-	public ModelRunnerPool(ModelDataCollectionInfo modelDCInfo, List<String> combineReporterSourceCodes, int fixedCapacity) throws NetLogoLinkException {
+	public ModelRunnerPool(ModelDataCollectionInfo modelDCInfo, List<String> combineReporterSourceCodes, int fixedCapacity, boolean storeRawResults) throws NetLogoLinkException {
 		this.availableModelRunners = new java.util.concurrent.LinkedBlockingDeque<ModelRunner>(fixedCapacity);
 
 		for (int i = 0; i < fixedCapacity; i++) {
-			allModelRunners.add(new ModelRunner(modelDCInfo, combineReporterSourceCodes));
+			allModelRunners.add(new ModelRunner(modelDCInfo, combineReporterSourceCodes, storeRawResults));
 		}
 		availableModelRunners.addAll(allModelRunners);
 		

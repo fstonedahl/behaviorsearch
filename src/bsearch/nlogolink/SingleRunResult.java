@@ -22,10 +22,16 @@ public class SingleRunResult {
 	}
 	public String[] getRawMeasureNames()
 	{
+		if (rawResults == null) {
+			throw new IllegalStateException("raw model run results weren't stored (presumably to save space)");
+		}
 		return rawResults.keySet().toArray(new String[0]);
 	}
 	public LogoList getRawMeasureData(String measure)
 	{
+		if (rawResults == null) {
+			throw new IllegalStateException("raw model run results weren't stored (presumably to save space)");
+		}
 		return rawResults.get(measure);
 	}
 	public LinkedHashMap<String,Object> getCondensedResultMap() {

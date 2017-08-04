@@ -1,8 +1,8 @@
 package bsearch.MOEAlink;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.moeaframework.core.PRNG;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.Variable;
 import org.moeaframework.problem.AbstractProblem;
@@ -10,12 +10,9 @@ import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.app.BehaviorSearchException;
 import bsearch.datamodel.SearchProtocolInfo;
-import bsearch.datamodel.ObjectiveFunctionInfo.OBJECTIVE_TYPE;
 import bsearch.evaluation.SearchManager;
-import bsearch.representations.Chromosome;
 import bsearch.representations.ChromosomeFactory;
 import bsearch.representations.ChromosomeTypeLoader;
-import bsearch.space.ParameterSpec;
 import bsearch.space.SearchSpace;
 
 public class BSProblem extends AbstractProblem {
@@ -26,7 +23,7 @@ public class BSProblem extends AbstractProblem {
 	MersenneTwisterFast rng =new MersenneTwisterFast();
 	
 	public BSProblem(SearchProtocolInfo protocol, SearchManager searchManager) {
-		super(protocol.paramSpecStrings.size(), 1);
+		super(protocol.paramSpecStrings.size(), protocol.objectives.size());
 		this.protocol = protocol;
 		this.searchManager = searchManager;
 		this.space = new SearchSpace(protocol.paramSpecStrings);
@@ -39,31 +36,20 @@ public class BSProblem extends AbstractProblem {
 
 	@Override
 	public void evaluate(Solution solution) {
-		List<ParameterSpec> specs = space.getParamSpecs();
-
-		LinkedHashMap<String,Object> paramSettings = new LinkedHashMap<>();
-		for (int i = 0; i < solution.getNumberOfVariables(); i++) {
-			ParameterSpec spec = specs.get(i);
-			Object val = spec.getValueFromMOEAVariable(solution.getVariable(i));
-			paramSettings.put(spec.getParameterName(), val);
-		}
-		Chromosome point = cFactory.createChromosome(this.space, paramSettings);
-		double fitness = 0.0;
+		
+		MOEASolutionWrapper solWrapper = new MOEASolutionWrapper(solution, space, cFactory, protocol.objectives);
+		rng.setSeed(PRNG.nextInt());
 		try {
-			fitness = searchManager.computeFitnessSingle(point, protocol.fitnessSamplingReplications, rng);
+			searchManager.computeFitnessSingle(solWrapper, protocol.modelDCInfo.fitnessSamplingReplications, rng);
 		} catch (BehaviorSearchException | InterruptedException e) {
 			e.printStackTrace();
 		}
-		if (protocol.objectives.get(0).objectiveType == OBJECTIVE_TYPE.MAXIMIZE) {
-			fitness *= -1; // invert fitness for maximization problems...
-		}		
-		solution.setObjective(0, fitness); 			
 	}
 
 	@Override
 	public Solution newSolution() {
 		List<Variable> vars = space.getMOEAVariables();
-		Solution solution = new Solution(vars.size(), 1);
+		Solution solution = new Solution(this.numberOfVariables, this.numberOfObjectives);
 		for (int i = 0; i < vars.size(); i++) {
 			solution.setVariable(i, vars.get(i));
 		}

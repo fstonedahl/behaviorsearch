@@ -169,7 +169,7 @@ public class RunOptionDialogController {
 			try {
 				return original.fromString(value);
 			} catch (NumberFormatException nfe) {
-				MainController.handleError("Bad integer: " + value);
+				MainController.handleError("Uh-oh", "Invalid integer: " + value);
 				return 0;
 			}
 		}

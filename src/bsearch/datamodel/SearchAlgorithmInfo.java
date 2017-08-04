@@ -9,7 +9,6 @@ public class SearchAlgorithmInfo {
 	public final String chromosomeType;
 	public final boolean caching;
 	public final int evaluationLimit;		
-	public final int bestCheckingNumReplications; // if == 0, no best checking is done
 
 
 	@SuppressWarnings("unused") 	// used to set future default values for new fields (only used by Gson)
@@ -19,23 +18,16 @@ public class SearchAlgorithmInfo {
 		this.chromosomeType = "";
 		this.caching = false;
 		this.evaluationLimit = 0;
-		this.bestCheckingNumReplications = 0;
 	}
 
 	public SearchAlgorithmInfo(String searchMethodType, HashMap<String, String> searchMethodParams,
-			String chromosomeType, boolean caching, int evaluationLimit, int bestCheckingNumReplications) {
+			String chromosomeType, boolean caching, int evaluationLimit) {
 		super();
 		this.searchMethodType = searchMethodType;
 		this.searchMethodParams = searchMethodParams;
 		this.chromosomeType = chromosomeType;
 		this.caching = caching;
 		this.evaluationLimit = evaluationLimit;
-		this.bestCheckingNumReplications = bestCheckingNumReplications;
 	}
-	
-	public boolean useBestChecking() {
-		return bestCheckingNumReplications > 0;
-	}
-
 	
 }

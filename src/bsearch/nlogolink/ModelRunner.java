@@ -21,9 +21,10 @@ import org.nlogo.headless.HeadlessWorkspace;
 
 public strictfp class ModelRunner {
 
-	private HeadlessWorkspace workspace;
+	private final ModelDataCollectionInfo modelDCInfo;
+	private final boolean storeRawResults;
 
-	private ModelDataCollectionInfo modelDCInfo;
+	private HeadlessWorkspace workspace;
 
 	// use pre-compiled versions of all NetLogo code for efficiency
 	private Procedure setupCommandsProcedure;
@@ -31,8 +32,9 @@ public strictfp class ModelRunner {
 	private Procedure stopConditionReporterProcedure;
 	private Procedure measureIfReporterProcedure = null;
 	
-	// Note: ModelRunner can collect multiple measures
+	// Note: multiple measures that are (conditionally) recorded at each step of the model run
 	private LinkedHashMap<String,Procedure> measureReporterProcs = new LinkedHashMap<String,Procedure>();
+	private LinkedHashMap<String,String> measureReporterSources = new LinkedHashMap<String,String>();
 
 	private LinkedHashMap<String,Procedure> singleRunCondenserReporterProcs = new LinkedHashMap<String,Procedure>();
 
@@ -53,10 +55,11 @@ public strictfp class ModelRunner {
 	 * Should probably not be called directly - instead allow the Pool/Factory to create it
 	 * @throws NetLogoLinkException 
 	 */
-	ModelRunner(ModelDataCollectionInfo modelDCInfo, List<String> combineReporterSourceCodes) throws NetLogoLinkException  
+	ModelRunner(ModelDataCollectionInfo modelDCInfo, List<String> combineReporterSourceCodes, boolean storeRawResults) throws NetLogoLinkException  
 	{
 		this.modelDCInfo = modelDCInfo;
 		this.multipleRunCombinerSourceCodes = combineReporterSourceCodes;
+		this.storeRawResults = storeRawResults;
 
 		workspace = NLogoUtils.createWorkspace();
     	try {    		
@@ -136,13 +139,14 @@ public strictfp class ModelRunner {
 			}
 		}
 	}
-	public void addMeasureReporter(String reporterName, String reporter) throws NetLogoLinkException
+	public void addMeasureReporter(String reporterName, String reporterSource) throws NetLogoLinkException
 	{
 		try {
-			measureReporterProcs.put(reporterName, workspace.compileReporter(reporter));
+			measureReporterProcs.put(reporterName, workspace.compileReporter(reporterSource));
+			measureReporterSources.put(reporterName, reporterSource);
 		} catch (CompilerException e) {
 			e.printStackTrace();
-			throw new NetLogoLinkException("Error compiling model's measure reporter: " + reporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+			throw new NetLogoLinkException("Error compiling model's measure reporter: " + reporterSource.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
 		}
 	}
 
@@ -240,17 +244,17 @@ public strictfp class ModelRunner {
 		return runIsDone;
 	}
 	
-	public LinkedHashMap<String,Object> measureResults() throws NetLogoLinkException
-	{
-		LinkedHashMap<String,Object> results = new LinkedHashMap<String,Object>();
-		for (String key: measureReporterProcs.keySet())
-		{
-			results.put(key, measureResultReporter(measureReporterProcs.get(key)));
-		}		
-		return results;
-	}
+//	public LinkedHashMap<String,Object> measureResults() throws NetLogoLinkException
+//	{
+//		LinkedHashMap<String,Object> results = new LinkedHashMap<String,Object>();
+//		for (String key: measureReporterProcs.keySet())
+//		{
+//			results.put(key, measureResultReporter(measureReporterProcs.get(key), measureReporterSources.get(key)));
+//		}		
+//		return results;
+//	}
 	
-	private Double measureResultReporter(Procedure reporter) throws NetLogoLinkException
+	private Object measureResultReporter(Procedure reporter, String reporterSource) throws NetLogoLinkException
 	{
 		if (extraJobOwner == null)
 		{
@@ -261,13 +265,9 @@ public strictfp class ModelRunner {
 		if (ex != null)
 		{
 			workspace.lastLogoException_$eq(null);
-			throw new NetLogoLinkException(ex.toString());
+			throw new NetLogoLinkException("Error running '" + reporterSource + "' : " + ex.getMessage(), ex);
 		}
-		if (! (obj instanceof Double))
-		{
-			throw new NetLogoLinkException("Result reporters must return numeric results!  Invalid reported value was: " + obj );				
-		}
-		return (Double) obj;
+		return obj;
 	}
 
 	private boolean evaluateMeasureIfReporter(boolean isAfterFinalStep) throws NetLogoLinkException
@@ -304,7 +304,8 @@ public strictfp class ModelRunner {
 		{
 			for (String measureName: measureReporterProcs.keySet())
 			{
-				resultBuilder.appendMeasureResult(measureName, measureResultReporter(measureReporterProcs.get(measureName)));
+				Object measureVals = measureResultReporter(measureReporterProcs.get(measureName),measureReporterSources.get(measureName));
+				resultBuilder.appendMeasureResult(measureName, measureVals);
 			}
 		}		
 	}
@@ -325,9 +326,10 @@ public strictfp class ModelRunner {
 			String[] originalCondenserCodes = modelDCInfo.singleRunCondenserReporters.values().toArray(new String[0]);
 
 			return resultBuilder.createModelRunResults(runSetup, originalCondenserCodes, 
-					singleRunCondenserReporterProcs, workspace, extraJobOwner, steps);
+					singleRunCondenserReporterProcs, workspace, extraJobOwner, steps, storeRawResults);
 		}
-		catch (Exception ex)  {		
+		catch (Exception ex)  {
+			ex.printStackTrace();
 			throw new ModelRunnerException(runSetup, ex);
 		}
 	}
@@ -341,6 +343,7 @@ public strictfp class ModelRunner {
 	// to combine the results across runs.
 	public List<Object> evaluateCombineReplicateReporters(List<SingleRunResult> replicateRunsResults)
 			throws NetLogoLinkException {
+
 		String[] condensedVarNames =  modelDCInfo.singleRunCondenserReporters.keySet().toArray(new String[0]);
 		
 		LogoList[] condensedVarValues= new LogoList[condensedVarNames.length];
@@ -405,10 +408,10 @@ public strictfp class ModelRunner {
 
 	
 	
-	/** Just used for unit testing - preferable to acquire from the Pool */
+	/** Just used for unit testing - real client code should acquire from the Pool instead */
 	public static ModelRunner createModelRunnerForTesting (ModelDataCollectionInfo modelDCInfo, List<String> multipleRunCombinerReporters) throws NetLogoLinkException
 	{
-		return new ModelRunner(modelDCInfo,multipleRunCombinerReporters);				
+		return new ModelRunner(modelDCInfo,multipleRunCombinerReporters, true);				
 	}
 	
 	public static class ModelRunnerException extends NetLogoLinkException

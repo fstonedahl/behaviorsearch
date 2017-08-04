@@ -3,8 +3,6 @@ package bsearch.space;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.moeaframework.core.variable.EncodingUtils;
-
 import java.util.LinkedHashMap;
 
 

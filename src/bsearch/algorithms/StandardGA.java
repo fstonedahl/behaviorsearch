@@ -76,7 +76,7 @@ public strictfp class StandardGA extends AbstractSearchMethod{
 			population[i] = cFactory.createChromosome(space, rng);
 		}
 		
-		double[] fitness = manager.computeFitnessBatch(population, protocol.fitnessSamplingReplications, rng);
+		double[] fitness = manager.computeFitnessBatchLegacy(population, protocol.modelDCInfo.fitnessSamplingReplications, rng);
 		
 		if (populationModel.equals("generational"))
 		{
@@ -106,7 +106,7 @@ public strictfp class StandardGA extends AbstractSearchMethod{
 			    population = newpopulation;
 				newpopulation = temp;
 				
-				fitness = manager.computeFitnessBatch(population, protocol.fitnessSamplingReplications, rng);			
+				fitness = manager.computeFitnessBatchLegacy(population, protocol.modelDCInfo.fitnessSamplingReplications, rng);			
 			}
 		}
 		else if (populationModel.startsWith("steady-state"))
@@ -120,7 +120,7 @@ public strictfp class StandardGA extends AbstractSearchMethod{
 			    	child = child.crossoverWith( p2 , rng )[0] ;
 			    }
 				child = child.mutate(mutationRate, rng);
-			    double childFitness = manager.computeFitnessSingle(child, protocol.fitnessSamplingReplications, rng);
+			    double childFitness = manager.computeFitnessSingleLegacy(child, protocol.modelDCInfo.fitnessSamplingReplications, rng);
 				
 			    int replaceIndex;
 			    if (populationModel.equals("steady-state-replace-random"))

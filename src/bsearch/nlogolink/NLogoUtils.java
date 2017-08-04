@@ -1,7 +1,6 @@
 package bsearch.nlogolink;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 import org.nlogo.agent.BooleanConstraint;
@@ -13,9 +12,6 @@ import org.nlogo.api.LogoException;
 import org.nlogo.core.CompilerException;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.Procedure;
-
-import bsearch.representations.Chromosome;
-import bsearch.util.GeneralUtils;
 
 public strictfp class NLogoUtils {
 	public static final long MIN_EXACT_NETLOGO_INT = -9007199254740992L;
@@ -203,16 +199,28 @@ public strictfp class NLogoUtils {
 	    return sb.toString();
 	}
 
-	public static String buildNetLogoCommandCenterString(LinkedHashMap<String,Object> paramSettings) {
+	/**
+	 * Creates a handy string of text that you could copy/paste into the NetLogo command center to set up a model    
+	 * @param paramSettings - the desired parameter settings
+	 * @param seed - the random seed to use, or null if none. 
+	 * @return the string of text to execute in NetLogo   
+	 */
+	public static String buildNetLogoCommandCenterString(LinkedHashMap<String,Object> paramSettings, Integer seed) {
 		StringBuilder sb = new StringBuilder();
+		if (seed != null) {
+			sb.append("random-seed ");
+			sb.append(seed);
+			sb.append(' ');
+		}
 		for (String param : paramSettings.keySet()) {
 			Object val = paramSettings.get(param);
 			sb.append("set ");
 			sb.append(param);
-			sb.append(" ");
+			sb.append(' ');
 			sb.append(org.nlogo.api.Dump.logoObject(val, true, false));
-			sb.append(" ");
+			sb.append(' ');
 		}
-		return sb.toString().trim();		
+		sb.setLength(sb.length()-1); // chop off the final ' '
+		return sb.toString();		 
 	}			
 }
