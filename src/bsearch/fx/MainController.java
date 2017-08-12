@@ -667,6 +667,8 @@ public class MainController implements Initializable {
 			this.SODeltaLabel.setDisable(false);
 			this.SOWrtBox.setDisable(false);
 			this.SODeltaField.setDisable(false);
+			this.SODeltaField.setDisable(false);
+			this.SOFitnessDerivativeUseAbsCheckBox.setDisable(false);
 			List<String> wrt = new ArrayList<String>();
 			SearchSpace ss = new SearchSpace(java.util.Arrays.asList(this.MParamSpecsArea.getText().split("\n")));
 
@@ -681,6 +683,7 @@ public class MainController implements Initializable {
 			this.SODeltaLabel.setDisable(true);
 			this.SOWrtBox.setDisable(true);
 			this.SODeltaField.setDisable(true);
+			this.SOFitnessDerivativeUseAbsCheckBox.setDisable(true);
 		}
 	}
 
