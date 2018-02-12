@@ -24,6 +24,6 @@ set BSEARCH_MAXMEM=768m
 
 REM This assumes that java was installed bundled with NetLogo. 
 REM If not, you should change the path below for your java installation.
-jre\bin\java.exe -Dbsearch.startupfolder="%WD%" -Dbsearch.appfolder="%BSEARCH_DIR%" -server -Xms256m "-Xmx%BSEARCH_MAXMEM%" -jar "%BSEARCH_DIR%/behaviorsearch_gui.jar" %*
+jre\bin\java.exe -Dbsearch.startupfolder="%WD%" -Dbsearch.appfolder="%BSEARCH_DIR%" -server -Xms256m -XX:+UseParallelGC "-Xmx%BSEARCH_MAXMEM%" -jar "%BSEARCH_DIR%/behaviorsearch_gui.jar" %*
 
 

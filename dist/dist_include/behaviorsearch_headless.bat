@@ -36,6 +36,6 @@ set BSEARCH_MAXMEM=768m
 
 REM This script assumes that you have the JAVA_HOME environment variable set.
 REM If you don't, and don't want to set it, simply change the path below.
-"%JAVA_HOME%\bin\java.exe" -Dbsearch.startupfolder="%WD%" -Dbsearch.appfolder="%BSEARCH_DIR%" -Xms256m "-Xmx%BSEARCH_MAXMEM%" -classpath "%JARS%" bsearch.app.BehaviorSearch %*
+"%JAVA_HOME%\bin\java.exe" -Dbsearch.startupfolder="%WD%" -Dbsearch.appfolder="%BSEARCH_DIR%" -Xms256m -XX:+UseParallelGC "-Xmx%BSEARCH_MAXMEM%" -classpath "%JARS%" bsearch.app.BehaviorSearch %*
 
 
