@@ -1,5 +1,17 @@
+-- Legacy single-objective --
 RandomSearch
 SimulatedAnnealing
 MutationHillClimber
 StandardGA
 
+-- Single objective from MOEA --
+Random
+GA
+
+-- Multi-objective from MOEA --
+DBEA
+SPEA2
+NSGA-II
+NSGA-III
+e-NSGA-II
+eMOEA

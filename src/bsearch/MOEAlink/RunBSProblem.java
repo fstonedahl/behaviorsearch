@@ -20,11 +20,13 @@ import bsearch.evaluation.ObjectiveEvaluator;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
 import bsearch.evaluation.SearchProgressStatsKeeper;
-import bsearch.nlogolink.BatchRunner;
+import bsearch.nlogolink.ModelRunningService;
+import bsearch.nlogolink.MultiThreadedBatchService;
 import bsearch.nlogolink.NLogoUtils;
 import bsearch.space.SearchSpace;
 import bsearch.util.GeneralUtils;
 
+//TODO: Remove this extraneous class...
 public class RunBSProblem {
 
 	public static void main(String[] args) throws IOException, SAXException, BehaviorSearchException {
@@ -40,8 +42,8 @@ public class RunBSProblem {
 		//SearchProtocolInfo protocol = SearchProtocolInfo.loadOldXMLBasedFile( FILENAME ) ;
 		SearchProtocolInfo protocol = SearchProtocolInfo.loadFromFile( FILENAME ) ;
 				
-		int numEvaluationThreads = 3;
-		BatchRunner batchRunner = new BatchRunner(numEvaluationThreads,protocol,false);
+		int numEvaluationThreads = 2;
+		ModelRunningService batchRunner = new MultiThreadedBatchService(numEvaluationThreads,protocol,false);
 		BehaviorSearch.RunOptions runOptions = new BehaviorSearch.RunOptions();
 		runOptions.outputStem = "test/tmptmp/TesterMOEA2";
 		ResultListener csvListener = new CSVLoggerListener(protocol, runOptions);
@@ -49,7 +51,7 @@ public class RunBSProblem {
 		
 		SearchProgressStatsKeeper statsKeeper = new SearchProgressStatsKeeper(1,0,0,protocol.objectives,Arrays.asList(csvListener));
 
-		SearchManager manager = new SearchManager(0, batchRunner, protocol, new ObjectiveEvaluator(protocol.objectives),statsKeeper);
+		SearchManager manager = new SearchManager(0, batchRunner, protocol, new ObjectiveEvaluator(protocol.objectives),statsKeeper, numEvaluationThreads, 1234);
 		
 		Plot plot = new Plot();
 
@@ -84,14 +86,15 @@ public class RunBSProblem {
 		for (int searchNum = 1; searchNum <= 2; searchNum++) {
 			statsKeeper.searchStartingEvent(searchNum);
 			PRNG.setSeed(searchNum);
-			NondominatedPopulation result = new Executor().withAlgorithm("NSGA2")
-					.withProblem(new BSProblem(protocol,manager))
+			NondominatedPopulation result = new Executor().withAlgorithm("Random")
+					.withProblem(new BSProblem(protocol,manager,1234))
 					.withProperty("populationSize", 20)
 	//				.withInstrumenter(instrumenter)
 					.withMaxEvaluations(protocol.searchAlgorithmInfo.evaluationLimit / protocol.modelDCInfo.fitnessSamplingReplications)
 					.distributeOn(2)
 					.withProgressListener(progListener)
 					.run();
+
 			System.out.println("final pop size= " + result.size());
 			statsKeeper.searchFinishedEvent();
 		}
@@ -101,12 +104,8 @@ public class RunBSProblem {
 		long endTime = System.currentTimeMillis();
 		//System.out.println(endTime-startTime);
 		
-		try {
-			batchRunner.dispose();
-			NLogoUtils.fullyShutDownNetLogoLink();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		batchRunner.dispose();
+		NLogoUtils.fullyShutDownNetLogoLink();
 //		for (Solution solution : result) {
 //			System.out.printf("%.5f => %.5f, %.5f\n", 
 //					EncodingUtils.getReal(solution.getVariable(0)),

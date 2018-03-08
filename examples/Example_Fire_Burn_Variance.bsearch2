@@ -1,0 +1,43 @@
+{
+  "bsearchVersionNumber": 2.0,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "../../models/Sample Models/Earth Science/Fire.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "not any? turtles",
+    "measureIfReporter": "@DONE",
+    "maxModelSteps": 10000,
+    "rawMeasureReporters": {
+      "RAW1": "(burned-trees / initial-trees) * 100"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "last @{RAW1}"
+    },
+    "fitnessSamplingReplications": 5,
+    "bestCheckingNumReplications": 20
+  },
+  "paramSpecStrings": [
+    "[\"density\" [1 \"C\" 99]]"
+  ],
+  "objectives": [
+    {
+      "name": "objective1",
+      "objectiveType": "MAXIMIZE",
+      "fitnessCombineReplications": "standard-deviation @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "MutationHillClimber",
+    "searchMethodParams": {
+      "mutation-rate": "1.0",
+      "restart-after-stall-count": "0"
+    },
+    "chromosomeType": "MixedTypeChromosome",
+    "caching": false,
+    "evaluationLimit": 500
+  }
+}

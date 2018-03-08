@@ -1,21 +1,22 @@
 {
-  "bsearchVersionNumber": 0.72,
+  "bsearchVersionNumber": 2.0,
   "infoTab": "Write notes here...",
   "modelDCInfo": {
     "modelFileName": "Tester.nlogo",
     "setupCommands": "setup",
     "stepCommands": "go",
-    "stopCondition": "count turtles \u003e 1000",
+    "stopCondition": "count turtles > 1000",
     "measureIfReporter": "@DONE",
     "maxModelSteps": 0,
     "measureReporters": {
-      "MEASURE1": "ellipsoid + random-normal 0 800.0"
+      "RAW1": "ellipsoid + random-normal 0 800.0"
     },
     "singleRunCondenserReporters": {
-      "CONDENSED1": "last @{MEASURE1}"
-    }
+      "CONDENSED1": "last @{RAW1}"
+    },
+    "fitnessSamplingReplications": 1,
+    "bestCheckingNumReplications": 10
   },
-  "fitnessSamplingReplications": 1,
   "paramSpecStrings": [
     "[\"a\" [-32 1 32]]",
     "[\"b\" [-32 1 32]]",
@@ -40,7 +41,6 @@
     },
     "chromosomeType": "GrayBinaryChromosome",
     "caching": true,
-    "evaluationLimit": 200,
-    "bestCheckingNumReplications": 10
+    "evaluationLimit": 200
   }
 }

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import bsearch.space.SearchSpace;
-import bsearch.util.GeneralUtils;
 import bsearch.MOEAlink.MOEASolutionWrapper;
 import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.ResultListener;

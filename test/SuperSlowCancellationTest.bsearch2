@@ -1,0 +1,41 @@
+{
+  "bsearchVersionNumber": 2.0,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "/home/forrest/prog/git/behaviorsearch/test/SuperSlowCancellationTest.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "",
+    "measureIfReporter": "@DONE",
+    "maxModelSteps": 10,
+    "measureReporters": {
+      "MEASURE1": "measureit"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "last @{MEASURE1}"
+    },
+    "fitnessSamplingReplications": 10,
+    "bestCheckingNumReplications": 0
+  },
+  "paramSpecStrings": [
+    "[\"a\" [-32 1 32]]",
+    "[\"noise\" [0 1 100]]"
+  ],
+  "objectives": [
+    {
+      "name": "objective1",
+      "objectiveType": "MAXIMIZE",
+      "fitnessCombineReplications": "mean @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "RandomSearch",
+    "searchMethodParams": {},
+    "chromosomeType": "GrayBinaryChromosome",
+    "caching": false,
+    "evaluationLimit": 300
+  }
+}

@@ -8,7 +8,7 @@ public class ModelDataCollectionInfo {
 	
 	public final String modelFileName, setupCommands, stepCommands, stopCondition, measureIfReporter;
 	public final int maxModelSteps;		
-	public final LinkedHashMap<String,String> measureReporters;
+	public final LinkedHashMap<String,String> rawMeasureReporters;
 	public final LinkedHashMap<String,String> singleRunCondenserReporters;
 	public final int fitnessSamplingReplications ;
 	public final int bestCheckingNumReplications; // if == 0, no best checking is done		
@@ -22,7 +22,7 @@ public class ModelDataCollectionInfo {
 		this.stepCommands = null;
 		this.stopCondition = null;
 		this.measureIfReporter = null;
-		this.measureReporters = null;
+		this.rawMeasureReporters = null;
 		this.singleRunCondenserReporters = null;
 		this.fitnessSamplingReplications = 0;
 		this.bestCheckingNumReplications = 0;		
@@ -43,7 +43,7 @@ public class ModelDataCollectionInfo {
 			measureIfReporter = SPECIAL_MEASURE_IF_DONE_FLAG; // convert to upper case here for more efficient flag checking later
 		}
 		this.measureIfReporter = measureIfReporter;
-		this.measureReporters = measureReporters;
+		this.rawMeasureReporters = measureReporters;
 		this.singleRunCondenserReporters = singleRunCondenserReporters;
 		this.fitnessSamplingReplications = fitnessSamplingReplications;
 		this.bestCheckingNumReplications = bestCheckingNumReplications;

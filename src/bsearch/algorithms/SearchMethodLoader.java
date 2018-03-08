@@ -12,22 +12,20 @@ public class SearchMethodLoader {
 
 	public static SearchMethod createFromName(String searchMethodName) throws BehaviorSearchException
 	{
-		String searchMethodClassName = searchMethodName;
-		if (!searchMethodClassName.contains("."))
-		{
-			searchMethodClassName = "bsearch.algorithms." + searchMethodClassName;
+		if (searchMethodName.startsWith("--")) {
+			throw new BehaviorSearchException("Invalid choice for search algorithm: + '" + searchMethodName + "'");
+		} else if (searchMethodName.equals("RandomSearch")) {
+			return new RandomSearch();
+		} else if (searchMethodName.equals("SimulatedAnnealing")) {
+			return new SimulatedAnnealing();
+		} else if (searchMethodName.equals("MutationHillClimber")) {
+			return new MutationHillClimber();
+		} else if (searchMethodName.equals("StandardGA")) {
+			return new StandardGA();
+		} else {
+			return new MOEASearchMethodAdapter(searchMethodName);
 		}
-		SearchMethod searcher;
-		try {
-			searcher = (SearchMethod) Class.forName(searchMethodClassName).newInstance();
-		}
-		catch (Exception ex)
-		{        	
-			System.err.println(ex.getMessage());
-			ex.printStackTrace();
-			throw new BehaviorSearchException("Failed to find/load SearchMethod from Java class: " + searchMethodClassName );
-		}
-		return searcher;
+		
 	}
 	
 	public static List<String> getAllSearchMethodNames() throws BehaviorSearchException

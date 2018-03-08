@@ -1,0 +1,43 @@
+{
+  "bsearchVersionNumber": 2.0,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "Tester.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "count turtles > 1000",
+    "measureIfReporter": "@DONE",
+    "maxModelSteps": 0,
+    "rawMeasureReporters": {
+      "RAW1": "ellipsoid + random-normal 0 20"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "last @{RAW1}"
+    },
+    "fitnessSamplingReplications": 1,
+    "bestCheckingNumReplications": 2
+  },
+  "paramSpecStrings": [
+    "[\"a\" [-32 1 32]]",
+    "[\"b\" [-32 1 32]]",
+    "[\"c\" [-32 1 32]]",
+    "[\"d\" [-32 1 32]]"
+  ],
+  "objectives": [
+    {
+      "name": "objective1",
+      "objectiveType": "MAXIMIZE",
+      "fitnessCombineReplications": "mean @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "RandomSearch",
+    "searchMethodParams": {},
+    "chromosomeType": "RealHypercubeChromosome",
+    "caching": true,
+    "evaluationLimit": 200
+  }
+}

@@ -6,12 +6,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.moeaframework.core.Solution;
-import org.moeaframework.util.distributed.FutureSolution;
-
 import bsearch.datamodel.ObjectiveFunctionInfo;
 import bsearch.datamodel.ObjectiveFunctionInfo.OBJECTIVE_TYPE;
 import bsearch.representations.Chromosome;
-import bsearch.representations.ChromosomeFactory;
+import bsearch.representations.DummyChromosome;
 import bsearch.space.SearchSpace;
 
 // NOTE: this class is declared Serializable to appease MOEA, but it doesn't really 
@@ -31,9 +29,9 @@ public class MOEASolutionWrapper implements Serializable {
 	private transient int modelRunCounter;
 	private transient MOEASolutionWrapper checkingPairWrapper;
 	
-	public MOEASolutionWrapper(Solution sol, SearchSpace space, ChromosomeFactory cFactory, List<ObjectiveFunctionInfo> objInfos) {
+	public MOEASolutionWrapper(Solution sol, SearchSpace space, List<ObjectiveFunctionInfo> objInfos) {
 		this.solution = sol;
-		this.point = cFactory.createChromosome(space, space.getParamSettingsFromMOEASolution(sol));
+		this.point = new DummyChromosome(space, space.getParamSettingsFromMOEASolution(sol));
 		this.objectiveInfos = objInfos;
 	}
 	// copy constructor
@@ -167,7 +165,7 @@ public class MOEASolutionWrapper implements Serializable {
 	 */
 	public static MOEASolutionWrapper getDummySolutionWrapper(Chromosome point, List<ObjectiveFunctionInfo> objInfos) {
 		//Solution dummySolution = new Solution(point.getSearchSpace().getParamSpecs().size(), 1);
-		Solution dummySolution = new Solution(0, 1);
+		Solution dummySolution = new Solution(0, objInfos.size());
 		return new MOEASolutionWrapper(dummySolution, point, objInfos, null, 0,0,null);
 	}
 	

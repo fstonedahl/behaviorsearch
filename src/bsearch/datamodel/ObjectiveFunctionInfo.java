@@ -33,7 +33,11 @@ public class ObjectiveFunctionInfo {
 	}
 	
 	public boolean useDerivative() {
-		return this.fitnessDerivativeParameter.length() > 0;
+		return fitnessDerivativeParameter.length() > 0;
 	}
 		
+	public String toString() {
+//		return name + " (" + objectiveType.toString().substring(0,3) + ")" ;
+		return name + " (" + objectiveType.toString().substring(0,3) + ")" + fitnessDerivativeParameter + " " + fitnessDerivativeUseAbs + " " + fitnessDerivativeDelta ;
+	}
 }

@@ -21,6 +21,7 @@ public class TempProtocolFileFormatUpdater {
 			fname = GeneralUtils.attemptResolvePathFromBSearchRoot(fname);
 			GeneralUtils.updateProtocolFolder(fname);
 			SearchProtocolInfo protocol = SearchProtocolInfo.loadOldXMLBasedFile( fname ) ;
+			protocol.bsearchVersionNumber = 2.0;  
 			protocol.save(fname.replace(".bsearch", ".bsearch2").replace(".xml", ".json"));
 		}
 

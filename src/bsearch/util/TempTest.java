@@ -4,9 +4,18 @@ import org.nlogo.core.CompilerException;
 import org.nlogo.api.SimpleJobOwner;
 import org.nlogo.headless.HeadlessWorkspace;
 import org.nlogo.nvm.Procedure;
+import org.xml.sax.SAXException;
 
+import bsearch.algorithms.SearchParameterException;
+import bsearch.app.BehaviorSearch;
+import bsearch.app.BehaviorSearch.RunOptions;
+import bsearch.app.BehaviorSearchException;
+
+import java.io.IOException;
 import java.util.Arrays;
 
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
 import org.nlogo.api.LogoListBuilder;
 import org.nlogo.api.MersenneTwisterFast;
 
@@ -31,7 +40,18 @@ public class TempTest {
 		return s.replace("e+0","E").replace("e+", "E");		
 	}
 
-	public static void main(String[] args) throws CompilerException {
+	public static void main(String[] args) throws CompilerException, CmdLineException, IOException, SAXException, BehaviorSearchException, SearchParameterException {
+		String command= "-p test/TesterMOEA2.bsearch2 -o test/tmptmp/TesterMOEA2 -t 2 -n 1 --randomseed 1";
+    	RunOptions clOptions = new RunOptions();
+    	CmdLineParser parser = new CmdLineParser(clOptions); 
+    	
+    	
+    	parser.parseArgument(command.split("\\s"));
+		BehaviorSearch.runWithOptions(clOptions);
+
+		System.exit(0);
+		
+		
 		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
 		
 		try {

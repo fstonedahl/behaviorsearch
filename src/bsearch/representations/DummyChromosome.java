@@ -54,8 +54,7 @@ public strictfp class DummyChromosome implements Chromosome
 	}
     
 	
-	/**
-	 * Redefine equality for DummyChromosomes.  
+	/**  
 	 * Two chromosomes are considered equal if they represent the same parameter values. 
 	 */
 	public boolean equals(Object other)

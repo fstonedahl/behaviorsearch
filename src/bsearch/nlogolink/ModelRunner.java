@@ -80,11 +80,11 @@ public strictfp class ModelRunner {
 		setStopConditionReporter(modelDCInfo.stopCondition );
 		setMeasureIfReporter(modelDCInfo.measureIfReporter);
 		
-		for (String reporterName : modelDCInfo.measureReporters.keySet()) {
-			addMeasureReporter(reporterName, modelDCInfo.measureReporters.get(reporterName));
+		for (String reporterName : modelDCInfo.rawMeasureReporters.keySet()) {
+			addMeasureReporter(reporterName, modelDCInfo.rawMeasureReporters.get(reporterName));
 		}
 		// 
-		String[] measureVarNames = modelDCInfo.measureReporters.keySet().toArray(new String[0]);
+		String[] measureVarNames = modelDCInfo.rawMeasureReporters.keySet().toArray(new String[0]);
 		for (String reporterName : modelDCInfo.singleRunCondenserReporters.keySet()) {
 			addSingleRunCondenserReporter(reporterName, modelDCInfo.singleRunCondenserReporters.get(reporterName), measureVarNames);
 		}
@@ -110,7 +110,7 @@ public strictfp class ModelRunner {
 			stepCommandsProcedure = workspace.compileCommands(commands);
 		} catch (CompilerException e) {
 			e.printStackTrace();
-			throw new NetLogoLinkException("Error compiling the model's step commands : " +commands.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+			throw new NetLogoLinkException("Error compiling the model's step commands: \n" +commands.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
 		}
 			
 	}
@@ -122,7 +122,7 @@ public strictfp class ModelRunner {
 				stopConditionReporterProcedure = workspace.compileReporter(reporter);
 			} catch (CompilerException e) {
 				e.printStackTrace();
-				throw new NetLogoLinkException("Error compiling the model's stop condition reporter: " + reporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+				throw new NetLogoLinkException("Error compiling the model's stop condition reporter: \n" + reporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
 			}
 
 		}
@@ -135,7 +135,7 @@ public strictfp class ModelRunner {
 				measureIfReporterProcedure = workspace.compileReporter(reporter);
 			} catch (CompilerException e) {
 				e.printStackTrace();
-				throw new NetLogoLinkException("Error compiling the model's 'measure if' reporter: " + reporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+				throw new NetLogoLinkException("Error compiling the model's 'measure if' reporter: \n" + reporter.toUpperCase() + "\n  NetLogo's error message: \"" + e.getMessage() + "\"");
 			}
 		}
 	}
@@ -146,7 +146,7 @@ public strictfp class ModelRunner {
 			measureReporterSources.put(reporterName, reporterSource);
 		} catch (CompilerException e) {
 			e.printStackTrace();
-			throw new NetLogoLinkException("Error compiling model's measure reporter: " + reporterSource.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
+			throw new NetLogoLinkException("Error compiling model's measure reporter: \n" + reporterSource.toUpperCase() + "\n  NetLogo's error message: \"" + e.getMessage() + "\"");
 		}
 	}
 

@@ -3,8 +3,8 @@ package bsearch.app;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -20,8 +20,8 @@ import bsearch.evaluation.ObjectiveEvaluator;
 import bsearch.evaluation.ResultListener;
 import bsearch.evaluation.SearchManager;
 import bsearch.evaluation.SearchProgressStatsKeeper;
-import bsearch.nlogolink.BatchRunner;
-import bsearch.nlogolink.NetLogoLinkException;
+import bsearch.nlogolink.ModelRunningService;
+import bsearch.nlogolink.MultiThreadedBatchService;
 import bsearch.nlogolink.NLogoUtils;
 import bsearch.representations.ChromosomeFactory;
 import bsearch.representations.ChromosomeTypeLoader;
@@ -31,15 +31,15 @@ import bsearch.util.GeneralUtils;
 
 /**
  * NOTES:
- *  TODO: Eventually handle setting world-dimensions? and random-seed? (prob. not needed)
+ *  TODO: Eventually handle setting world-dimensions? (prob. not needed)
  *
  */
 public strictfp class BehaviorSearch {
 
 	public static void runMultipleSearches(SearchProtocolInfo protocol, List<ResultListener> listeners, RunOptions runOptions)
-			throws BehaviorSearchException, InterruptedException, SearchParameterException {
+			throws BehaviorSearchException, SearchParameterException {
 
-    	BatchRunner batchRunner = new BatchRunner(runOptions.numThreads, protocol, runOptions.verboseModelOutput);
+    	ModelRunningService modelRunningService = new MultiThreadedBatchService(runOptions.numThreads, protocol, runOptions.verboseModelOutput);
 
 		
 		SearchSpace space = new SearchSpace(protocol.paramSpecStrings);
@@ -52,33 +52,28 @@ public strictfp class BehaviorSearch {
     	int endSearchNumber = runOptions.firstSearchNumber + runOptions.numSearches;
     	for (int searchNumber = runOptions.firstSearchNumber; searchNumber < endSearchNumber; searchNumber++)
     	{
-    		int randomSeed = runOptions.randomSeed + (searchNumber - runOptions.firstSearchNumber);
-    		MersenneTwisterFast rng = new MersenneTwisterFast(randomSeed);
+    		int randomSeed = runOptions.randomSeed + searchNumber - runOptions.firstSearchNumber;
     		
     		statsKeeper.searchStartingEvent(searchNumber);
-       		BehaviorSearch.runProtocol(protocol, space, searchNumber, runOptions.numThreads, rng, 
-       				batchRunner, statsKeeper) ;
+       		BehaviorSearch.runProtocol(protocol, space, searchNumber, runOptions.numThreads, randomSeed, 
+       				modelRunningService, statsKeeper) ;
        		statsKeeper.searchFinishedEvent();
     	}
   		
     	statsKeeper.allSearchesFinishedEvent();
 
-    	try {
-			batchRunner.dispose();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		modelRunningService.dispose();
 	}
 	
 	private static void runProtocol(SearchProtocolInfo protocol, SearchSpace space, int searchIDNumber, int numEvaluationThreads,
-			MersenneTwisterFast rng, BatchRunner batchRunner, SearchProgressStatsKeeper statsKeeper)
-			throws SearchParameterException, BehaviorSearchException, InterruptedException {		
+			int randomSeed, ModelRunningService modelRunningService, SearchProgressStatsKeeper statsKeeper)
+			throws SearchParameterException, BehaviorSearchException {		
 		
         SearchMethod searcher = SearchMethodLoader.createFromName(protocol.searchAlgorithmInfo.searchMethodType);
 
         //if the search method in the protocol is missing some parameters, fill them in with defaults
-        HashMap<String, String> defaultParams = searcher.getSearchParams();
-        HashMap<String, String> searchParams = protocol.searchAlgorithmInfo.searchMethodParams;
+        Map<String, String> defaultParams = searcher.getSearchParams();
+        Map<String, String> searchParams = protocol.searchAlgorithmInfo.searchMethodParams;
         for (String key : defaultParams.keySet())
         {
         	if (!searchParams.containsKey(key))
@@ -86,23 +81,15 @@ public strictfp class BehaviorSearch {
         		searchParams.put(key, defaultParams.get(key));
         	}
         }        
-		searcher.setSearchParams(searchParams);
+		searcher.updateSearchParams(searchParams);
 
-		ObjectiveEvaluator ffun;
-		if (protocol.modelDCInfo.fitnessSamplingReplications == 0 && !searcher.supportsAdaptiveSampling())
-		{
-			throw new BehaviorSearchException("Error: " + searcher.getName() + " does not support adaptive fitness sampling!");
-        }
-		else
-		{
-			ffun = new ObjectiveEvaluator(protocol.objectives);
-		}
+		ObjectiveEvaluator objEvaluator = new ObjectiveEvaluator(protocol.objectives);
 
-		SearchManager manager = new SearchManager(searchIDNumber, batchRunner, protocol, ffun, statsKeeper);
+		SearchManager manager = new SearchManager(searchIDNumber, modelRunningService, protocol, objEvaluator, statsKeeper, numEvaluationThreads, randomSeed);
 		        	
 		ChromosomeFactory cFactory = ChromosomeTypeLoader.createFromName(protocol.searchAlgorithmInfo.chromosomeType);
 
-		searcher.search( space , cFactory, protocol, manager, rng );			
+		searcher.search( space , cFactory, protocol, manager, randomSeed, numEvaluationThreads);			
 	
 	}
 	
@@ -155,7 +142,7 @@ public strictfp class BehaviorSearch {
 		@Option(name="-v", aliases={"--version"},usage="print version number and exit")
 		public boolean printVersion = false;
 
-    @Option(name="--override-parameter-spec",usage="override the parameter spec/range given in the .bsearch file, using usual syntax (e.g. [\"population\" 100 200 400] (NOTE: you may need to \\ escape the quotes in your shell)", multiValued=true)
+		@Option(name="--override-parameter-spec",usage="override the parameter spec/range given in the .bsearch file, using usual syntax (e.g. [\"population\" 100 200 400] (NOTE: you may need to \\ escape the quotes in your shell)", multiValued=true)
 		List<String> overrideParameters = new java.util.LinkedList<String>();
 
 		//@Argument(usage="any number of arguments...")
@@ -209,17 +196,12 @@ public strictfp class BehaviorSearch {
         catch(Exception ex) {
             ex.printStackTrace();
             System.exit(1);
-        }
-        finally {
-        	try {
-				NLogoUtils.fullyShutDownNetLogoLink();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+        } finally {
+        	NLogoUtils.fullyShutDownNetLogoLink();
         }
 	}
 	
-	public static void runWithOptions(RunOptions runOptions) throws IOException, SAXException, BehaviorSearchException, InterruptedException, SearchParameterException
+	public static void runWithOptions(RunOptions runOptions) throws IOException, SAXException, BehaviorSearchException, SearchParameterException
 	{
 		runWithOptions(runOptions,null,null);
 	}
@@ -231,18 +213,20 @@ public strictfp class BehaviorSearch {
 	 * @throws IOException
 	 * @throws SAXException
 	 * @throws BehaviorSearchException
-	 * @throws InterruptedException
 	 * @throws SearchParameterException
 	 */
-	public static void runWithOptions(RunOptions runOptions, SearchProtocolInfo protocol, List<ResultListener> additionalListeners) throws IOException, SAXException, BehaviorSearchException, InterruptedException, SearchParameterException
+	public static void runWithOptions(RunOptions runOptions, SearchProtocolInfo protocol, List<ResultListener> additionalListeners) throws IOException, SAXException, BehaviorSearchException, SearchParameterException
 	{
 		runOptions = (RunOptions) runOptions.clone(); // so we don't cause any side-effects to the parameter
 		if (protocol == null)
 		{
 			runOptions.protocolFilename = GeneralUtils.attemptResolvePathFromStartupFolder(runOptions.protocolFilename);
 			runOptions.outputStem = GeneralUtils.attemptResolvePathFromStartupFolder(runOptions.outputStem);
-			protocol = SearchProtocolInfo.loadOldXMLBasedFile(runOptions.protocolFilename);
-			//protocol = SearchProtocolInfo.loadFromFile(runOptions.protocolFilename + "2");
+			if (runOptions.protocolFilename.endsWith(".bsearch") || runOptions.protocolFilename.endsWith(".xml")) {
+				protocol = SearchProtocolInfo.loadOldXMLBasedFile(runOptions.protocolFilename);
+			} else {
+				protocol = SearchProtocolInfo.loadFromFile(runOptions.protocolFilename);				
+			}				
 		}
 		GeneralUtils.updateProtocolFolder(runOptions.protocolFilename);
         

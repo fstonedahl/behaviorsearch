@@ -1,6 +1,8 @@
 package bsearch.algorithms;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.nlogo.api.MersenneTwisterFast;
 
@@ -22,33 +24,40 @@ public strictfp class SimulatedAnnealing extends AbstractSearchMethod {
 	{
 	}
 
+	@Override
 	public String getName() {
 		return "SimulatedAnnealing";
 	}
+	@Override
 	public String getDescription() {
 		return "Simulated Annealing is similar to a hill climbing approach, except that a downhill (inferior) move may also occur, but only with a certain probability based on the 'temperature' of the system, which decreases over time." +
 				"Simulated annealing is inspired by the physical annealing process in metallurgy: heating followed by the controlled cooling of a material in order to increase crystal size.";
 	}
 
-	public void setSearchParams( HashMap<String , String> searchMethodParams ) throws SearchParameterException
+	@Override
+	public void updateSearchParams( Map<String , String> newSearchMethodParams ) throws SearchParameterException
 	{
+		Map<String,String> searchMethodParams = getSearchParams();
+		searchMethodParams.putAll(newSearchMethodParams);
 		mutationRate = validDoubleParam(searchMethodParams, "mutation-rate", 0.0, 1.0);
 		restartAfterStallCount = validIntParam(searchMethodParams, "restart-after-stall-count", 0, 1000);
 		initialTemperature = validDoubleParam(searchMethodParams, "initial-temperature", 0, Double.MAX_VALUE);
 		temperatureChangeFactor = validDoubleParam(searchMethodParams, "temperature-change-factor", 0, 1.0);
 	}
-	public HashMap<String , String> getSearchParams()
+	@Override
+	public Map<String , String> getSearchParams()
 	{
-		HashMap<String,String> params = new HashMap<String,String>();
+		HashMap<String,String> params = new LinkedHashMap<String,String>();
 		params.put("mutation-rate", Double.toString( mutationRate ));
 		params.put("restart-after-stall-count", Integer.toString( restartAfterStallCount ));
 		params.put("initial-temperature", Double.toString( initialTemperature));
 		params.put("temperature-change-factor", Double.toString( temperatureChangeFactor ));
 		return params;
 	}
+	@Override
 	public HashMap<String , String> getSearchParamsHelp()
 	{
-		HashMap<String,String> params = new HashMap<String,String>();
+		HashMap<String,String> params = new LinkedHashMap<String,String>();
 		params.put("mutation-rate", "controls how much mutation occurs when choosing a new location to try to climb uphill");
 		params.put("restart-after-stall-count", "if it doesn't move to a new location after X attempts, reset the temperature, jump to a random location in the search space and try again.");
 		params.put("initial-temperature", "the system's initial 'temperature': a reasonable choice would be the average expected difference in the fitness function's value for two random points in the search space.");
@@ -71,9 +80,12 @@ public strictfp class SimulatedAnnealing extends AbstractSearchMethod {
 	}
 
 
+	@Override
 	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocolInfo protocol,
-			SearchManager manager, MersenneTwisterFast rng ) throws BehaviorSearchException, NetLogoLinkException, InterruptedException
+			SearchManager manager, int randomSeed, int numEvaluationThreads ) throws BehaviorSearchException, NetLogoLinkException
 	{
+		MersenneTwisterFast rng = new MersenneTwisterFast(randomSeed);
+
 		double temperature = initialTemperature ;
     	while (!manager.searchFinished())
     	{

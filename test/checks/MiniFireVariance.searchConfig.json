@@ -1,5 +1,5 @@
 {
-  "bsearchVersionNumber": 1.1,
+  "bsearchVersionNumber": 2.0,
   "infoTab": "Write notes here...",
   "modelDCInfo": {
     "modelFileName": "/home/forrest/prog/git/behaviorsearch/test/MiniFire.nlogo",
@@ -9,13 +9,14 @@
     "measureIfReporter": "@DONE",
     "maxModelSteps": 10000,
     "measureReporters": {
-      "MEASURE1": "(burned-trees / initial-trees) * 100"
+      "RAW1": "ifelse-value (initial-trees = 0) [ 0 ] [(burned-trees / initial-trees) * 100]"
     },
     "singleRunCondenserReporters": {
-      "CONDENSED1": "last @{MEASURE1}"
-    }
+      "CONDENSED1": "last @{RAW1}"
+    },
+    "fitnessSamplingReplications": 5,
+    "bestCheckingNumReplications": 20
   },
-  "fitnessSamplingReplications": 5,
   "paramSpecStrings": [
     "[\"density\" [1 \"C\" 70]]"
   ],
@@ -37,7 +38,6 @@
     },
     "chromosomeType": "MixedTypeChromosome",
     "caching": false,
-    "evaluationLimit": 500,
-    "bestCheckingNumReplications": 20
+    "evaluationLimit": 500
   }
 }

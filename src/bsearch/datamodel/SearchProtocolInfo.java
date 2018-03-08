@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -41,9 +42,7 @@ public strictfp class SearchProtocolInfo
 {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
-	
-	//TODO: Add a "documentation" field to store text/comments about the search protocol.
-	public final double bsearchVersionNumber;
+	public double bsearchVersionNumber;
 	public final String infoTab;
 	public final ModelDataCollectionInfo modelDCInfo;
 	
@@ -51,7 +50,7 @@ public strictfp class SearchProtocolInfo
 	
 	public final List<ObjectiveFunctionInfo> objectives;
 	
-	public SearchAlgorithmInfo searchAlgorithmInfo; 
+	public final SearchAlgorithmInfo searchAlgorithmInfo; 
 	
 	
 	@SuppressWarnings("unused") // used by Gson, NOTE: Set default values here for any new fields added in later versions!
@@ -70,38 +69,30 @@ public strictfp class SearchProtocolInfo
 	 * relatively straightforward fashion. 
 	 */
 	public SearchProtocolInfo(String modelFile, List<String> paramSpecStrings,
-			String modelStepCommands, String modelSetupCommands, String modelStopCondition,
-			int modelStepLimit, String modelMetricReporter, String modelMeasureIf, 
-			String objectiveName,
-			OBJECTIVE_TYPE objectiveType,
+			String modelSetupCommands, String modelStepCommands, String modelStopCondition,
+			int modelStepLimit, String modelMeasureIf,
+			LinkedHashMap<String,String> rawMeasures, 
+			LinkedHashMap<String,String> singleRunCondenserMeasures,
 			int fitnessSamplingRepetitions,
-			String fitnessCollecting,
-			String fitnessCombineReplications,
-			String fitnessDerivativeParameter,
-			double fitnessDerivativeDelta,
-			boolean fitnessDerivativeUseAbs,
+			int bestCheckingNumReplications,
+			List<ObjectiveFunctionInfo> objectives,
 			String searchMethodType,
 			HashMap<String, String> searchMethodParams,
 			String chromosomeType,
 			boolean caching,
-			int evaluationLimit, 
-			int bestCheckingNumReplications) {
+			int evaluationLimit) {
 		super();
 		this.bsearchVersionNumber = GeneralUtils.getVersionNumber();
 		this.infoTab = "Write notes here...";
 		
-		LinkedHashMap<String,String> rawMeasures = new LinkedHashMap<>();
-		rawMeasures.put("MEASURE1", modelMetricReporter);
-		LinkedHashMap<String,String> condenserMeasures = new LinkedHashMap<>();
-		condenserMeasures.put("CONDENSED1", fitnessCollecting);
 		
 		this.modelDCInfo = new ModelDataCollectionInfo(modelFile, modelStepLimit, modelSetupCommands, modelStepCommands,
-				modelStopCondition, modelMeasureIf, rawMeasures, condenserMeasures,fitnessSamplingRepetitions,
+				modelStopCondition, modelMeasureIf, rawMeasures, singleRunCondenserMeasures,fitnessSamplingRepetitions,
 				bestCheckingNumReplications);
 
 		this.paramSpecStrings = paramSpecStrings;
-		this.objectives = new ArrayList<>();
-		this.objectives.add(new ObjectiveFunctionInfo(objectiveName,objectiveType, fitnessCombineReplications, fitnessDerivativeParameter, fitnessDerivativeDelta, fitnessDerivativeUseAbs));
+		this.objectives = new ArrayList<>(objectives);
+		//this.objectives.add(new ObjectiveFunctionInfo(objectiveName,objectiveType, fitnessCombineReplications, fitnessDerivativeParameter, fitnessDerivativeDelta, fitnessDerivativeUseAbs));
 		this.searchAlgorithmInfo = new SearchAlgorithmInfo(searchMethodType, searchMethodParams, chromosomeType, caching, evaluationLimit);
 	}
 	private static String loadOrGetDefault(XPath xpath, Document xmlDoc, String path, String defaultVal)
@@ -165,14 +156,14 @@ public strictfp class SearchProtocolInfo
 		int maxModelSteps = loadOrGetDefaultInt(xpath,  xmlDoc, "/search/modelInfo/modelStepLimit/text()", 100);
 		String measureIfReporter= loadOrGetDefault(xpath,  xmlDoc, "/search/modelInfo/modelMeasureIf/text()" , "true");
 		LinkedHashMap<String,String> rawMeasures = new LinkedHashMap<>();		
-		rawMeasures.put("MEASURE1", loadOrGetDefault(xpath,  xmlDoc, "/search/modelInfo/modelMetricReporter/text()" , ""));
+		rawMeasures.put("RAW1", loadOrGetDefault(xpath,  xmlDoc, "/search/modelInfo/modelMetricReporter/text()" , ""));
 		LinkedHashMap<String,String> condenserMeasures = new LinkedHashMap<>();
 		String condenseCode = loadOrGetDefault(xpath,  xmlDoc, "/search/fitnessInfo/fitnessCollecting/text()" , "N/A" );
 		if (Arrays.asList("MEAN_ACROSS_STEPS", "MEDIAN_ACROSS_STEPS", "MIN_ACROSS_STEPS", "MAX_ACROSS_STEPS", 
 				"VARIANCE_ACROSS_STEPS","SUM_ACROSS_STEPS").contains(condenseCode)) {
-			condenseCode = condenseCode.replace("_ACROSS_STEPS","").toLowerCase() + " @{MEASURE1}"; 	
+			condenseCode = condenseCode.replace("_ACROSS_STEPS","").toLowerCase() + " @{RAW1}"; 	
 		} else if (condenseCode.equals("AT_FINAL_STEP")) {
-			condenseCode = "last @{MEASURE1}";
+			condenseCode = "last @{RAW1}";
 			measureIfReporter = ModelDataCollectionInfo.SPECIAL_MEASURE_IF_DONE_FLAG; 
 		}
 

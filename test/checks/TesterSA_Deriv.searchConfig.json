@@ -1,21 +1,22 @@
 {
-  "bsearchVersionNumber": 0.72,
+  "bsearchVersionNumber": 2.0,
   "infoTab": "Write notes here...",
   "modelDCInfo": {
     "modelFileName": "Tester.nlogo",
     "setupCommands": "setup",
     "stepCommands": "go",
-    "stopCondition": "count turtles \u003e 1000",
+    "stopCondition": "count turtles > 1000",
     "measureIfReporter": "@DONE",
     "maxModelSteps": 0,
     "measureReporters": {
-      "MEASURE1": "ellipsoid"
+      "RAW1": "ellipsoid"
     },
     "singleRunCondenserReporters": {
-      "CONDENSED1": "last @{MEASURE1}"
-    }
+      "CONDENSED1": "last @{RAW1}"
+    },
+    "fitnessSamplingReplications": 1,
+    "bestCheckingNumReplications": 1
   },
-  "fitnessSamplingReplications": 1,
   "paramSpecStrings": [
     "[\"a\" [-32 1 32]]",
     "[\"b\" [-32 1 32]]",
@@ -35,14 +36,13 @@
   "searchAlgorithmInfo": {
     "searchMethodType": "SimulatedAnnealing",
     "searchMethodParams": {
+      "initial-temperature": "1.0",
       "mutation-rate": "0.05",
       "temperature-change-factor": "0.99",
-      "initial-temperature": "1.0",
       "restart-after-stall-count": "0"
     },
     "chromosomeType": "MixedTypeChromosome",
     "caching": true,
-    "evaluationLimit": 400,
-    "bestCheckingNumReplications": 1
+    "evaluationLimit": 400
   }
 }

@@ -2,46 +2,58 @@ package bsearch.MOEAlink;
 
 import java.util.List;
 
-import org.moeaframework.core.PRNG;
 import org.moeaframework.core.Solution;
 import org.moeaframework.core.Variable;
 import org.moeaframework.problem.AbstractProblem;
+import org.moeaframework.util.distributed.FutureSolution;
 import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.app.BehaviorSearchException;
 import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.evaluation.SearchManager;
-import bsearch.representations.ChromosomeFactory;
-import bsearch.representations.ChromosomeTypeLoader;
 import bsearch.space.SearchSpace;
 
 public class BSProblem extends AbstractProblem {
 	private SearchProtocolInfo protocol;
 	private SearchSpace space;
 	private SearchManager searchManager; 
-	private ChromosomeFactory cFactory; // TODO: remove this later...
-	MersenneTwisterFast rng =new MersenneTwisterFast();
+	private long evaluationRequestCounter = 0; 
+	private int uncorrelatedSearchSeed;
 	
-	public BSProblem(SearchProtocolInfo protocol, SearchManager searchManager) {
+	public BSProblem(SearchProtocolInfo protocol, SearchManager searchManager, int searchSeed) {
 		super(protocol.paramSpecStrings.size(), protocol.objectives.size());
 		this.protocol = protocol;
 		this.searchManager = searchManager;
 		this.space = new SearchSpace(protocol.paramSpecStrings);
-		try {
-			cFactory = ChromosomeTypeLoader.createFromName(protocol.searchAlgorithmInfo.chromosomeType);
-		} catch (BehaviorSearchException e) {
-			e.printStackTrace();
-		}
+		// we choose a seed that is deterministically derived from the search seed,
+		// but is not correlated with it, so that we don't get the same NetLogo model
+		// runs for searches numbered N and N+1. 
+		this.uncorrelatedSearchSeed = new MersenneTwisterFast(searchSeed).nextInt();
 	}
 
 	@Override
 	public void evaluate(Solution solution) {
 		
-		MOEASolutionWrapper solWrapper = new MOEASolutionWrapper(solution, space, cFactory, protocol.objectives);
-		rng.setSeed(PRNG.nextInt());
+		MOEASolutionWrapper solWrapper = new MOEASolutionWrapper(solution, space, protocol.objectives);
+//		int rand; 
+//		synchronized (otherRng) {
+//			rand = otherRng.nextInt();
+//			GeneralUtils.debug(rand + solWrapper.getParameterSettings().toString());
+//		}
+		long evaluationCount;
+		if (solution instanceof FutureSolution) {
+			evaluationCount = ((FutureSolution) solution).getDistributedEvaluationID();
+		} else {
+			// we must be running single threaded, so no need to synchronize to avoid race condition
+			evaluationCount = evaluationRequestCounter++; 
+		}
+//		GeneralUtils.debug(evaluationCount + ": " + solWrapper.getParameterSettings().toString().hashCode());
+
+		MersenneTwisterFast rng = new MersenneTwisterFast(uncorrelatedSearchSeed + evaluationCount);
 		try {
+			//TODO: Pass evaluationCount into computeFitnessSingle, so we can use that for getting perfectly replicable output?
 			searchManager.computeFitnessSingle(solWrapper, protocol.modelDCInfo.fitnessSamplingReplications, rng);
-		} catch (BehaviorSearchException | InterruptedException e) {
+		} catch (BehaviorSearchException e) {
 			e.printStackTrace();
 		}
 	}

@@ -3,6 +3,7 @@ package bsearch.test;
 //TODO: Improve test coverage!  (It's pretty weak right now... :-/)
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -174,8 +175,10 @@ public strictfp class BehaviorSearchTest
 		// just make sure there are no errors...
     	for (String s: SearchMethodLoader.getAllSearchMethodNames())
     	{
-    		SearchMethod searcher = SearchMethodLoader.createFromName(s);
-    		searcher.getSearchParams().toString();
+    		if (!s.startsWith("--")) {
+	    		SearchMethod searcher = SearchMethodLoader.createFromName(s);
+	    		searcher.getSearchParams().toString();
+    		}
     	}
 	}
 
@@ -275,46 +278,97 @@ public strictfp class BehaviorSearchTest
 	    return buffer.toString();
 	}
 
-	@Test
-	public void testConsistentOutputResults() throws IOException , SAXException, SearchParameterException, BehaviorSearchException, InterruptedException, CmdLineException
+	@Ignore("version in searchConfig.json doesn't match...") @Test
+	public void testConsistentOutputResults_Legacy() throws IOException , SAXException, SearchParameterException, BehaviorSearchException, CmdLineException
 	{
-	    Path tmpDirectory = Paths.get("test/tmp");
-	    Files.createDirectories(tmpDirectory);
 		LinkedHashMap<String,String> scenarios = new LinkedHashMap<String,String>();
-		scenarios.put("TesterSuperRandom","-p test/TesterSuperRandom.bsearch -o test/tmp/TesterSuperRandom -t 7 -n 2 --randomseed 123 --quiet");
-		scenarios.put("Tester1","-p test/Tester.bsearch -o test/tmp/Tester1 -t 1 -n 2 -f 3 --randomseed 1234 --quiet");
+		scenarios.put("Tester1","-p test/Tester.bsearch -o test/tmp/Tester1 -t 1 -n 2 -f 3 --randomseed 1234 --quiet --suppress-netlogo-shortcut");
 		scenarios.put("Tester2","-p test/Tester.bsearch -o test/tmp/Tester2 -t 2 -n 3 -f 10 --randomseed 99 --quiet");
 		scenarios.put("TesterNoisy","-p test/TesterNoisy.bsearch -o test/tmp/TesterNoisy -t 2 -n 2 --randomseed 123 --quiet");
 		scenarios.put("TesterGANoCache","-p test/TesterGANoCache.bsearch -o test/tmp/TesterGANoCache -n 1 -t 2 --randomseed 99 --quiet");
 		scenarios.put("TesterSA_Deriv","-p test/TesterSA_Deriv.bsearch -o test/tmp/TesterSA_Deriv -n 2 -t 1 --randomseed 67 --quiet");
-//		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 1 -n 1 --randomseed 123 --quiet");
-		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 5 -n 1 --randomseed 123 --quiet");
+		scenarios.put("TesterNoisy_RS1","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS1 -t 1 -n 1 --randomseed 123 --quiet");
+		scenarios.put("TesterNoisy_RS5","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS5 -t 5 -n 1 --randomseed 123 --quiet");
+		scenarios.put("TesterSuperRandom","-p test/TesterSuperRandom.bsearch -o test/tmp/TesterSuperRandom -t 7 -n 2 --randomseed 123 --quiet");
 		scenarios.put("TesterCombineMin","-p test/TesterCombineMin.bsearch -o test/tmp/TesterCombineMin -t 2 -n 1 --randomseed 1234 --quiet");
 		scenarios.put("MiniFireVariance","-p test/MiniFireVariance.bsearch -o test/tmp/MiniFireVariance -t 1 -n 1 --randomseed 1 --quiet");
 		scenarios.put("MiniFireOverTime","-p test/MiniFireOverTime.bsearch -o test/tmp/MiniFireOverTime -t 1 -n 1 --randomseed 1 --quiet");
+		testConsistentOutputResults(scenarios);
+	}
+
+	@Test
+	public void testConsistentOutputResults_SO() throws IOException , SAXException, SearchParameterException, BehaviorSearchException, CmdLineException
+	{
+		LinkedHashMap<String,String> scenarios = new LinkedHashMap<String,String>();
+		scenarios.put("Tester1","-p test/Tester.bsearch2 -o test/tmp/Tester1 -t 1 -n 2 -f 3 --randomseed 1234 --quiet --suppress-netlogo-shortcut");
+		scenarios.put("Tester2","-p test/Tester.bsearch2 -o test/tmp/Tester2 -t 2 -n 3 -f 10 --randomseed 99 --quiet");
+		scenarios.put("TesterNoisy","-p test/TesterNoisy.bsearch2 -o test/tmp/TesterNoisy -t 2 -n 2 --randomseed 123 --quiet");
+		scenarios.put("TesterGANoCache","-p test/TesterGANoCache.bsearch2 -o test/tmp/TesterGANoCache -n 1 -t 2 --randomseed 99 --quiet");
+		scenarios.put("TesterSA_Deriv","-p test/TesterSA_Deriv.bsearch2 -o test/tmp/TesterSA_Deriv -n 2 -t 1 --randomseed 67 --quiet");
+		scenarios.put("TesterNoisy_RS1","-p test/TesterNoisy_RS.bsearch2 -o test/tmp/TesterNoisy_RS1 -t 1 -n 1 --randomseed 123 --quiet");
+		scenarios.put("TesterNoisy_RS5","-p test/TesterNoisy_RS.bsearch2 -o test/tmp/TesterNoisy_RS5 -t 5 -n 1 --randomseed 123 --quiet");
+		scenarios.put("TesterSuperRandom","-p test/TesterSuperRandom.bsearch2 -o test/tmp/TesterSuperRandom -t 7 -n 2 --randomseed 123 --quiet");
+		scenarios.put("TesterCombineMin","-p test/TesterCombineMin.bsearch2 -o test/tmp/TesterCombineMin -t 2 -n 1 --randomseed 1234 --quiet");
+		scenarios.put("MiniFireVariance","-p test/MiniFireVariance.bsearch2 -o test/tmp/MiniFireVariance -t 1 -n 1 --randomseed 1 --quiet");
+		scenarios.put("MiniFireOverTime","-p test/MiniFireOverTime.bsearch2 -o test/tmp/MiniFireOverTime -t 1 -n 1 --randomseed 1 --quiet");
+		scenarios.put("MiniFireOverTimeOverride","-p test/MiniFireOverTime.bsearch2 -o test/tmp/MiniFireOverTimeOverride -t 1 -n 1 --randomseed 1 --quiet --override-parameter-spec \"[\\\"density\\\" [1 0.1 90]]\"");
+		testConsistentOutputResults(scenarios);
+	}
+
+	@Test
+	public void testConsistentOutputResults_MO() throws IOException , SAXException, SearchParameterException, BehaviorSearchException, CmdLineException
+	{
+		LinkedHashMap<String,String> scenarios = new LinkedHashMap<String,String>();
+		scenarios.put("MO_Schaeffer_NSGA2","-p test/MO_Schaeffer_NSGA2.bsearch2 -o test/tmp/MO_Schaeffer_NSGA2 -t 1 -n 1 --randomseed 1 --quiet");
+		testConsistentOutputResults(scenarios);		
+	}
+	
+	private void testConsistentOutputResults(LinkedHashMap<String,String> scenarios) throws CmdLineException, IOException, SAXException, BehaviorSearchException, SearchParameterException { 
 		
-		List<String> outputExtensions = Arrays.asList(//".searchConfig.xml", //TODO: switch to check JSON?
-				".modelRunHistory.csv", 
-				".objectiveFunctionHistory.csv",  ".bestHistory.csv", 
-				".finalBests.csv", ".finalCheckedBests.csv"); 
+	    Path tmpDirectory = Paths.get("test/tmp");
+	    Files.createDirectories(tmpDirectory);
+		List<String> allOutputExtensions = Arrays.asList(".searchConfig.json",
+				".modelRuns.csv",".modelRunsChecking.csv",  
+				".objectiveHistory.csv",  ".bestHistory.csv", 
+				".searchBests.csv", ".searchCheckedBests.csv", 
+				".overallBests.csv", ".overallCheckedBests.csv"); 
+		List<String> reproducibleOutputExtensionsForMultithreaded = Arrays.asList(".searchConfig.json",
+				".modelRuns.csv",  
+				".objectiveHistory.csv", 
+				".searchBests.csv",    // though technically searchBests and overallBests COULD also differ  
+				".overallBests.csv");  // if there were two different points with *equal* fitness that were evaluated
+										// in a different order by the different threads
 		
 		List<String> failedList = new ArrayList<String>();
 		for (String key: scenarios.keySet())
 		{
         	RunOptions clOptions = new RunOptions();
         	CmdLineParser parser = new CmdLineParser(clOptions); 
-        	clOptions.suppressNetLogoCommandCenterColumn=true;
-        	parser.parseArgument(scenarios.get(key).split("\\s"));
+        	parser.parseArgument(splitCommandLineArgs(scenarios.get(key)));  // scenarios.get(key).split("\\s")
 			BehaviorSearch.runWithOptions(clOptions);
-
-			for (String extension: outputExtensions)
+			
+			List<String> outputExtensionsToCheck = allOutputExtensions;
+			if (clOptions.numThreads > 1) {
+				outputExtensionsToCheck = reproducibleOutputExtensionsForMultithreaded;
+			}
+	
+			for (String extension: outputExtensionsToCheck)
 			{
 				String checkFileName = GeneralUtils.attemptResolvePathFromBSearchRoot("test/checks/" + key + extension);
 				String testFileName = GeneralUtils.attemptResolvePathFromBSearchRoot("test/tmp/" + key + extension);
 				File checkFile = new File(checkFileName);
 				File testFile = new File(testFileName);
-				String expected = checkFile.exists()?GeneralUtils.stringContentsOfFile(checkFile):"*no_file*";
-				String result = testFile.exists()?GeneralUtils.stringContentsOfFile(testFile):"*no_file*";
+   
+				String expected; 
+				String result;
+				if (clOptions.numThreads > 1) {
+					expected = checkFile.exists()?contentsOfFileSortedByLineWithoutRunNumberColumn(checkFile):"*no_file*";
+					result = testFile.exists()?contentsOfFileSortedByLineWithoutRunNumberColumn(testFile):"*no_file*";
+				} else {
+					expected = checkFile.exists()?GeneralUtils.stringContentsOfFile(checkFile):"*no_file*";
+					result = testFile.exists()?GeneralUtils.stringContentsOfFile(testFile):"*no_file*";					
+				}
+				
 				if (!result.equals(expected))
 				{
 					failedList.add(key + extension);
@@ -325,6 +379,46 @@ public strictfp class BehaviorSearchTest
 		{
 			Assert.fail("Output files that differ: " + join(failedList, ", "));
 		}
+	}
+	
+	// Hackish parsing of command line strings into array, as would be passed to main(...)
+	private String[] splitCommandLineArgs(String cmdLineString) {
+		cmdLineString = cmdLineString.trim() + " ";
+		
+		List<String> args = new ArrayList<>();
+		StringBuilder curWord = new StringBuilder();
+		boolean inQuotes = false;
+		boolean lastCharWasBackslash = false;
+		for (int i = 0; i < cmdLineString.length(); i++) {
+			char ch = cmdLineString.charAt(i); 
+			if (lastCharWasBackslash) {
+				curWord.append(ch);
+				lastCharWasBackslash = false;
+			} else if (ch == '\\') {
+				lastCharWasBackslash = true;
+			} else if (ch == '"') {
+				inQuotes = !inQuotes;
+			} else if (ch == ' ' && !inQuotes) {
+				if (curWord.length() > 0) {
+					args.add(curWord.toString()); 
+				}
+				curWord.setLength(0);
+			} else {
+				curWord.append(ch);
+			}
+		}
+		return args.toArray(new String[0]);		
+	}
+	
+	// The run number column and the order of rows in a CSV file can vary based on thread execution order
+	// so we want to compare the sorted rows *without* that run number.
+	private String contentsOfFileSortedByLineWithoutRunNumberColumn(File f) throws FileNotFoundException{
+		String[] lines = GeneralUtils.stringContentsOfFile(f).split("\n");
+		for (int i = 0; i < lines.length; i++) {
+			lines[i] = lines[i].replaceFirst(",.*?,", ",");
+		}
+		Arrays.sort(lines);
+		return GeneralUtils.stringJoin(Arrays.asList(lines), "\n");
 	}
 
 }

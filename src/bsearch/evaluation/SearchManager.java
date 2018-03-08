@@ -1,11 +1,16 @@
 package bsearch.evaluation;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.nlogo.api.MersenneTwisterFast;
 
 import bsearch.MOEAlink.MOEASolutionWrapper;
@@ -22,6 +27,8 @@ import bsearch.representations.Chromosome;
 public class SearchManager 
 {
 	private final ModelRunningService modelRunningService;
+	private final int numEvaluationThreads;
+	private final int uncorrelatedSearchSeed;
 	private final SearchProtocolInfo protocol;  
 	private final ObjectiveEvaluator objectiveEvaluator;
 	
@@ -29,33 +36,67 @@ public class SearchManager
 	
 	private Map<Chromosome, List<Object>> objectivesCache;
 	
-	public SearchManager(int searchIDNumber, ModelRunningService runner, SearchProtocolInfo protocol, 
-			ObjectiveEvaluator fitnessFunction,  SearchProgressStatsKeeper statsKeeper)
+	public SearchManager(int searchIDNumber, ModelRunningService runningService, SearchProtocolInfo protocol, 
+			ObjectiveEvaluator objectiveEvaluator,  SearchProgressStatsKeeper statsKeeper, int numEvaluationThreads,
+			int randomSeedForSearch)
 	{
-		this.modelRunningService = runner;
+		this.modelRunningService = runningService;
 		this.protocol = protocol;
-		this.objectiveEvaluator = fitnessFunction;
+		this.objectiveEvaluator = objectiveEvaluator;
 		this.statsKeeper = statsKeeper;
+		this.numEvaluationThreads = numEvaluationThreads;
+		this.uncorrelatedSearchSeed = new MersenneTwisterFast(randomSeedForSearch).nextInt();
 
 		//TODO: If cache size is limited, use LRUCache in place of LinkedHashMap there...
 		this.objectivesCache = Collections.synchronizedMap(new LinkedHashMap<Chromosome,List<Object>>());
 	}
 
 	@Deprecated
-	public double computeFitnessSingleLegacy(Chromosome point, int numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, BehaviorSearchException, InterruptedException
+	public double computeFitnessSingleLegacy(Chromosome point, int numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, BehaviorSearchException
 	{
 		MOEASolutionWrapper dummyWrapper = MOEASolutionWrapper.getDummySolutionWrapper(point, protocol.objectives);
 		computeFitnessSingle(dummyWrapper, numReplicationsDesired, rng);
-		return dummyWrapper.getSolution().getObjective(0);
+		double objectiveSum = 0.0;
+		for (int i = 0; i < dummyWrapper.getSolution().getNumberOfObjectives(); i++) {
+			objectiveSum += dummyWrapper.getSolution().getObjective(i); 
+		}
+		return objectiveSum / dummyWrapper.getSolution().getNumberOfObjectives();
 	}
 
 	@Deprecated
 	public double[] computeFitnessBatchLegacy(Chromosome[] points, int numReplicationsDesired, MersenneTwisterFast rng)
-			throws ModelRunnerException, NetLogoLinkException, InterruptedException, BehaviorSearchException {
+			throws ModelRunnerException, NetLogoLinkException, BehaviorSearchException {
 		double[] firstObjectiveVals = new double[points.length];
+
+		ExecutorService executor = Executors.newFixedThreadPool(numEvaluationThreads);
+		
+
+		List<Future<Double>> batchResults = new ArrayList<>(); 
+		long startSeed = uncorrelatedSearchSeed + statsKeeper.getModelRunCounter();
 		for (int i = 0; i < points.length; i++) {
-			firstObjectiveVals[i] = computeFitnessSingleLegacy(points[i], numReplicationsDesired, rng);
+			final Chromosome point = points[i];
+			final MersenneTwisterFast rng2 = new MersenneTwisterFast(startSeed + i);
+			Future<Double> singleFutureResult = executor.submit(new Callable<Double>() {
+				@Override
+				public Double call() throws Exception {
+					return computeFitnessSingleLegacy(point, numReplicationsDesired, rng2);
+				}
+			});
+			batchResults.add(singleFutureResult);
 		}
+		for (int i = 0; i < points.length; i++) {
+			try {
+				firstObjectiveVals[i] = batchResults.get(i).get();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				throw new BehaviorSearchException("Thread interupted while executing batch evaluation.", e );
+				
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+				throw new BehaviorSearchException("Execution problem during batch evaluation.", e );
+			} 			
+		}
+		
 		return firstObjectiveVals;
 	}
 
@@ -63,8 +104,8 @@ public class SearchManager
 	 * In addition to computing the fitness for this point, this method also checks if it's the best so far,
 	 * in which case it's stored as the current best.
 	 */
-	public void computeFitnessSingle(MOEASolutionWrapper solutionWrapper, int numReplicationsDesired, MersenneTwisterFast rng) throws ModelRunnerException, BehaviorSearchException, InterruptedException
-	{
+	public void computeFitnessSingle(MOEASolutionWrapper solutionWrapper, int numReplicationsDesired, MersenneTwisterFast rng)
+			throws ModelRunnerException, BehaviorSearchException {
 		Chromosome point = solutionWrapper.getPoint();
 		List<Object> cachedResult = this.objectivesCache.get(point);
 		if (cachedResult != null) {
@@ -127,7 +168,7 @@ public class SearchManager
 	}
 	
 	private void computeFitnessForRechecking(MOEASolutionWrapper solutionWrapper, int numReplicationsDesired, MersenneTwisterFast rng) 
-		throws ModelRunnerException, NetLogoLinkException, InterruptedException, BehaviorSearchException
+		throws ModelRunnerException, NetLogoLinkException, BehaviorSearchException
 	{
 		// We create an auxilliaryRNG to use for "best-checking", so that the number of best-checking
 		// replicates doesn't affect the search process at all. 

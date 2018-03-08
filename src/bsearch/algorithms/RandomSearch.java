@@ -1,6 +1,7 @@
 package bsearch.algorithms;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.nlogo.api.MersenneTwisterFast;
 
@@ -18,30 +19,37 @@ public strictfp class RandomSearch extends AbstractSearchMethod {
 	{
 	}
 
+	@Override
 	public String getName() {
 		return "RandomSearch";
 	}
+	@Override
 	public String getDescription() {
 		return "A baseline search algorithm that repeatedly tries random locations in the search space, and returns the best found.";
 	}
 
-	public void setSearchParams( HashMap<String , String> searchMethodParams ) throws SearchParameterException
+	@Override
+	public void updateSearchParams( Map<String , String> searchMethodParams ) throws SearchParameterException
 	{
 	}
-	public HashMap<String , String> getSearchParams()
+	@Override
+	public Map<String , String> getSearchParams()
 	{
-		HashMap<String,String> params = new HashMap<String,String>();
-		return params;
+		return new HashMap<String,String>();
 	}
-	public HashMap<String , String> getSearchParamsHelp()
+	@Override
+	public Map<String , String> getSearchParamsHelp()
 	{
-		HashMap<String,String> params = new HashMap<String,String>();
+		Map<String,String> params = new HashMap<String,String>();
 		return params;
 	}
 
+	@Override
 	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocolInfo protocol,
-			SearchManager manager, MersenneTwisterFast rng ) throws BehaviorSearchException, NetLogoLinkException, InterruptedException
+			SearchManager manager, int randomSeed, int numEvaluationThreads) throws BehaviorSearchException, NetLogoLinkException
 	{
+		MersenneTwisterFast rng = new MersenneTwisterFast(randomSeed);
+
 		final int BATCH_SIZE = 16;  // processing model runs in batches allows us to take advantage of multi-threading/multi-processors 
 		int maxRunsForBatch = BATCH_SIZE * manager.getObjectiveEvaluator().getMaximumRunsThatCouldBeNeeded(protocol.modelDCInfo.fitnessSamplingReplications);
 		if (maxRunsForBatch == 0)  // assume some sort of adaptive sampling, so we don't really know

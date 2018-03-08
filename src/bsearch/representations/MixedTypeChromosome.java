@@ -50,7 +50,7 @@ public strictfp class MixedTypeChromosome implements Chromosome
 			//  Or is it better not to?
 			paramVals[i++] = paramSettings.get(p.getParameterName());
 		}
-	}	
+	}
 
 	private MixedTypeChromosome( Object[] paramVals, SearchSpace searchSpace )
 	{

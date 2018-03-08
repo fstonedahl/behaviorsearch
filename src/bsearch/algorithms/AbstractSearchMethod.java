@@ -1,7 +1,7 @@
 package bsearch.algorithms;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import bsearch.util.GeneralUtils;
 
@@ -12,12 +12,7 @@ import bsearch.util.GeneralUtils;
  */
 public abstract class AbstractSearchMethod implements SearchMethod {
 
-	public boolean supportsAdaptiveSampling()
-	{
-		return false;
-	}
-
-	Double validDoubleParam( HashMap<String , String> searchMethodParams, String pName, double min, double max) throws SearchParameterException
+	Double validDoubleParam( Map<String , String> searchMethodParams, String pName, double min, double max) throws SearchParameterException
 	{
 		try {
 			double d = Double.valueOf(searchMethodParams.get( pName ));
@@ -32,7 +27,7 @@ public abstract class AbstractSearchMethod implements SearchMethod {
 		}		
 	}
 	
-	Integer validIntParam( HashMap<String , String> searchMethodParams, String pName, int min, int max) throws SearchParameterException
+	Integer validIntParam( Map<String , String> searchMethodParams, String pName, int min, int max) throws SearchParameterException
 	{
 		try {
 			int n = Integer.valueOf(searchMethodParams.get( pName ));
@@ -47,7 +42,7 @@ public abstract class AbstractSearchMethod implements SearchMethod {
 		}		
 	}
 
-	String validChoiceParam( HashMap<String , String> searchMethodParams, String pName, List<String> choices) throws SearchParameterException
+	String validChoiceParam( Map<String , String> searchMethodParams, String pName, List<String> choices) throws SearchParameterException
 	{
 		String s = searchMethodParams.get( pName );
 		if (!choices.contains(s))
@@ -59,6 +54,7 @@ public abstract class AbstractSearchMethod implements SearchMethod {
 		return s;	
 	}
 
+	@Override
 	public String getHTMLHelpText()
 	{
 		StringBuilder sb = new StringBuilder();

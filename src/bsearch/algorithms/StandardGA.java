@@ -2,6 +2,8 @@ package bsearch.algorithms;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.nlogo.api.MersenneTwisterFast;
 
@@ -25,50 +27,59 @@ public strictfp class StandardGA extends AbstractSearchMethod{
 	{
 	}
 	
+	@Override
 	public String getName()
 	{
 		return "StandardGA";
 	}
+	@Override
 	public String getDescription()
 	{
 		return "A standard Genetic Algorithm.";
 	}	
 
-	public void setSearchParams( HashMap<String , String> searchMethodParams ) throws SearchParameterException
+	@Override
+	public void updateSearchParams( Map<String , String> newSearchMethodParams ) throws SearchParameterException
 	{
+		Map<String,String> searchMethodParams = getSearchParams();
+		searchMethodParams.putAll(newSearchMethodParams);		
 		mutationRate = validDoubleParam(searchMethodParams, "mutation-rate", 0.0, 1.0);
 		crossoverRate = validDoubleParam(searchMethodParams, "crossover-rate", 0.0, 1.0);
 		populationSize = validIntParam(searchMethodParams, "population-size", 2, 1000);
 		tournamentSize = validIntParam(searchMethodParams, "tournament-size", 2, 10);
 		populationModel = validChoiceParam(searchMethodParams, "population-model", Arrays.asList("generational","steady-state-replace-random","steady-state-replace-worst"));		
 	}
-	public HashMap<String , String> getSearchParams()
+	@Override
+	public Map<String , String> getSearchParams()
 	{
-		HashMap<String,String> params = new HashMap<String,String>();
+		HashMap<String,String> params = new LinkedHashMap<String,String>();
+		params.put("population-model", populationModel);
+		params.put("population-size", Integer.toString( populationSize ));		
 		params.put("mutation-rate", Double.toString( mutationRate ));
 		params.put("crossover-rate", Double.toString( crossoverRate ));
-		params.put("population-size", Integer.toString( populationSize ));		
 		params.put("tournament-size", Integer.toString( tournamentSize ));
-		params.put("population-model", populationModel);
 		
 		return params;
 	}
+	@Override
 	public HashMap<String , String> getSearchParamsHelp()
 	{
-		HashMap<String,String> params = new HashMap<String,String>();
+		HashMap<String,String> params = new LinkedHashMap<String,String>();
+		params.put("population-model", "'generational', 'steady-state-replace-random', or 'steady-state-replace-worst' -- generational means the whole population is replaced at once, whereas steady-state means that just a single individual is replaced by reproduction each iteration - either a randomly-chosen individual, or the current worst."  );		
+		params.put("population-size", "the number of individuals in each generation");
 		params.put("mutation-rate", "likelihood of mutation occurring in each child");
 		params.put("crossover-rate", "probability of using two parents to create a child (otherwise child is created asexually)");
-		params.put("population-size", "the number of individuals in each generation");
 		params.put("tournament-size", "for tournament selection, this is the number of individuals that compete to choose an individual that gets to reproduce."  );		
-		params.put("population-model", "'generational', 'steady-state-replace-random', or 'steady-state-replace-worst' -- generational means the whole population is replaced at once, whereas steady-state means that just a single individual is replaced by reproduction each iteration - either a randomly-chosen individual, or the current worst."  );		
 		return params;
 	}
 
 
+	@Override
 	public void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocolInfo protocol ,
-			 SearchManager manager, MersenneTwisterFast rng ) 
-		throws BehaviorSearchException, NetLogoLinkException, InterruptedException
+			 SearchManager manager, int randomSeed, int numEvaluationThreads ) 
+		throws BehaviorSearchException, NetLogoLinkException
 	{
+		MersenneTwisterFast rng = new MersenneTwisterFast(randomSeed);
 		Chromosome[] population = new Chromosome[populationSize];
 		
 		for (int i = 0; i < populationSize; i++)

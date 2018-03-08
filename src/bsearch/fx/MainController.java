@@ -9,7 +9,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
@@ -22,6 +24,7 @@ import org.xml.sax.SAXException;
 import bsearch.algorithms.SearchMethod;
 import bsearch.algorithms.SearchMethodLoader;
 import bsearch.app.BehaviorSearch.RunOptions;
+import bsearch.datamodel.ObjectiveFunctionInfo;
 import bsearch.datamodel.ObjectiveFunctionInfo.OBJECTIVE_TYPE;
 import bsearch.datamodel.SearchProtocolInfo;
 import bsearch.app.BehaviorSearch;
@@ -45,6 +48,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellEditEvent;
 import javafx.scene.control.TableView;
@@ -62,6 +66,8 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -72,83 +78,94 @@ public class MainController implements Initializable {
 	// component outside of tab will have normal name
 
 	@FXML
-	public AnchorPane anchorPane;
+	private AnchorPane anchorPane;
 	@FXML
-	public TextField browseField;
+	private TextField browseModelField;
 	@FXML
-	public Button runButton;
+	private Button runButton;
+	@FXML
+	private Button browseModelButton;
+	
+	// components in Model tab will start with m_
+	@FXML
+	private TextArea m_paramSpecsArea;
+	@FXML
+	private Button m_helpSearchSpaceButton;
+	@FXML
+	private Button m_suggestParamButton;
+	@FXML
+	private TextField m_modelStepField;
+	@FXML
+	private TextField m_modelSetupField;
+	@FXML
+	private TextField m_modelStopConditionField;
+	@FXML
+	private TextField m_modelStepLimitField;
+	@FXML
+	private TextField m_measureIfField;
 
+	// components in Data Collection tab will start with dc_
 	@FXML
-	public Button browseButton;
-	// component in Model tab will start with M
+	private TextArea dc_rawMeasuresArea;
 	@FXML
-	public TextArea MParamSpecsArea;
+	private TextArea dc_condensingMeasuresArea;
 	@FXML
-	public Button MHelpSearchSpaceButton;
+	private TextField dc_fitnessSamplingRepetitionsField;
 	@FXML
-	public Button MSuggestParamButton;
-	@FXML
-	public TextField MModelStepField;
-	@FXML
-	public TextField MModelSetupField;
-	@FXML
-	public TextField MModelStopConditionField;
-	@FXML
-	public TextField MModelStepLimitField;
-	@FXML
-	public TextField MMeasureField;
-	@FXML
-	public TextField MMeasureIfField;
+	private TextField dc_bestCheckingField;
 
-	// component in Search Objective tab will start with SO
+	
+	// components in Search Objective tab will start with so_
 	@FXML
-	public ChoiceBox<String> SOGoalBox;
+	private Button so_addObjectiveButton;
 	@FXML
-	public ChoiceBox<String> SOFitnessCollectingBox;
+	private Button so_removeObjectiveButton;
 	@FXML
-	public TextField SOFitnessSamplingRepetitionsField;
+	private ListView<ObjectiveFunctionInfo> so_objectiveChoiceList;
+	
 	@FXML
-	public ChoiceBox<String> SOFixedSamplingBox;
+	private TextField so_objectiveNameField;
 	@FXML
-	public ChoiceBox<String> SOCombineReplicatesBox;
+	private ChoiceBox<String> so_objectiveTypeBox;
 	@FXML
-	public ChoiceBox<String> SOWrtBox;
+	private TextField so_combineReplicatesField;
 	@FXML
-	public CheckBox SOTakeDerivativeCheckBox;
+	private ChoiceBox<String> so_wrtBox;
 	@FXML
-	public TextField SODeltaField;
+	private CheckBox so_takeDerivativeCheckBox;
 	@FXML
-	public Label SOWrtLabel;
+	private TextField so_deltaField;
 	@FXML
-	public Label SODeltaLabel;
+	private Label so_wrtLabel;
 	@FXML
-	public CheckBox SOFitnessDerivativeUseAbsCheckBox;
+	private Label so_deltaLabel;
 	@FXML
-	public Button SOHelpEvaluationButton;
+	private CheckBox so_fitnessDerivativeUseAbsCheckBox;
+	@FXML
+	private Button so_helpEvaluationButton;
 
-	// component in Search Algorithm tab will start with SA
+	// component in Search Algorithm tab will start with sa_
 	@FXML
-	public ChoiceBox<String> SASearchMethodBox;
+	private ChoiceBox<String> sa_searchMethodBox;
 	@FXML
-	public ChoiceBox<String> SAChromosomeTypeBox;
+	private ChoiceBox<String> sa_chromosomeTypeBox;
 	@FXML
-	public CheckBox SACachingCheckBox;
+	private CheckBox sa_cachingCheckBox;
 	@FXML
-	public TextField SABestCheckingField;
+	private TextField sa_evaluationLimitField;
 	@FXML
-	public TextField SAEvaluationLimitField;
+	private TableView<SearchMethodParamTableRow> sa_searchMethodTable;
 	@FXML
-	public TableView<SearchMethodParamTableRow> SASearchMethodTable;
+	private TableColumn<SearchMethodParamTableRow, String> sa_paramCol;
 	@FXML
-	public TableColumn<SearchMethodParamTableRow, String> SAParamCol;
+	private TableColumn<SearchMethodParamTableRow, String> sa_valCol;
 	@FXML
-	public TableColumn<SearchMethodParamTableRow, String> SAValCol;
+	private Button sa_helpSearchSpaceRepresentationButton;
 	@FXML
-	public Button SAHelpSearchSpaceRepresentationButton;
-	@FXML
-	public Button SAHelpSearchMethodButton;
+	private Button sa_helpSearchMethodButton;
 
-	// other component that not in GUI
+
+	// other components that not in GUI
 	private File defaultUserDocumentsFolder = new FileChooser().getInitialDirectory();
 	private String defaultProtocolXMLForNewSearch;
 	private HashMap<String, SearchMethod> searchMethodChoices = new HashMap<String, SearchMethod>();
@@ -160,46 +177,74 @@ public class MainController implements Initializable {
 			new ExtensionFilter("BSsearch v2.x File (*.bsearch2,*.json)", "*.bsearch2", "*.json"),
 			new ExtensionFilter("BSsearch v1.x File (*.bsearch,*.xml)", "*.bsearch", "*.xml")
 	};
-	
+
 	@Override
 	public void initialize(URL arg0, ResourceBundle arg1) {
 		
 		// set up ChoiceBox in SO tab
 		List<String> goalChoices = Arrays.stream(OBJECTIVE_TYPE.values()).map(obj->obj.toString()).collect(Collectors.toList());
-		SOGoalBox.setItems(FXCollections.observableArrayList(goalChoices));
-		List<String> fitnessCollecting = new ArrayList<String>();
-		fitnessCollecting.add("last @{MEASURE1}");
-		SOFitnessCollectingBox.setItems(FXCollections.observableArrayList(fitnessCollecting));
-		SOFixedSamplingBox.setItems(FXCollections.observableArrayList("Fixed Sampling"));
-		List<String> combineReplication = new ArrayList<String>();
-		combineReplication.add("mean @{CONDENSED1}");
-		SOCombineReplicatesBox.setItems(FXCollections.observableArrayList(combineReplication));
+		so_objectiveTypeBox.setItems(FXCollections.observableArrayList(goalChoices));
+		dc_condensingMeasuresArea.setText("CONDENSED1: last @{RAW1}");
 
-		SOWrtBox.setItems(FXCollections.observableArrayList("---"));
+		so_combineReplicatesField.setText("mean @{CONDENSED1}");
+
+		so_wrtBox.setItems(FXCollections.observableArrayList("---"));
+
+		so_takeDerivativeCheckBox.selectedProperty().addListener((obs,oldV,newV) -> updateDerivativeFieldsEnabled());
+		// need update the ObjectiveInfo object whenever any of these UI components change...
+		enableObjectiveUIFieldListening();		
+		
+//		so_objectiveChoiceList.getSelectionModel().selectedItemProperty().addListener(
+//				new ChangeListener<ObjectiveFunctionInfo>() {
+//
+//			@Override
+//			public void changed(ObservableValue<? extends ObjectiveFunctionInfo> observable, ObjectiveFunctionInfo oldValue,
+//					ObjectiveFunctionInfo newValue) {
+//				System.out.println("event: " + oldValue + " -> " + newValue);
+//			}
+//		});
+
+		so_objectiveChoiceList.getSelectionModel().selectedIndexProperty().addListener(
+				new ChangeListener<Number>() {
+
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldIndex, Number newIndex) {
+				if (((int) newIndex) != -1 && ((int) oldIndex != -1)) {
+//					GeneralUtils.debug("update UI fields: " + so_objectiveChoiceList.getItems().get(0));
+					updateUIFieldsForCurrentlySelectedObjective();
+				}
+			}
+		});
 
 		// set up ChoiceBox in SA tab
 		try {
-			SASearchMethodBox.setItems(FXCollections.observableArrayList(SearchMethodLoader.getAllSearchMethodNames()));
+			sa_searchMethodBox.setItems(FXCollections.observableArrayList(SearchMethodLoader.getAllSearchMethodNames()));
 		
 			for (String name : SearchMethodLoader.getAllSearchMethodNames()) {
-				searchMethodChoices.put(name, SearchMethodLoader.createFromName(name));
+				if (!name.startsWith("--")) {
+					searchMethodChoices.put(name, SearchMethodLoader.createFromName(name));
+				}
 			}
 		} catch (BehaviorSearchException e) {
 			handleError("Error loading Search Methods", e.getMessage(), e);
 		}
-		SASearchMethodBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+		sa_searchMethodBox.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
 
 			@Override
 			public void changed(ObservableValue<? extends String> obsValue, String oldSelectedStage,
 					String newSelectedStage) {
 				SearchMethod searchMethod = searchMethodChoices.get(newSelectedStage);
-				updateSearchMethodParamTable(searchMethod, searchMethod.getSearchParams());
+				if (searchMethod != null) {
+					updateSearchMethodParamTable(searchMethod, searchMethod.getSearchParams());
+				} else {
+					sa_searchMethodTable.getItems().clear();
+				}
 			}
 
 		});
 
 		try {
-			SAChromosomeTypeBox
+			sa_chromosomeTypeBox
 					.setItems(FXCollections.observableArrayList(ChromosomeTypeLoader.getAllChromosomeTypes()));
 		} catch (BehaviorSearchException e) {
 			handleError("Error loading chromosome types", e.getMessage(), e);
@@ -215,11 +260,8 @@ public class MainController implements Initializable {
 		}
 		actionNew();
 
-		Platform.runLater( () -> openFile(new File("test/MiniFireVariance.bsearch")));
-
-	}
-
-	
+		//Platform.runLater( () -> openFile(new File("test/MiniFireVariance.bsearch")));
+	}	
 	
 	public void helpDialog(String title, String content){
 		Alert alert = new Alert(AlertType.INFORMATION);
@@ -245,7 +287,7 @@ public class MainController implements Initializable {
 	
 	public void helpSearchSpaceRepresentationAction(ActionEvent event) {
 		
-		String chromosomeType = SAChromosomeTypeBox.getValue();
+		String chromosomeType = sa_chromosomeTypeBox.getValue();
 		
 		try {
 			ChromosomeFactory factory = ChromosomeTypeLoader.createFromName(chromosomeType);
@@ -264,18 +306,13 @@ public class MainController implements Initializable {
 	}
 	
 	public void helpSearchMethodAction(ActionEvent event) {
-		SearchMethod sm = searchMethodChoices.get(SASearchMethodBox.getValue());
-		helpDialog("Help about " + sm.getName(), sm.getHTMLHelpText());
-	}
-
-	private Window getMainWindow() {
-		if (anchorPane != null && anchorPane.getScene() != null) {
-			return anchorPane.getScene().getWindow();
+		SearchMethod sm = searchMethodChoices.get(sa_searchMethodBox.getValue());
+		if (sm != null) {
+			helpDialog("Help about " + sm.getName(), sm.getHTMLHelpText());
 		} else {
-			return null;
+			new Alert(AlertType.INFORMATION, "Please choose an actual search method from the list.", ButtonType.OK).showAndWait();
 		}
 	}
-	
 	public void showTutorialAction(ActionEvent event) {
 		SwingUtilities.invokeLater(new Runnable() {
 		    @Override
@@ -324,25 +361,31 @@ public class MainController implements Initializable {
 			});
 		} 
 		// ...otherwise user chose CANCEL or closed the dialog
-
-		
 	}
 
-	
-	public void browseFile(ActionEvent event) {
+	public void browseModelFileAction(ActionEvent event) {
 		FileChooser fileChooser = new FileChooser();
-		File parentFolder = new File(browseField.getText()).getParentFile();
+		File parentFolder = new File(browseModelField.getText()).getParentFile();
 		if (parentFolder != null && parentFolder.exists()) {
 			fileChooser.setInitialDirectory(parentFolder);
 		}
 
 		File selectedFile = fileChooser.showOpenDialog(getMainWindow());
 		if (selectedFile != null) {
-			browseField.setText(selectedFile.getPath());
+			browseModelField.setText(selectedFile.getPath());
 		}
 
 	}
 
+
+	private Window getMainWindow() {
+		if (anchorPane != null && anchorPane.getScene() != null) {
+			return anchorPane.getScene().getWindow();
+		} else {
+			return null;
+		}
+	}
+	
 	private void updateWindowTitle(String fileName) {
 		Window mainWindow = getMainWindow();
 		if (mainWindow != null) {
@@ -355,7 +398,7 @@ public class MainController implements Initializable {
 				
 		if (!checkDiscardOkay()) { return; } 
 		currentFile = null;
-		MParamSpecsArea.setText("[\"integerParameter\" [0 1 10]] \n" +
+		m_paramSpecsArea.setText("[\"integerParameter\" [0 1 10]] \n" +
 		"[\"continuousParameter\" [0.0 \"C\" 1.0]] \n " +
 		"[\"choiceParameter\" \"near\" \"far\"] \n");
 		 
@@ -415,7 +458,8 @@ public class MainController implements Initializable {
 		}
 	}
 	
-	private void actionOpenTest() {
+	// TOOD: Remove this method, used for debugging only...
+	private void debugActionOpenTest() {
 		File selectedFile = new File("C:/Users/AnNguyen/Google Drive/behaviorsearch/behaviorsearch/examples/TestForFX.bsearch");
 		openFile(selectedFile);
 	}
@@ -442,56 +486,44 @@ public class MainController implements Initializable {
 	}
 
 	public void loadProtocol(SearchProtocolInfo protocol) {
-		browseField.setText(protocol.modelDCInfo.modelFileName);
+		browseModelField.setText(protocol.modelDCInfo.modelFileName);
 		StringBuilder sb = new StringBuilder();
 		for (String s : protocol.paramSpecStrings) {
 			sb.append(s);
 			sb.append("\n");
 		}
-		this.MParamSpecsArea.setText(sb.toString());
-		MModelStepField.setText(protocol.modelDCInfo.stepCommands);
-		MModelSetupField.setText(protocol.modelDCInfo.setupCommands);
-		MModelStopConditionField.setText(protocol.modelDCInfo.stopCondition);
-		MModelStepLimitField.setText(Integer.toString(protocol.modelDCInfo.maxModelSteps));
-		MMeasureField.setText(protocol.modelDCInfo.measureReporters.values().toArray()[0].toString());
-		MMeasureIfField.setText(protocol.modelDCInfo.measureIfReporter);
-		SOGoalBox.setValue(protocol.objectives.get(0).objectiveType.toString());
-		String collectorFromProtocol = protocol.modelDCInfo.singleRunCondenserReporters.values().toArray()[0].toString();
-		SOFitnessCollectingBox.getItems().add(collectorFromProtocol);
-		SOFitnessCollectingBox.setValue(collectorFromProtocol);
-		SOFitnessSamplingRepetitionsField.setText(Integer.toString(protocol.modelDCInfo.fitnessSamplingReplications));
-		SOFixedSamplingBox
-				.setValue((protocol.modelDCInfo.fitnessSamplingReplications != 0) ? "Fixed Sampling" : "Adaptive Sampling");
-		String combinerFromProtocol = protocol.objectives.get(0).fitnessCombineReplications.toString();
-		SOCombineReplicatesBox.getItems().add(combinerFromProtocol);
-		SOCombineReplicatesBox.setValue(combinerFromProtocol);
-		SOTakeDerivativeCheckBox.setSelected(protocol.objectives.get(0).fitnessDerivativeParameter.length() > 0);
-		SOFitnessDerivativeUseAbsCheckBox.setSelected(protocol.objectives.get(0).fitnessDerivativeUseAbs);
-		takeDerivativeAction(new ActionEvent());
-		SOWrtBox.setValue(protocol.objectives.get(0).fitnessDerivativeParameter);
-		SODeltaField.setText(Double.toString(protocol.objectives.get(0).fitnessDerivativeDelta));
-		SASearchMethodBox.setValue(protocol.searchAlgorithmInfo.searchMethodType);
-		SAChromosomeTypeBox.setValue(protocol.searchAlgorithmInfo.chromosomeType);
+		this.m_paramSpecsArea.setText(sb.toString());
+		m_modelStepField.setText(protocol.modelDCInfo.stepCommands);
+		m_modelSetupField.setText(protocol.modelDCInfo.setupCommands);
+		m_modelStopConditionField.setText(protocol.modelDCInfo.stopCondition);
+		m_modelStepLimitField.setText(Integer.toString(protocol.modelDCInfo.maxModelSteps));
+		m_measureIfField.setText(protocol.modelDCInfo.measureIfReporter);
+		
+		dc_rawMeasuresArea.setText(GeneralUtils.convertVariableMapToText(protocol.modelDCInfo.rawMeasureReporters));
+		dc_condensingMeasuresArea.setText(GeneralUtils.convertVariableMapToText(protocol.modelDCInfo.singleRunCondenserReporters));
+		dc_fitnessSamplingRepetitionsField.setText(Integer.toString(protocol.modelDCInfo.fitnessSamplingReplications));
+		dc_bestCheckingField.setText(Integer.toString(protocol.modelDCInfo.bestCheckingNumReplications));
+		
+		so_objectiveChoiceList.setItems(FXCollections.observableArrayList(protocol.objectives));
+		so_objectiveChoiceList.getSelectionModel().select(0);
+		updateUIFieldsForCurrentlySelectedObjective();
+		
+		sa_searchMethodBox.setValue(protocol.searchAlgorithmInfo.searchMethodType);
+		sa_chromosomeTypeBox.setValue(protocol.searchAlgorithmInfo.chromosomeType);
 		updateSearchMethodParamTable(searchMethodChoices.get(protocol.searchAlgorithmInfo.searchMethodType), protocol.searchAlgorithmInfo.searchMethodParams);
-		SACachingCheckBox.setSelected(protocol.searchAlgorithmInfo.caching);
-		SABestCheckingField.setText(Integer.toString(protocol.modelDCInfo.bestCheckingNumReplications));
-		SAEvaluationLimitField.setText(Integer.toString(protocol.searchAlgorithmInfo.evaluationLimit));
+		sa_cachingCheckBox.setSelected(protocol.searchAlgorithmInfo.caching);
+		sa_evaluationLimitField.setText(Integer.toString(protocol.searchAlgorithmInfo.evaluationLimit));
 		lastSavedText = protocol.toJSONString(); 
-		runOptions = null; 
-		//the runOptions to defaults, when a different Protocol is loaded
+		runOptions = null;  //runOptions get reset to defaults when a different Protocol is loaded
 	}
 
 	private SearchProtocolInfo createProtocolFromFormData() throws UIConstraintException {
-		HashMap<String, String> searchMethodParams = new java.util.LinkedHashMap<String, String>();
-		
-		List<SearchMethodParamTableRow> currentTable = SASearchMethodTable.getItems();
-		
-		for (SearchMethodParamTableRow row : currentTable) {
-			searchMethodParams.put(row.getParam().trim(), row.getValue().trim());
-		}
+
+		updateCurrentlySelectedObjectiveFromFields(); //make sure we are using the latest info 
+
 		int modelStepLimit = 0;
 		try {
-			modelStepLimit = Integer.valueOf(MModelStepLimitField.getText());
+			modelStepLimit = Integer.valueOf(m_modelStepLimitField.getText());
 			if (modelStepLimit < 0) {
 				throw new NumberFormatException();
 			}
@@ -499,25 +531,55 @@ public class MainController implements Initializable {
 			throw new UIConstraintException("STEP LIMIT should be a non-negative integer.",
 					"Error: can't create search protocol");
 		}
-		int fitnessSamplingRepetitions = 0;
-		if (SOFixedSamplingBox.getValue().toString().equals("Fixed Sampling")) {
-			try {
-				fitnessSamplingRepetitions = Integer.valueOf(SOFitnessSamplingRepetitionsField.getText());
-				if (fitnessSamplingRepetitions < 0) {
-					throw new NumberFormatException();
-				}
-			} catch (NumberFormatException ex) {
-				throw new UIConstraintException(
-						"SAMPLING REPETITIONS should be a positive integer, or 0 if using adaptive sampling.",
-						"Error: can't create protocol");
-			}
+		
+		LinkedHashMap<String,String> rawVariableMap;
+		try {
+			rawVariableMap = GeneralUtils.convertTextToVariableMap(dc_rawMeasuresArea.getText());
+		} catch (BehaviorSearchException ex) {
+			throw new UIConstraintException(ex.getMessage(), "Error parsing RAW MEASURES:");
 		}
 
-		boolean caching = SACachingCheckBox.isSelected();
+		LinkedHashMap<String,String> condensedVariableMap;
+		try {
+			condensedVariableMap = GeneralUtils.convertTextToVariableMap(dc_condensingMeasuresArea.getText());
+		} catch (BehaviorSearchException ex) {
+			throw new UIConstraintException(ex.getMessage(), "Error parsing CONDENSING MEASURES:");
+		}
+
+		int fitnessSamplingRepetitions = 0;
+		try {
+			fitnessSamplingRepetitions = Integer.valueOf(dc_fitnessSamplingRepetitionsField.getText());
+			if (fitnessSamplingRepetitions <= 0) {
+				throw new NumberFormatException();
+			}
+		} catch (NumberFormatException ex) {
+			throw new UIConstraintException(
+					"SAMPLING REPETITIONS should be a positive integer",
+					"Error: can't create search protocol");
+		}
+		int bestCheckingNumReplications = 0;
+		try {
+			bestCheckingNumReplications = Integer.valueOf(dc_bestCheckingField.getText());
+			if (bestCheckingNumReplications < 0) {
+				throw new NumberFormatException();
+			}
+		} catch (NumberFormatException ex) {
+			throw new UIConstraintException(
+					"The number of 'BEST CHECKING' replicates should be a positive integer (or 0 if you don't want best-checking).",
+					"Error: can't create search protocol");
+		}
+				
+		HashMap<String, String> searchMethodParams = new java.util.LinkedHashMap<String, String>();
+		
+		List<SearchMethodParamTableRow> currentTable = sa_searchMethodTable.getItems();
+		
+		for (SearchMethodParamTableRow row : currentTable) {
+			searchMethodParams.put(row.getParam().trim(), row.getValue().trim());
+		}
 
 		int evaluationLimit = 0;
 		try {
-			evaluationLimit = Integer.valueOf(SAEvaluationLimitField.getText());
+			evaluationLimit = Integer.valueOf(sa_evaluationLimitField.getText());
 			if (evaluationLimit <= 0) {
 				throw new NumberFormatException();
 			}
@@ -526,39 +588,19 @@ public class MainController implements Initializable {
 					"Error: can't create search protocol");
 		}
 
-		int bestCheckingNumReplications = 0;
-		try {
-			bestCheckingNumReplications = Integer.valueOf(SABestCheckingField.getText());
-			if (bestCheckingNumReplications < 0) {
-				throw new NumberFormatException();
-			}
-		} catch (NumberFormatException ex) {
-			throw new UIConstraintException(
-					"The number of 'BEST CHECKING' replicates should be a non-negative integer.",
-					"Error: can't create search protocol");
-		}
-		double fitnessDerivDelta = 0.0;
-		if (SOTakeDerivativeCheckBox.isSelected()) {
-			try {
-				fitnessDerivDelta = Double.valueOf(SODeltaField.getText());
-			} catch (NumberFormatException ex) {
-				throw new UIConstraintException(
-						"The DELTA value (for taking the derivative of the objective fucntion with respect to a parameter) needs to be a number",
-						"Error: can't create search protocol");
-			}
-		}
-		SearchProtocolInfo protocol = new SearchProtocolInfo(browseField.getText(),
-				Arrays.asList(MParamSpecsArea.getText().split("\n")), MModelStepField.getText(),
-				MModelSetupField.getText(), MModelStopConditionField.getText(), modelStepLimit, MMeasureField.getText(),
-				MMeasureIfField.getText(), "objective1",
-				OBJECTIVE_TYPE.valueOf(SOGoalBox.getValue().toString()),
+		SearchProtocolInfo protocol = new SearchProtocolInfo(browseModelField.getText(),
+				Arrays.asList(m_paramSpecsArea.getText().split("\n")), 
+				m_modelSetupField.getText(), m_modelStepField.getText(), 
+				m_modelStopConditionField.getText(), modelStepLimit, m_measureIfField.getText(),
+				rawVariableMap,
+				condensedVariableMap,
 				fitnessSamplingRepetitions,
-				SOFitnessCollectingBox.getValue().toString(),
-				SOCombineReplicatesBox.getValue().toString(),
-				SOTakeDerivativeCheckBox.isSelected() ? SOWrtBox.getValue().toString() : "", fitnessDerivDelta,
-				SOFitnessDerivativeUseAbsCheckBox.isSelected(), SASearchMethodBox.getValue().toString(),
-				searchMethodParams, SAChromosomeTypeBox.getValue().toString(), caching, evaluationLimit,
-				bestCheckingNumReplications);
+				bestCheckingNumReplications,
+				so_objectiveChoiceList.getItems(),
+				sa_searchMethodBox.getValue().toString(),
+				searchMethodParams, 
+				sa_chromosomeTypeBox.getValue().toString(),
+				sa_cachingCheckBox.isSelected(), evaluationLimit);
 
 		return protocol;
 	}
@@ -581,7 +623,7 @@ public class MainController implements Initializable {
 			parentFolder = currentFile.getParentFile();
 			chooser.setInitialFileName(currentFile.getName());
 		} else {
-			parentFolder = new File(browseField.getText()).getParentFile();
+			parentFolder = new File(browseModelField.getText()).getParentFile();
 			chooser.setInitialFileName("Untitled.bsearch");
 		}
 		if (parentFolder != null && parentFolder.exists()) {
@@ -655,33 +697,142 @@ public class MainController implements Initializable {
 				
 		return check;
 	}
-
-	//
-	public void takeDerivativeAction(ActionEvent event) {
-		if (SOTakeDerivativeCheckBox.isSelected()) {
-			this.SOWrtLabel.setDisable(false);
-			this.SODeltaLabel.setDisable(false);
-			this.SOWrtBox.setDisable(false);
-			this.SODeltaField.setDisable(false);
-			List<String> wrt = new ArrayList<String>();
-			SearchSpace ss = new SearchSpace(java.util.Arrays.asList(this.MParamSpecsArea.getText().split("\n")));
-
-			for (ParameterSpec spec : ss.getParamSpecs()) {
-				wrt.add(spec.getParameterName());
+	
+	private class SOChangeListener<T> implements ChangeListener<T> {
+		@Override
+		public void changed(ObservableValue<? extends T> observable, T oldValue, T newValue) {
+			try {
+				GeneralUtils.debug(observable + " : " + oldValue + " -> " + newValue);
+				updateCurrentlySelectedObjectiveFromFields();
+			} catch (UIConstraintException e) {
+				handleError(e.getTitle(),e.getMessage());
 			}
-			this.SOWrtBox.setItems(FXCollections.observableArrayList(wrt));
+		}		
+	}
+	
+	
+	private SOChangeListener<String> soStringChangeListener = new SOChangeListener<>();
+	private SOChangeListener<Boolean> soBooleanChangeListener = new SOChangeListener<>();
+	
+	private void enableObjectiveUIFieldListening() {
+		so_objectiveNameField.textProperty().addListener(soStringChangeListener);
+		so_combineReplicatesField.textProperty().addListener(soStringChangeListener);
+		so_objectiveTypeBox.valueProperty().addListener(soStringChangeListener);
+		so_takeDerivativeCheckBox.selectedProperty().addListener(soBooleanChangeListener);
+		so_deltaField.textProperty().addListener(soStringChangeListener);
+		so_fitnessDerivativeUseAbsCheckBox.selectedProperty().addListener(soBooleanChangeListener);
+		so_wrtBox.valueProperty().addListener(soStringChangeListener);
+	}
+	private void disableObjectiveUIFieldListening() {
+		so_objectiveNameField.textProperty().removeListener(soStringChangeListener);
+		so_combineReplicatesField.textProperty().removeListener(soStringChangeListener);
+		so_objectiveTypeBox.valueProperty().removeListener(soStringChangeListener);
+		so_takeDerivativeCheckBox.selectedProperty().removeListener(soBooleanChangeListener);
+		so_deltaField.textProperty().removeListener(soStringChangeListener);
+		so_fitnessDerivativeUseAbsCheckBox.selectedProperty().removeListener(soBooleanChangeListener);
+		so_wrtBox.valueProperty().removeListener(soStringChangeListener);
+	}
+	
+	private void updateUIFieldsForCurrentlySelectedObjective() {
+		// need to temporarily turn off the property change listeners, 
+		// or else each field change below will trigger an unwanted event
+		// that calls the updateCurrentlySelectiveObjectiveFromFields() method!
+		disableObjectiveUIFieldListening();
+		ObjectiveFunctionInfo objInfo = so_objectiveChoiceList.getSelectionModel().getSelectedItem();
+		so_objectiveNameField.setText(objInfo.name);
+		so_objectiveTypeBox.setValue(objInfo.objectiveType.toString());
+		so_combineReplicatesField.setText(objInfo.fitnessCombineReplications.toString());
+		so_takeDerivativeCheckBox.setSelected(objInfo.fitnessDerivativeParameter.length() > 0);
+		so_fitnessDerivativeUseAbsCheckBox.setSelected(objInfo.fitnessDerivativeUseAbs);
+		updateDerivativeFieldsEnabled();
+		if (!so_wrtBox.getItems().contains(objInfo.fitnessDerivativeParameter)) {
+			so_wrtBox.getItems().add(objInfo.fitnessDerivativeParameter);
+		}
+		so_wrtBox.setValue(objInfo.fitnessDerivativeParameter);
+		so_deltaField.setText(Double.toString(objInfo.fitnessDerivativeDelta));
+		enableObjectiveUIFieldListening();
+	}
+	private void updateCurrentlySelectedObjectiveFromFields() throws UIConstraintException {
+		int selectedIndex = so_objectiveChoiceList.getSelectionModel().getSelectedIndex();
+		if (selectedIndex == -1) {
+			try { throw new Exception("No objective selected!"); } 
+			catch (Exception ex) {ex.printStackTrace(); }
+		}
+
+		double fitnessDerivDelta = 0.0;
+		if (so_takeDerivativeCheckBox.isSelected()) {
+			try {
+				fitnessDerivDelta = Double.valueOf(so_deltaField.getText());
+			} catch (NumberFormatException ex) { 
+				// too annoying to user to handle this issue here, so handle it at runtime
+			}
+		}
+		String derivWrtParam = "";
+		if (so_takeDerivativeCheckBox.isSelected() && so_wrtBox.getValue() != null) {
+			derivWrtParam = so_wrtBox.getValue().toString();
+		}
+		ObjectiveFunctionInfo objInfo =  new ObjectiveFunctionInfo(so_objectiveNameField.getText(),
+											OBJECTIVE_TYPE.valueOf(so_objectiveTypeBox.getValue().toString()),
+											so_combineReplicatesField.getText(),
+											derivWrtParam, 
+											fitnessDerivDelta,
+											so_fitnessDerivativeUseAbsCheckBox.isSelected());
+		so_objectiveChoiceList.getItems().set(selectedIndex, objInfo);
+		so_objectiveChoiceList.getSelectionModel().select(selectedIndex);
+	}
+
+	public void actionAddNewObjective(ActionEvent event) {
+		int numItems = so_objectiveChoiceList.getItems().size();
+		so_objectiveChoiceList.getItems().add(new ObjectiveFunctionInfo("objective"+(numItems+1), 
+				OBJECTIVE_TYPE.MAXIMIZE, "", "", 0.0, true));
+		so_objectiveChoiceList.getSelectionModel().select(numItems);
+	}
+	public void actionRemoveObjective(ActionEvent event) {
+		if (so_objectiveChoiceList.getItems().size() > 1) {
+			int selectedIndex = so_objectiveChoiceList.getSelectionModel().getSelectedIndex();
+			so_objectiveChoiceList.getItems().remove(selectedIndex);
+		} else {
+			handleError("Sorry, can't do that!", "Every search must have at least one objective.");
+		}
+	}
+
+	public void updateDerivativeFieldsEnabled() {
+		if (so_takeDerivativeCheckBox.isSelected()) {
+			this.so_wrtLabel.setDisable(false);
+			this.so_deltaLabel.setDisable(false);
+			this.so_wrtBox.setDisable(false);
+			this.so_deltaField.setDisable(false);
+			this.so_fitnessDerivativeUseAbsCheckBox.setDisable(false);
+			
+			List<String> wrtParamChoices = new ArrayList<String>();
+			SearchSpace ss = new SearchSpace(java.util.Arrays.asList(this.m_paramSpecsArea.getText().split("\n")));
+			wrtParamChoices.add("");
+			for (ParameterSpec spec : ss.getParamSpecs()) {
+				wrtParamChoices.add(spec.getParameterName());
+			}
+//			disableObjectiveUIFieldListening();
+			if (!wrtParamChoices.equals(so_wrtBox.getItems())) {
+				String oldValue = this.so_wrtBox.getValue();
+				this.so_wrtBox.setItems(FXCollections.observableArrayList(wrtParamChoices));
+				this.so_wrtBox.setValue(oldValue);
+			}
+//			if (this.so_wrtBox.getValue() == null || this.so_wrtBox.getValue().equals("")) {
+//				this.so_wrtBox.setValue("--");
+//			}
+//			enableObjectiveUIFieldListening();
 
 		} else {
-			this.SOWrtLabel.setDisable(true);
-			this.SODeltaLabel.setDisable(true);
-			this.SOWrtBox.setDisable(true);
-			this.SODeltaField.setDisable(true);
+			this.so_wrtLabel.setDisable(true);
+			this.so_deltaLabel.setDisable(true);
+			this.so_wrtBox.setDisable(true);
+			this.so_deltaField.setDisable(true);
+			this.so_fitnessDerivativeUseAbsCheckBox.setDisable(true);
 		}
 	}
 
 	public void suggestParam(ActionEvent event) {
 		try {
-			this.MParamSpecsArea.setText(bsearch.nlogolink.NLogoUtils.getDefaultConstraintsText(this.browseField.getText()));
+			this.m_paramSpecsArea.setText(bsearch.nlogolink.NLogoUtils.getDefaultConstraintsText(this.browseModelField.getText()));
 		} catch (NetLogoLinkException e) {
 			handleError("Error", e.getMessage(), e);
 		}
@@ -739,12 +890,14 @@ public class MainController implements Initializable {
 			public void run() {
 				Alert alert = new Alert(AlertType.ERROR);
 				alert.setTitle(title);
-				alert.setContentText(msg1);
+				alert.setHeaderText(title);
+				alert.getDialogPane().setContent(new TextArea(msg1));
+				alert.setResizable(true);
+				
 				if (e!=null) {
 					// Create expandable Exception.
 					StringWriter sw = new StringWriter();
-					PrintWriter pw = new PrintWriter(sw);
-					e.printStackTrace(pw);
+					e.printStackTrace(new PrintWriter(sw));
 					String exceptionText = sw.toString();
 					Label label = new Label("The exception stacktrace was:");
 					TextArea textArea = new TextArea(exceptionText);
@@ -802,18 +955,17 @@ public class MainController implements Initializable {
 		}
 		
 	}
-
 	
-	private void updateSearchMethodParamTable(SearchMethod searchMethod, HashMap<String, String> searchMethodParams) {
+	private void updateSearchMethodParamTable(SearchMethod searchMethod, Map<String, String> searchMethodParams) {
 		// if the search method in the protocol is missing some parameters, fill
 		// them in with defaults
-		HashMap<String, String> defaultParams = searchMethod.getSearchParams();
+		Map<String, String> defaultParams = searchMethod.getSearchParams();
 		for (String key : defaultParams.keySet()) {
 			if (!searchMethodParams.containsKey(key)) {
 				searchMethodParams.put(key, defaultParams.get(key));
 			}
 		}
-		this.SASearchMethodTable.setEditable(true);
+		this.sa_searchMethodTable.setEditable(true);
 
 		
 		List<SearchMethodParamTableRow> paramTable = new ArrayList<SearchMethodParamTableRow>();
@@ -821,12 +973,12 @@ public class MainController implements Initializable {
 			paramTable.add(new SearchMethodParamTableRow(s, searchMethodParams.get(s)));
 		}
 		
-		SAValCol.setCellFactory(AcceptOnExitTableCell.forTableColumn());
+		sa_valCol.setCellFactory(AcceptOnExitTableCell.forTableColumn());
 		// set up table data
-		SAParamCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("param"));
-		SAValCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("value"));
-		this.SASearchMethodTable.setItems(FXCollections.observableArrayList(paramTable));
-		SAValCol.setOnEditCommit(new EventHandler<CellEditEvent<SearchMethodParamTableRow, String>>() {
+		sa_paramCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("param"));
+		sa_valCol.setCellValueFactory(new PropertyValueFactory<SearchMethodParamTableRow, String>("value"));
+		this.sa_searchMethodTable.setItems(FXCollections.observableArrayList(paramTable));
+		sa_valCol.setOnEditCommit(new EventHandler<CellEditEvent<SearchMethodParamTableRow, String>>() {
 			@Override
 			public void handle(CellEditEvent<SearchMethodParamTableRow, String> t) {
 				t.getTableView().getItems().get(t.getTablePosition().getRow()).setValue(t.getNewValue());

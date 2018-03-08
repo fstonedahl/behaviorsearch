@@ -5,8 +5,9 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.moeaframework.core.NondominatedPopulation;
+import org.moeaframework.core.NondominatedSortingPopulation;
+import org.moeaframework.core.Population;
 import org.moeaframework.core.Solution;
-
 import bsearch.MOEAlink.MOEASolutionWrapper;
 import bsearch.datamodel.ObjectiveFunctionInfo;
 import bsearch.nlogolink.SingleRunResult;
@@ -128,17 +129,22 @@ public class SearchProgressStatsKeeper {
 	}
 	
 	public synchronized void allSearchesFinishedEvent() {
-		List<MOEASolutionWrapper> overallBestsList = populationToList(overallBests);
-		List<MOEASolutionWrapper> overallCheckedBestsList = populationToList(overallCheckedBests);
+		NondominatedSortingPopulation sortedBests = new NondominatedSortingPopulation(overallBests);
+		NondominatedSortingPopulation sortedCheckedBests = new NondominatedSortingPopulation(overallCheckedBests);
+		sortedBests.update();
+		sortedCheckedBests.update();
+//		sortedBests.prune(15);
+//		sortedCheckedBests.prune(15); // TODO: Consider pruning final set?  or as it runs, for greater efficiency?
+		List<MOEASolutionWrapper> overallBestsList = populationToList(sortedBests);
+		List<MOEASolutionWrapper> overallCheckedBestsList = populationToList(sortedCheckedBests);
 		for (ResultListener listener : resultListeners) {
 			listener.allSearchesFinished(overallBestsList, overallCheckedBestsList);
 		}		
 	}
 	
 	// helper function to convert populations to lists, so we don't have to expose so much MOEA to listeners.. 
-	private static List<MOEASolutionWrapper> populationToList(NondominatedPopulation pop) {
+	private static List<MOEASolutionWrapper> populationToList(Population pop) {
 		return StreamSupport.stream(pop.spliterator(), false)
 					.map(sol -> MOEASolutionWrapper.getWrapperFor(sol)).collect(Collectors.toList());
 	}
-
 }

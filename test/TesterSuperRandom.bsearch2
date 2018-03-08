@@ -1,0 +1,43 @@
+{
+  "bsearchVersionNumber": 2.0,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "Tester.nlogo",
+    "setupCommands": "clear-all reset-ticks",
+    "stepCommands": "ask one-of patches [ set pcolor random 100 ] tick",
+    "stopCondition": "ticks > 20 and random-float 1.0 > 0.7 ",
+    "measureIfReporter": "random-float 1.0 < 0.5 ",
+    "maxModelSteps": 60,
+    "rawMeasureReporters": {
+      "RAW1": "random 10000"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "sum @{RAW1}"
+    },
+    "fitnessSamplingReplications": 5,
+    "bestCheckingNumReplications": 2
+  },
+  "paramSpecStrings": [
+    "[\"a\" [-32 1 32]]",
+    "[\"b\" [-32 1 32]]",
+    "[\"c\" [-32 1 32]]",
+    "[\"d\" [-32 1 32]]"
+  ],
+  "objectives": [
+    {
+      "name": "objective1",
+      "objectiveType": "MAXIMIZE",
+      "fitnessCombineReplications": "mean @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "RandomSearch",
+    "searchMethodParams": {},
+    "chromosomeType": "GrayBinaryChromosome",
+    "caching": false,
+    "evaluationLimit": 200
+  }
+}

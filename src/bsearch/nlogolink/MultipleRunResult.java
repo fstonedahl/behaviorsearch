@@ -3,8 +3,6 @@ package bsearch.nlogolink;
 import java.util.ArrayList;
 import java.util.List;
 
-import bsearch.util.GeneralUtils;
-
 /**
  * Represents the result of running a NetLogo model for multiple replicate simulation runs
  * with the *same* parameter settings.

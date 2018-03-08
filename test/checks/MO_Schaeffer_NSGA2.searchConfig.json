@@ -1,0 +1,64 @@
+{
+  "bsearchVersionNumber": 2.0,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "MO_benchmark_functions.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "count turtles > 1000",
+    "measureIfReporter": "@DONE",
+    "maxModelSteps": 0,
+    "rawMeasureReporters": {
+      "schaeffer0": "schaeffer 0",
+      "schaeffer1": "schaeffer 1",
+      "binh0": "binh 0",
+      "binh1": "binh 1",
+      "fonseca0": "fonseca2 0 + random-normal 0 0.01",
+      "fonseca1": "fonseca2 1 + random-normal 0 0.01"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "last @{schaeffer0}",
+      "CONDENSED2": "last @{schaeffer1}",
+      "CONDENSED3": "last @{binh0}",
+      "CONDENSED4": "last @{binh1}",
+      "CONDENSED5": "last @{fonseca0}",
+      "CONDENSED6": "last @{fonseca1}"
+    },
+    "fitnessSamplingReplications": 1,
+    "bestCheckingNumReplications": 0
+  },
+  "paramSpecStrings": [
+    "[\"a\" [-4 0.01 4]]",
+    "[\"b\" [-4 0.01 4]]",
+    "[\"c\" [-4 0.01 4]]",
+    "[\"d\" 0]"
+  ],
+  "objectives": [
+    {
+      "name": "objective1",
+      "objectiveType": "MINIMIZE",
+      "fitnessCombineReplications": "mean @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    },
+    {
+      "name": "objective2",
+      "objectiveType": "MINIMIZE",
+      "fitnessCombineReplications": "mean @{CONDENSED2}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "NSGA-II",
+    "searchMethodParams": {
+      "withReplacement": "true",
+      "populationSize": "20"
+    },
+    "chromosomeType": "MixedTypeChromosome",
+    "caching": false,
+    "evaluationLimit": 500
+  }
+}

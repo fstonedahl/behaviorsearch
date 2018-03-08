@@ -1,8 +1,6 @@
 package bsearch.algorithms ;
 
-import java.util.HashMap ;
-
-import org.nlogo.api.MersenneTwisterFast ;
+import java.util.Map ;
 
 import bsearch.app.BehaviorSearchException;
 import bsearch.datamodel.SearchProtocolInfo;
@@ -11,6 +9,7 @@ import bsearch.nlogolink.NetLogoLinkException;
 import bsearch.representations.ChromosomeFactory;
 import bsearch.space.SearchSpace;
 
+
 public strictfp interface SearchMethod
 {
 	/**
@@ -18,18 +17,18 @@ public strictfp interface SearchMethod
 	 *        they are to be assigned.
 	 * @throws SearchParameterException 
 	 */
-	public abstract void setSearchParams( HashMap<String , String> searchMethodParams ) throws SearchParameterException;
+	public abstract void updateSearchParams( Map<String , String> searchMethodParams ) throws SearchParameterException;
 	
 	/** 
 	 * @return the current search parameters used by this search method, or the
 	 *         default parameters, if the parameters haven't been specified yet.
 	 */
-	public abstract HashMap<String , String> getSearchParams();
+	public abstract Map<String , String> getSearchParams();
 
 	/** 
 	 * @return descriptions of what each search parameter means
 	 */
-	public abstract HashMap<String , String> getSearchParamsHelp();
+	public abstract Map<String , String> getSearchParamsHelp();
 
 	/**
 	 * @return the name of the search algorithm (should be the same for all instances).
@@ -47,11 +46,11 @@ public strictfp interface SearchMethod
 	public abstract String getHTMLHelpText();
 
 
-	//TODO: return SearchResults object?  Or just use the SearchManager for this purpose? 
+	/**
+	 * Performs one search on the given search space.
+	 */
 	public abstract void search( SearchSpace space , ChromosomeFactory cFactory, SearchProtocolInfo protocol,
-			 SearchManager manager, MersenneTwisterFast rng ) 
-		throws BehaviorSearchException, NetLogoLinkException, InterruptedException;
-	 
-	public abstract boolean supportsAdaptiveSampling();
-	
+			 SearchManager manager, int randomSeed, int numEvaluationThreads) 
+		throws BehaviorSearchException, NetLogoLinkException;
+	 	
 }

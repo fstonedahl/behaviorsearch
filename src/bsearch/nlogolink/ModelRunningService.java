@@ -27,8 +27,12 @@ public interface ModelRunningService {
 	 * @throws NetLogoLinkException
 	 * @throws InterruptedException
 	 */
-	LinkedHashMap<Chromosome,MultipleRunResult> doBatchRun(Map<Chromosome, Integer> desiredRuns, MersenneTwisterFast rng)
-			throws NetLogoLinkException, InterruptedException;
+	public LinkedHashMap<Chromosome,MultipleRunResult> doBatchRun(Map<Chromosome, Integer> desiredRuns, MersenneTwisterFast rng)
+			throws NetLogoLinkException;
 
 	
+	/**
+	 * Performs any clean-up necessary after this model running service will no longer be used.
+	 */
+	public void dispose() throws NetLogoLinkException;
 }

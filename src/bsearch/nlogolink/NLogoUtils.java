@@ -111,13 +111,17 @@ public strictfp class NLogoUtils {
 		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
 		return workspace;
 	}
-	/** If you don't call this method, there will still be a NetLogo workspace thread running in the background, which might
+	/** If you don't call this method, there can still be one NetLogo workspace thread running in the background, which might
 	 * prevent your application from shutting down naturally when main() is exited, for instance.  If you call
 	 * System.exit(), then it might not matter whether you call this method first or not.  Perhaps it's good form
 	 * to always call it before your application quits. */
-	public static void fullyShutDownNetLogoLink() throws InterruptedException
+	public static void fullyShutDownNetLogoLink()
 	{
-		emptyWorkspace.dispose();
+		try {
+			emptyWorkspace.dispose();
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
+		}
 	}
 	
 	public static String getDefaultConstraintsText(String modelFileName) throws NetLogoLinkException

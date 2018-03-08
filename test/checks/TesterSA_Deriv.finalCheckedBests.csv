@@ -1,3 +1,0 @@
-"[search-number]","[evaluation-number]","a","b","c","d","objective1","objective1-rechecked","[NetLogo-command-center-copy-paste-shortcut]"
-"1","400","32","18","25","-20","63","63","""set a 32 set b 18 set c 25 set d -20"""
-"2","400","-32","0","-16","32","65","65","""set a -32 set b 0 set c -16 set d 32"""

@@ -129,12 +129,10 @@ public class ProgressController {
 		private SearchProtocolInfo protocol;
 		private BehaviorSearch.RunOptions runOptions;
 		protected Throwable fatalException = null;
-		private int evaluationLimit;
 
 		public BSearchTaskWorker(SearchProtocolInfo protocol, BehaviorSearch.RunOptions runOptions) {
 			this.protocol = protocol;
 			this.runOptions = runOptions;
-			this.evaluationLimit = protocol.searchAlgorithmInfo.evaluationLimit;
 		}
 
 		@Override
@@ -211,7 +209,6 @@ public class ProgressController {
 		public void newBestFound(MOEASolutionWrapper bestSolution) {
 			final int searchNumber = bestSolution.getSearchID();
 			final double bestFitnessSoFar = bestSolution.getNumericOptimizationObjectiveValues().get(0);  
-			final int modelRunCount = bestSolution.getModelRunCounter();
 			
 			Platform.runLater( () -> {
 				XYChart.Series<Number,Number> series = progressLineChart.getData().get(searchNumber - runOptions.firstSearchNumber);
@@ -270,7 +267,7 @@ public class ProgressController {
 
 			} catch (Throwable e) {
 				fatalException = e; // handle it later, back in the regular
-									// Swing event thread
+									// UI event thread
 			}
 
 		}

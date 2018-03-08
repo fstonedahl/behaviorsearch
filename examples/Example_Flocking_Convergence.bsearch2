@@ -1,0 +1,51 @@
+{
+  "bsearchVersionNumber": 2.0,
+  "infoTab": "Write notes here...",
+  "modelDCInfo": {
+    "modelFileName": "../../models/Sample Models/Biology/Flocking.nlogo",
+    "setupCommands": "setup",
+    "stepCommands": "go",
+    "stopCondition": "",
+    "measureIfReporter": "ticks >= 75",
+    "maxModelSteps": 100,
+    "rawMeasureReporters": {
+      "RAW1": "standard-deviation [dx] of turtles + standard-deviation [dy] of turtles"
+    },
+    "singleRunCondenserReporters": {
+      "CONDENSED1": "mean @{RAW1}"
+    },
+    "fitnessSamplingReplications": 5,
+    "bestCheckingNumReplications": 10
+  },
+  "paramSpecStrings": [
+    "[\"population\" 50]",
+    "[\"vision\" [0 0.25 10]]",
+    "[\"minimum-separation\" [0 0.25 5]]",
+    "[\"max-align-turn\" [0 0.25 20]]",
+    "[\"max-separate-turn\" [0 0.25 20]]",
+    "[\"max-cohere-turn\" [0 0.25 20]]"
+  ],
+  "objectives": [
+    {
+      "name": "objective1",
+      "objectiveType": "MINIMIZE",
+      "fitnessCombineReplications": "mean @{CONDENSED1}",
+      "fitnessDerivativeParameter": "",
+      "fitnessDerivativeDelta": 0.0,
+      "fitnessDerivativeUseAbs": false
+    }
+  ],
+  "searchAlgorithmInfo": {
+    "searchMethodType": "StandardGA",
+    "searchMethodParams": {
+      "mutation-rate": "0.05",
+      "population-size": "30",
+      "crossover-rate": "0.7",
+      "population-model": "generational",
+      "tournament-size": "3"
+    },
+    "chromosomeType": "GrayBinaryChromosome",
+    "caching": true,
+    "evaluationLimit": 12000
+  }
+}
