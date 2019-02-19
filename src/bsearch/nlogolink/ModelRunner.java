@@ -40,7 +40,7 @@ public strictfp class ModelRunner {
 		throws LogoException, IOException, CompilerException
 	{
 		workspace = Utils.createWorkspace();
-		workspace.open(modelFileName);
+		workspace.open(modelFileName, false);
 
 		this.recordEveryTick = recordEveryTick;
 		this.maxModelSteps = maxModelSteps;

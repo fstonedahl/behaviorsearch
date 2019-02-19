@@ -50,7 +50,7 @@ public strictfp class Utils {
 		HeadlessWorkspace workspace = Utils.createWorkspace();
 
 		try {
-		  workspace.open(modelFileName);
+		  workspace.open(modelFileName, false);
 		} catch (IOException e) {
 			throw new NetLogoLinkException("I/O Error trying to open model file '" + modelFileName + "'\n " + e.toString(), e);
 		} catch (CompilerException e) {
