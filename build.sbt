@@ -2,7 +2,7 @@ name := "behaviorsearch"
 
 organization := "bsearch"
 
-scalaVersion := "2.12.0"
+scalaVersion := "2.12.8"
 
 val netLogoVersion = settingKey[String]("active version of NetLogo")
 
