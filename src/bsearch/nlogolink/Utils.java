@@ -13,14 +13,14 @@ import org.nlogo.headless.HeadlessWorkspace;
 public strictfp class Utils {
 	public static final long MIN_EXACT_NETLOGO_INT = -9007199254740992L;
 	public static final long MAX_EXACT_NETLOGO_INT = 9007199254740992L;
-	
-	private static HeadlessWorkspace emptyWorkspace; 
+
+	private static HeadlessWorkspace emptyWorkspace;
 
 	public static Object evaluateNetLogoReporterInEmptyWorkspace(String reporterString ) throws NetLogoLinkException
 	{
 		if (emptyWorkspace == null)
 		{
-			emptyWorkspace = HeadlessWorkspace.newInstance();			
+			emptyWorkspace = HeadlessWorkspace.newInstance();
 		}
 		try {
 			return emptyWorkspace.report( reporterString );
@@ -28,9 +28,9 @@ public strictfp class Utils {
 		{
 			throw new NetLogoLinkException(ex.getMessage());
 		}
-	}		
+	}
 
-	
+
 	public static HeadlessWorkspace createWorkspace()
 	{
 		HeadlessWorkspace workspace = HeadlessWorkspace.newInstance();
@@ -44,7 +44,7 @@ public strictfp class Utils {
 	{
 		emptyWorkspace.dispose();
 	}
-	
+
 	public static String getDefaultConstraintsText(String modelFileName) throws NetLogoLinkException
 	{
 		HeadlessWorkspace workspace = Utils.createWorkspace();
@@ -122,5 +122,5 @@ public strictfp class Utils {
 		} catch (InterruptedException e) {
 		}
 	    return sb.toString();
-	}			
+	}
 }

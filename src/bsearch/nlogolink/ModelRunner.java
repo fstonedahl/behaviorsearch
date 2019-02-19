@@ -25,19 +25,19 @@ public strictfp class ModelRunner {
 	private Procedure measureIfReporter = null;
 	private final boolean recordEveryTick;
 	private final int maxModelSteps;
-	
+
 	// Note: ModelRunner can collect multiple measures, for eventual support for extending to multi-objective optimization.
 	private LinkedHashMap<String,Procedure> resultReporters = new LinkedHashMap<String,Procedure>();
-		
-	private boolean runIsDone; 
 
-	// Until setup() is run for the first time (and the random seed can be set appropriately), 
-	// we'll leave the JobOwners as null.  
+	private boolean runIsDone;
+
+	// Until setup() is run for the first time (and the random seed can be set appropriately),
+	// we'll leave the JobOwners as null.
 	private SimpleJobOwner mainJobOwner = null; // uses NetLogo world's mainRNG (and thus affects the state of the world)
 	private SimpleJobOwner extraJobOwner = null; // uses a private RNG, and thus may not affect world state (unless the NetLogo code being run has side effects)
-	
-	private ModelRunner(String modelFileName, boolean recordEveryTick, int maxModelSteps) 
-		throws LogoException, IOException, CompilerException 
+
+	private ModelRunner(String modelFileName, boolean recordEveryTick, int maxModelSteps)
+		throws LogoException, IOException, CompilerException
 	{
 		workspace = Utils.createWorkspace();
 		workspace.open(modelFileName);
@@ -60,7 +60,7 @@ public strictfp class ModelRunner {
 		{
 			stopConditionReporter = workspace.compileReporter(reporter);
 		}
-	}	
+	}
 	public void addResultReporter(String reporter) throws CompilerException
 	{
 		resultReporters.put(reporter, workspace.compileReporter(reporter));
@@ -95,7 +95,7 @@ public strictfp class ModelRunner {
 		}
 		return false;
 	}
-	
+
 	public void setup(int seed, LinkedHashMap<String,Object> parameterSettings ) throws LogoException, AgentException, NetLogoLinkException
 	{
 		workspace.clearAll();
@@ -105,9 +105,9 @@ public strictfp class ModelRunner {
 		}
 		try {
 			workspace.world().mainRNG().setSeed( seed );
-			// For evaluating reporters (like measureIfReporter) we want to use a separate RNG 
+			// For evaluating reporters (like measureIfReporter) we want to use a separate RNG
 			// (which is seeded by a random number that depends on the random seed for this model run,
-			//  so that the results are deterministic/repeatable, but will generate an independent 
+			//  so that the results are deterministic/repeatable, but will generate an independent
 			// stream of random numbers that does not affect the main NetLogo world's RNG.)
 			// This approach should allow the user to recreate a run by setting RANDOM-SEED XXX
 			// and running SETUP followed by GO, without worrying about all of the additional conditions
@@ -116,7 +116,7 @@ public strictfp class ModelRunner {
 			MersenneTwisterFast extraReporterRNG = new MersenneTwisterFast(workspace.mainRNG().clone().nextInt());
 			extraJobOwner = new SimpleJobOwner("BehaviorSearch ModelRunner Extra", extraReporterRNG, org.nlogo.core.AgentKindJ.Observer());
 		} catch (Exception ex) {ex.printStackTrace(); }
-		
+
 		if (setupCommands != null)
 		{
 			workspace.runCompiledCommands(mainJobOwner,setupCommands);
@@ -127,11 +127,11 @@ public strictfp class ModelRunner {
 				throw new NetLogoLinkException(ex.toString());
 			}
 		}
-		
-		runIsDone = checkStopCondition();		
+
+		runIsDone = checkStopCondition();
 	}
-	
-	/** returns true if the run is finished 
+
+	/** returns true if the run is finished
 	 * @throws NetLogoLinkException **/
 	public boolean go() throws NetLogoLinkException
 	{
@@ -141,7 +141,7 @@ public strictfp class ModelRunner {
 		}
 		if (stepCommands != null)
 		{
-			workspace.runCompiledCommands(mainJobOwner, stepCommands );				
+			workspace.runCompiledCommands(mainJobOwner, stepCommands );
 			LogoException ex = workspace.lastLogoException();
 			if (ex != null)
 			{
@@ -153,17 +153,17 @@ public strictfp class ModelRunner {
 		runIsDone = checkStopCondition();
 		return runIsDone;
 	}
-	
+
 	public LinkedHashMap<String,Object> measureResults() throws NetLogoLinkException
 	{
 		LinkedHashMap<String,Object> results = new LinkedHashMap<String,Object>();
 		for (String key: resultReporters.keySet())
 		{
 			results.put(key, measureResultReporter(resultReporters.get(key)));
-		}		
+		}
 		return results;
 	}
-	
+
 	private Double measureResultReporter(Procedure reporter) throws NetLogoLinkException
 	{
 		if (extraJobOwner == null)
@@ -179,7 +179,7 @@ public strictfp class ModelRunner {
 		}
 		if (! (obj instanceof Double))
 		{
-			throw new NetLogoLinkException("Result reporters must return numeric results!  Invalid reported value was: " + obj );				
+			throw new NetLogoLinkException("Result reporters must return numeric results!  Invalid reported value was: " + obj );
 		}
 		return (Double) obj;
 	}
@@ -187,7 +187,7 @@ public strictfp class ModelRunner {
 	private boolean evaluateMeasureIfReporter() throws NetLogoLinkException
 	{
 		// If they left the field blank, we'll assume we should measure every time.
-		if (measureIfReporter == null) 
+		if (measureIfReporter == null)
 		{
 			return true;
 		}
@@ -202,7 +202,7 @@ public strictfp class ModelRunner {
 		{
 			throw new NetLogoLinkException("The 'measure if' condition must report a TRUE/FALSE value.  Error occurred because it reported: " + obj);
 		}
-		return 	(Boolean) obj;		
+		return 	(Boolean) obj;
 	}
 	private void conditionallyRecordResults(ModelRunResult results) throws NetLogoLinkException
 	{
@@ -217,14 +217,14 @@ public strictfp class ModelRunner {
 			{
 				results.addResult(key, measureResultReporter(resultReporters.get(key)));
 			}
-		}		
+		}
 	}
 	public ModelRunResult doFullRun(RunSetup runSetup) throws ModelRunnerException
 	{
 		try {
 			ModelRunResult results = new ModelRunResult(runSetup.seed);
 			setup(runSetup.seed, runSetup.parameterSettings);
-			
+
 			int steps;
 			for (steps = 0; steps < maxModelSteps && !runIsDone; steps++)
 			{
@@ -241,37 +241,37 @@ public strictfp class ModelRunner {
 			}
 			return results;
 		}
-		catch (Exception ex)  {		
+		catch (Exception ex)  {
 			throw new ModelRunnerException(runSetup, ex);
 		}
 	}
-	
+
 	public boolean isRunDone()
 	{
 		return runIsDone;
 	}
 
 	public void dispose() throws InterruptedException {
-		workspace.dispose();		
+		workspace.dispose();
 	}
 
 	/** Just used for unit testing - preferable to use the ModelRunner.Factory paradigm */
 	public static ModelRunner createModelRunnerForTesting (String s, boolean recordEveryTick, int maxModelSteps) throws LogoException, IOException, CompilerException
 	{
-		return new ModelRunner(s, recordEveryTick, maxModelSteps);				
+		return new ModelRunner(s, recordEveryTick, maxModelSteps);
 	}
-	
-	
-	/** Note: This uses the "extra" random number generator, so it 
-	 * won't affect the state of the main RNG for the run.  
+
+
+	/** Note: This uses the "extra" random number generator, so it
+	 * won't affect the state of the main RNG for the run.
 	 * Still, be careful because some reporters could have side-effects in the model
-	 * (for instance, if the reporter creates some agents 
-	 * (even if it kills them before its done, the "who" numbers of agents 
-	 *  created after that will be different...) 
+	 * (for instance, if the reporter creates some agents
+	 * (even if it kills them before its done, the "who" numbers of agents
+	 *  created after that will be different...)
 	 * @param reporter	the NetLogo reporter expression to run.
 	 * @return 			the result of running the reporter
 	 * @throws CompilerException
-	 * @throws NetLogoLinkException 
+	 * @throws NetLogoLinkException
 	 */
 	public Object report(String reporter) throws CompilerException, NetLogoLinkException
 	{
@@ -286,7 +286,7 @@ public strictfp class ModelRunner {
 		return obj;
 	}
 	/**
-	 * Note: this method uses the main random-number generator, and thus 
+	 * Note: this method uses the main random-number generator, and thus
 	 * will affect the state of the RNG for future calls.
 	 * @param cmd - the NetLogo command to be run on the current headless workspace.
 	 * @throws CompilerException
@@ -306,30 +306,30 @@ public strictfp class ModelRunner {
 			super("", ex);
 			this.runSetup = runSetup;
 		}
-		
+
 		public RunSetup getRunSetup()
 		{
 			return runSetup;
 		}
-		
+
 		@Override
 		public String getMessage()
 		{
 			return getCause().toString() +  "\n\nModel run configuration was: " + runSetup;
 		}
 	}
-	
+
 	public static class RunSetup {
 		final int seed;
 		final private LinkedHashMap<String,Object> parameterSettings;
-		
+
 		public RunSetup(int seed,
 				LinkedHashMap<String, Object> parameterSettings) {
 			super();
 			this.seed = seed;
 			this.parameterSettings = parameterSettings;
 		}
-		
+
 		@Override
 		public String toString()
 		{
@@ -339,7 +339,7 @@ public strictfp class ModelRunner {
 			{
 				sb.append(key + "=" + org.nlogo.api.Dump.logoObject(parameterSettings.get(key), true, false) + ", ");
 			}
-			sb.append("}}"); 
+			sb.append("}}");
 			return sb.toString();
 		}
 	}
@@ -347,13 +347,13 @@ public strictfp class ModelRunner {
 	public static class Factory {
 		private List<ModelRunner> allModelRunners = Collections.synchronizedList(new java.util.LinkedList<ModelRunner>());
 		private Queue<ModelRunner> unusedModelRunners = new java.util.concurrent.ConcurrentLinkedQueue<ModelRunner>();
-		
+
 		private final String modelFileName, setupCommands, stepCommands, stopCondition, metricReporter, measureIfReporter;
 		private final boolean recordEveryTick;
-		private final int maxModelSteps;		
-		
-		public Factory(String modelFileName, boolean recordEveryTick, int maxModelSteps, 
-				String setupCommands, String stepCommands, String stopCondition, String metricReporter, 
+		private final int maxModelSteps;
+
+		public Factory(String modelFileName, boolean recordEveryTick, int maxModelSteps,
+				String setupCommands, String stepCommands, String stopCondition, String metricReporter,
 				String measureIfReporter)
 		{
 			this.modelFileName = modelFileName;
@@ -364,10 +364,10 @@ public strictfp class ModelRunner {
 			this.measureIfReporter = measureIfReporter;
 			this.recordEveryTick = recordEveryTick;
 			this.maxModelSteps = maxModelSteps;
-			
+
 		}
 		/** Either creates a new one, or recycles a ModelRunner that has been released again into the pool */
-		public ModelRunner acquireModelRunner() throws NetLogoLinkException 
+		public ModelRunner acquireModelRunner() throws NetLogoLinkException
 		{
 			ModelRunner runner = unusedModelRunners.poll();
 			if (runner != null)
@@ -383,7 +383,7 @@ public strictfp class ModelRunner {
 		{
 			unusedModelRunners.add(runner);
 		}
-		
+
 		private ModelRunner newModelRunner() throws NetLogoLinkException
 		{
 			ModelRunner runner;
@@ -399,14 +399,14 @@ public strictfp class ModelRunner {
 				e.printStackTrace();
 				throw new NetLogoLinkException("Error compiling NetLogo model ( " + modelFileName + " ).  NetLogo's error message: \"" + e.getMessage() + "\"");
 			}
-	
+
 	        try {
 				runner.setSetupCommands(setupCommands);
 			} catch (CompilerException e) {
 				e.printStackTrace();
 				throw new NetLogoLinkException("Error compiling the model's setup commands : " +setupCommands.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
 			}
-			
+
 	        try {
 				runner.setStepCommands(stepCommands);
 			} catch (CompilerException e) {
@@ -431,10 +431,10 @@ public strictfp class ModelRunner {
 				e.printStackTrace();
 				throw new NetLogoLinkException("Error compiling the model's fitness metric: " +metricReporter.toUpperCase() + " \n  NetLogo's error message: \"" + e.getMessage() + "\"");
 			}
-			
+
 			allModelRunners.add(runner);
-			
-			return runner;			
+
+			return runner;
 		}
 
 		/** This method should only be called after you are done using this Factory, and all the ModelRunners created by it.
