@@ -50,7 +50,7 @@ includeFilter in unmanagedResources := "*.fxml"
 
 excludeFilter in Compile in unmanagedSources := "*test*"
 
-unmanagedJars in Compile += Attributed.blank(file(System.getenv("JAVA_HOME") + "/lib/ext/jfxrt.jar"))
+unmanagedJars in Compile += Attributed.blank(file(System.getenv("JAVA_HOME") + "/jre/lib/ext/jfxrt.jar"))
   .put(AttributeKey[Boolean]("jdkLibrary"), true)
 
 javaSource in Test := baseDirectory.value / "src"
