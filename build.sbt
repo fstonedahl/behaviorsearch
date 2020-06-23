@@ -2,13 +2,15 @@ name := "behaviorsearch"
 
 organization := "bsearch"
 
-scalaVersion := "2.12.0"
+scalaVersion := "2.12.8"
 
 val netLogoVersion = settingKey[String]("active version of NetLogo")
 
-netLogoVersion := "6.0.1-374fdd1"
+netLogoVersion := "6.0.4-464f042"
 
 resolvers += Resolver.bintrayRepo("content/netlogo", "NetLogo-JVM")
+
+resolvers += Resolver.bintrayRepo("content/netlogo", "NetLogoHeadless")
 
 libraryDependencies ++= Seq(
   "jfree"     % "jfreechart" % "1.0.13",
@@ -26,7 +28,10 @@ libraryDependencies ++= {
   if (description.value.contains("subproject of NetLogo"))
     Seq()
   else
-    Seq(("org.nlogo" % "netlogo" % version).intransitive)
+    Seq(
+      ("org.nlogo" % "netlogo" % version).intransitive,
+      "org.nlogo" % "netlogoheadless" % version
+    )
 }
 
 artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
@@ -45,7 +50,7 @@ includeFilter in unmanagedResources := "*.fxml"
 
 excludeFilter in Compile in unmanagedSources := "*test*"
 
-unmanagedJars in Compile += Attributed.blank(file(System.getenv("JAVA_HOME") + "/lib/ext/jfxrt.jar"))
+unmanagedJars in Compile += Attributed.blank(file(System.getenv("JAVA_HOME") + "/jre/lib/ext/jfxrt.jar"))
   .put(AttributeKey[Boolean]("jdkLibrary"), true)
 
 javaSource in Test := baseDirectory.value / "src"
