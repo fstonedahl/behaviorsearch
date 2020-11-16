@@ -2,11 +2,11 @@ name := "behaviorsearch"
 
 organization := "bsearch"
 
-scalaVersion := "2.12.8"
+scalaVersion := "2.12.12"
 
 val netLogoVersion = settingKey[String]("active version of NetLogo")
 
-netLogoVersion := "6.0.4-464f042"
+netLogoVersion := "6.1.1-c82c397"
 
 resolvers += Resolver.bintrayRepo("content/netlogo", "NetLogo-JVM")
 
