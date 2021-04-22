@@ -2,25 +2,22 @@ name := "behaviorsearch"
 
 organization := "bsearch"
 
-scalaVersion := "2.12.12"
-
 val netLogoVersion = settingKey[String]("active version of NetLogo")
 
-netLogoVersion := "6.1.1-c82c397"
+netLogoVersion := "6.2.0-d27b502"
 
-resolvers += Resolver.bintrayRepo("content/netlogo", "NetLogo-JVM")
-
-resolvers += Resolver.bintrayRepo("content/netlogo", "NetLogoHeadless")
+resolvers += "netlogo"         at "https://dl.cloudsmith.io/public/netlogo/netlogo/maven/"
+resolvers += "netlogoheadless" at "https://dl.cloudsmith.io/public/netlogo/netlogo/maven/"
 
 libraryDependencies ++= Seq(
-  "jfree"     % "jfreechart" % "1.0.13",
-  "jfree"     % "jcommon"    % "1.0.16",
-  "args4j"    % "args4j"     % "2.0.12",
-  "org.picocontainer" % "picocontainer" % "2.13.6",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
-  "org.ow2.asm" % "asm-all" % "5.0.4",
-  "org.parboiled" %% "parboiled" % "2.1.3",
-  "com.novocode" % "junit-interface" % "0.11" % "test"
+  "jfree"                  %  "jfreechart"               % "1.0.13"
+, "jfree"                  %  "jcommon"                  % "1.0.16"
+, "args4j"                 %  "args4j"                   % "2.0.12"
+, "org.picocontainer"      %  "picocontainer"            % "2.13.6"
+, "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
+, "org.ow2.asm"            %  "asm-all"                  % "5.0.4"
+, "org.parboiled"          %% "parboiled"                % "2.1.3"
+, "com.novocode"           %  "junit-interface"          % "0.11" % "test"
 )
 
 libraryDependencies ++= {
@@ -29,8 +26,8 @@ libraryDependencies ++= {
     Seq()
   else
     Seq(
-      ("org.nlogo" % "netlogo" % version).intransitive,
-      "org.nlogo" % "netlogoheadless" % version
+      ("org.nlogo" % "netlogo" % version).intransitive
+    , "org.nlogo" % "netlogoheadless" % version
     )
 }
 
@@ -40,7 +37,7 @@ artifactName := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
 
 javacOptions in Compile ++= List("-g", "-deprecation", "-target", "1.8", "-source", "1.8")
 
-javacOptions in Test++= List("-g", "-deprecation", "-target", "1.8", "-source", "1.8")
+javacOptions in Test ++= List("-g", "-deprecation", "-target", "1.8", "-source", "1.8")
 
 javaSource in Compile := baseDirectory.value / "src"
 
