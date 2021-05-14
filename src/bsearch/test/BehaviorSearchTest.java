@@ -187,7 +187,7 @@ public strictfp class BehaviorSearchTest
 					Assert.assertTrue(chromoType + " check val2 >= 0.0", val2 >= 0.0 );
 					Assert.assertTrue(chromoType + " check val2 <= 1.5", val2 <= 1.5 );
 					Assert.assertTrue(chromoType + " check val3 okay", val3.equals("apple") || val3.equals("banana") || val3.equals("cherry"));
-					Assert.assertTrue(chromoType + " check val4 okay", val4.equals(new Double(25)));
+					Assert.assertTrue(chromoType + " check val4 okay", val4.equals(Double.valueOf(25)));
 					Assert.assertTrue(chromoType + " check val5 >= -1", val5 >= -1 );
 					Assert.assertTrue(chromoType + " check val5 <= 2", val5 <= 2 );
 				}
@@ -263,16 +263,16 @@ public strictfp class BehaviorSearchTest
 		scenarios.put("TesterSA_Deriv","-p test/TesterSA_Deriv.bsearch -o test/tmp/TesterSA_Deriv -n 2 -t 1 --randomseed 67 --quiet");
 		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 1 -n 1 --randomseed 123 --quiet");
 		scenarios.put("TesterNoisy_RS","-p test/TesterNoisy_RS.bsearch -o test/tmp/TesterNoisy_RS -t 5 -n 1 --randomseed 123 --quiet");
-		
-		List<String> outputExtensions = Arrays.asList(".searchConfig.xml", ".modelRunHistory.csv", 
-				".objectiveFunctionHistory.csv",  ".bestHistory.csv", ".finalBests.csv", ".finalCheckedBests.csv"); 
-		
+
+		List<String> outputExtensions = Arrays.asList(".searchConfig.xml", ".modelRunHistory.csv",
+				".objectiveFunctionHistory.csv",  ".bestHistory.csv", ".finalBests.csv", ".finalCheckedBests.csv");
+
 		List<String> failedList = new ArrayList<String>();
 		for (String key: scenarios.keySet())
 		{
 			//System.out.println("key: + " + key);
         	RunOptions clOptions = new RunOptions();
-        	CmdLineParser parser = new CmdLineParser(clOptions);        	
+        	CmdLineParser parser = new CmdLineParser(clOptions);
         	parser.parseArgument(scenarios.get(key).split("\\s"));
 			BehaviorSearch.runWithOptions(clOptions);
 
