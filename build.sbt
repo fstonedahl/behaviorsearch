@@ -63,3 +63,4 @@ fork in run := true
 fork in Test := true
 
 crossPaths := false
+isSnapshot := true
